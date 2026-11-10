@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Симулятор стартапу · Edvault</title>
+<link rel="canonical" href="https://startup.edvault.online/">
+<noscript><meta http-equiv="refresh" content="0; url=https://startup.edvault.online/"></noscript>
+<script>
+// Сховище браузера окреме для кожного сайту. Перед переходом пакуємо збережену гру в частину адреси після «#»
+// (вона не передається на сервер), а новий сайт її розпаковує й кладе у своє сховище.
+(async function () {
+  var to = 'https://startup.edvault.online/';
+  try {
+    var k = localStorage.getItem('edvault-startup'), i = localStorage.getItem('edvault-startup-idea');
+    if (k) {
+      var bytes = new TextEncoder().encode(JSON.stringify({ k: k, i: i || '' })), out = bytes, mode = 'p';
+      if (window.CompressionStream) {
+        var cs = new CompressionStream('deflate'), w = cs.writable.getWriter(); w.write(bytes); w.close();
+        out = new Uint8Array(await new Response(cs.readable).arrayBuffer()); mode = 'z';
+      }
+      var s = ''; for (var j = 0; j < out.length; j += 0x8000) s += String.fromCharCode.apply(null, out.subarray(j, j + 0x8000));
+      var enc = btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      if (enc.length < 1500000) to += '#perenesennia=' + mode + enc;
+    }
+  } catch (e) { /* перенесення не вдалося — просто відкриваємо новий сайт */ }
+  location.replace(to);
+})();
+</script>
+</head>
+<body style="font-family:system-ui,sans-serif;padding:32px">
+<p>Симулятор стартапу тепер на окремій сторінці: <a href="https://startup.edvault.online/">startup.edvault.online</a>.</p>
+</body>
+</html>

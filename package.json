@@ -1,0 +1,10 @@
+{
+  "name": "startup-edvault",
+  "private": true,
+  "description": "Симулятор стартапу Edvault: дев'ять етапів, понад п'ятдесят вправ, власна ідея, бренд, фінанси, команда, інвестори. Статична сторінка, без збирання.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "node tests/run-browser-tests.mjs"
+  }
+}
