@@ -133,7 +133,7 @@ export function donut(items, { size = 150, hole = .62 } = {}) {
   return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Частки">${seg}</svg>`;
 }
 // Шкала 0..1
-export const meter = (v, { color = 'var(--acc)', label = '' } = {}) => `<div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(v * 100)}" aria-label="${esc(label)}"><i style="width:${Math.max(0, Math.min(1, v)) * 100}%;background:${color}"></i></div>`;
+export const meter = (v, { color = 'var(--acc)', label = '' } = {}) => `<div class="meter" ${label ? `role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(v * 100)}" aria-label="${esc(label)}"` : 'aria-hidden="true"'}><i style="width:${Math.max(0, Math.min(1, v)) * 100}%;background:${color}"></i></div>`;
 export const delta = (v, fmt, good = 1) => { if (!v) return ''; const up = v > 0; return `<span class="dl ${up === (good > 0) ? 'up' : 'down'}">${icon(up ? 'arrowUp' : 'arrowDown', 12)}${esc(fmt(Math.abs(v)))}</span>`; };
 
 // Логотип компанії

@@ -23,7 +23,7 @@ body.ck { background: var(--bg); }
 .ck-sum dt { color: var(--mu, #667); font-size: 12.5px; }
 .ck-sum dd { margin: 0; font-weight: 600; }
 .ck-st { margin: 0 0 22px; }
-.ck-st > h3 { font: 700 16px/1.3 Rubik, system-ui, sans-serif; margin: 0 0 8px; display: flex; gap: 10px; align-items: center; }
+.ck-st > :is(h2,h3) { font: 700 16px/1.3 Rubik, system-ui, sans-serif; margin: 0 0 8px; display: flex; gap: 10px; align-items: center; }
 .ck-ex { border: 1px solid var(--bd, #e3e6ee); border-radius: 14px; background: #fff; margin-bottom: 8px; }
 .ck-ex > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .ck-ex > summary::-webkit-details-marker { display: none; }

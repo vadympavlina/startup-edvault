@@ -101,7 +101,7 @@ const save = () => {
 const C = {
   get S() { return S; }, ui,
   // перехід із коду (підказка, лист, кнопка завдання) відкриває розділ навіть до його етапу
-  go(v) { if (!VIEWS[v]) return; if (S && !isOpen(S, v)) { askUnlock(v); return; } ui.view = v; const t = tabOf(v); if (t) (ui.tabLast ||= {})[t[0]] = v; if (v !== 'dash') ui.stage = null; closeMore(); render(); $('#main').scrollTo?.(0, 0); scrollTo(0, 0); },
+  go(v) { if (!VIEWS[v]) return; if (S && !isOpen(S, v)) { askUnlock(v); return; } ui.view = v; const t = tabOf(v); if (t) (ui.tabLast ||= {})[t[0]] = v; if (v !== 'dash') ui.stage = null; closeMore(); render(); $('#main').scrollTo?.(0, 0); scrollTo(0, 0); if (!document.querySelector('.modal-back, .md-back, .wizard')) $('#main').focus({ preventScroll: true }); },
   render: () => render(), save, toast,
   out(k, text) { const el = document.querySelector(`[data-out="${k}"]`); if (el) el.textContent = text; },
   topbar: () => topbar(), theme: () => theme(), ending: () => ending(),
@@ -216,13 +216,13 @@ function road(info) {
 function tabs(info) {
   const s = S.s, unread = s.inbox.filter(m => !m.read || (m.choices && m.chosen == null)).length;
   const cur = tabOf(ui.view);
-  const badge = k => k === 'mail' && unread ? `<span class="badge">${unread}</span>` : k === 'money' && Object.values(s.inv).some(x => x.status === 'offer') && isOpen(S, 'investors', info) ? '<span class="badge">!</span>' : '';
+  const badge = k => k === 'mail' && unread ? `<span class="badge" aria-hidden="true">${unread}</span>` : k === 'money' && Object.values(s.inv).some(x => x.status === 'offer') && isOpen(S, 'investors', info) ? '<span class="badge">!</span>' : '';
   const views = cur ? cur[3].filter(v => !isSimple(S) || !ADVANCED_VIEWS.includes(v) || ui.view === v) : [];
-  const sub = views.length > 1 ? `<div class="subtabs" role="tablist">${views.map(v => {
+  const sub = views.length > 1 ? `<div class="subtabs" role="group" aria-label="Розділи вкладки">${views.map(v => {
     const open = isOpen(S, v, info), st = viewStage(v);
     return `<button class="st-it ${ui.view === v ? 'on' : ''} ${open ? '' : 'locked'}" data-act="${open ? 'go' : 'locked'}" data-to="${v}" ${ui.view === v ? 'aria-current="page"' : ''} ${open ? '' : `title="Знадобиться на етапі ${st + 1} «${esc(STAGES[st].t)}»"`}>${icon(open ? VIEWS[v].icon : 'lock', 15)}<span>${VIEWS[v].t}</span>${v === 'product' && S.canLaunch() ? '<span class="badge dot"></span>' : ''}</button>`;
   }).join('')}</div>` : '';
-  setHtml($('#tabs'), `<div class="navtabs-in">${TABS.map(([k, t, ic, views]) => `<button class="tab ${cur?.[0] === k ? 'on' : ''}" data-act="tab" data-k="${k}" aria-label="${t}${k === 'mail' && unread ? `, непрочитаних: ${unread}` : ''}" ${cur?.[0] === k ? 'aria-current="page"' : ''}>${icon(ic, 18)}<span>${t}</span>${badge(k)}</button>`).join('')}</div>${sub}`);
+  setHtml($('#tabs'), `<div class="navtabs-in">${TABS.map(([k, t, ic, views]) => `<button class="tab ${cur?.[0] === k ? 'on' : ''}" data-act="tab" data-k="${k}" ${cur?.[0] === k ? 'aria-current="page"' : ''}>${icon(ic, 18)}<span>${t}</span>${badge(k)}${k === 'mail' && unread ? `<span class="sr-only">, непрочитаних: ${unread}</span>` : ''}</button>`).join('')}</div>${sub}`);
 }
 // коли пройдено етап, один раз вітаємо й показуємо, що відкрилося далі (старі збереження не вітаємо задним числом)
 let celebrating = false;
@@ -247,7 +247,7 @@ function render() {
   setTimeout(() => { if (S) celebrate(info); }, 0);
   for (const part of [theme, topbar, () => road(info), () => tabs(info)]) { try { part(); } catch (e) { console.error(e); } }
   const V = VIEWS[ui.view] || VIEWS.dash;
-  const hint = VIEW_HINTS[ui.view] && !S.s.dismissed['hint-' + ui.view] ? `<aside class="view-hint">${icon('bulb', 18)}<p>${VIEW_HINTS[ui.view]}</p><button class="btn sm ghost" data-act="dismissTip" data-id="hint-${ui.view}">Зрозуміло</button></aside>` : '';
+  const hint = VIEW_HINTS[ui.view] && !S.s.dismissed['hint-' + ui.view] ? `<aside class="view-hint" aria-label="Підказка до розділу">${icon('bulb', 18)}<p>${VIEW_HINTS[ui.view]}</p><button class="btn sm ghost" data-act="dismissTip" data-id="hint-${ui.view}">Зрозуміло</button></aside>` : '';
   let body;
   try { body = V.render(S, ui, info); } catch (e) {
     console.error('Розділ ' + ui.view, e);

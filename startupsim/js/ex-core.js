@@ -59,9 +59,9 @@ export const xnum = (id, p, d, { min = 0, max = 1e9, step = 1, label = '', u = '
 export const xsel = (id, p, d, list, { label = '', cls = '' } = {}) => `<label class="xf ${cls}">${label ? `<span class="xf-l">${label}</span>` : ''}<select class="inp" data-exi="${id}" data-p="${esc(p)}">${list.map(([v, t]) => `<option value="${esc(v)}" ${String(get(d, p)) === String(v) ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
 export const xcol = (id, p, d, { label = '' } = {}) => `<label class="xf xcol"><span class="xf-l">${label}</span><input type="color" data-exi="${id}" data-p="${esc(p)}" value="${esc(get(d, p) || '#6366f1')}"></label>`;
 export const tip = (html, kind = '') => `<p class="x-tip ${kind}">${icon(kind === 'bad' ? 'alert' : kind === 'ok' ? 'check' : 'bulb', 16)}<span>${html}</span></p>`;
-export const box = (title, body, { cls = '', ic, side = '' } = {}) => `<section class="xbox ${cls}"><header>${ic ? icon(ic, 18) : ''}<h3>${title}</h3>${side ? `<span class="xs">${side}</span>` : ''}</header>${body}</section>`;
+export const box = (title, body, { cls = '', ic, side = '' } = {}) => `<section class="xbox ${cls}"><header>${ic ? icon(ic, 18) : ''}<h2>${title}</h2>${side ? `<span class="xs">${side}</span>` : ''}</header>${body}</section>`;
 export const checks = list => `<ul class="x-checks">${list.map(([ok, t, hint]) => `<li class="${ok ? 'ok' : ''}">${icon(ok ? 'check' : 'minus', 14)}<span>${t}${hint && !ok ? `<small>${hint}</small>` : ''}</span></li>`).join('')}</ul>`;
-export const bar = (v, { color = 'var(--acc)', label = '' } = {}) => `<div class="x-bar" role="meter" aria-valuenow="${Math.round(v * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="${esc(label)}"><i style="width:${Math.max(0, Math.min(1, v)) * 100}%;background:${color}"></i></div>`;
+export const bar = (v, { color = 'var(--acc)', label = '' } = {}) => `<div class="x-bar" ${label ? `role="meter" aria-valuenow="${Math.round(v * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="${esc(label)}"` : 'aria-hidden="true"'}><i style="width:${Math.max(0, Math.min(1, v)) * 100}%;background:${color}"></i></div>`;
 export const money0 = n => Math.round(n).toLocaleString('uk-UA').replace(/\s/g, ' ') + ' ₴';
 export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export const sumOf = a => a.reduce((x, y) => x + y, 0);

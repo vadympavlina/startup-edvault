@@ -24,7 +24,7 @@ export const hoursUsed = S => S.totalHours() + (S.s.mkt.events || 0);
 function status(S) {
   const s = S.s, h = s.history, prev = h.at(-2), last = h.at(-1), rw = S.runwayWeeks(), e = Math.round(s.founder.energy);
   const row = (label, val, sub = '', cls = '', tip = '') => `<div class="st-row ${cls}"><span>${tip ? term(tip, label) : esc(label)}</span><b>${val}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
-  return `<section class="pin status"><h3>Як справи</h3>
+  return `<section class="pin status"><h2>Як справи</h2>
     ${row('Гроші', money(s.cash), last && prev ? delta(last.cash - prev.cash, money) : '', s.cash < 30000 ? 'bad' : '')}
     ${row('Вистачить на', rw === Infinity ? 'заробляємо більше, ніж витрачаємо' : rw > 104 ? '2+ роки' : `${Math.max(0, Math.floor(rw))} ${plural(Math.max(0, Math.floor(rw)), 'тиждень', 'тижні', 'тижнів')}`, '', rw < 8 ? 'bad' : rw < 16 ? 'warn' : 'ok', 'Runway')}
     ${row(s.product.launched ? 'Користуються продуктом' : 'Чекають на запуск', num(s.product.launched ? S.activeUsers() : Math.round(last?.wait || 0)))}
@@ -45,7 +45,7 @@ function weekPlan(S) {
       <b class="ht">${icon(ic, 15)}${t}</b><output>${v} год</output><small>${extra}</small>
       <span class="hr-pm"><button class="ib" data-act="hrs" data-k="${k}" data-d="-1" aria-label="${t}: менше" ${v <= 0 ? 'disabled' : ''}>${icon('minus', 16)}</button><button class="ib" data-act="hrs" data-k="${k}" data-d="1" aria-label="${t}: більше" ${v >= DOTS * STEP ? 'disabled' : ''}>${icon('plus', 16)}</button></span></div>`;
   }).join('');
-  return `<section class="card sheet" id="weekplan"><header class="card-h"><h3>Ваш тиждень <span class="hand-s">${used} з ${HOURS} годин</span></h3><span class="row gap"><button class="btn sm" data-act="autoHours">${icon('bolt', 14)} Підібрати за мене</button><span class="chip ${over ? (used > 62 ? 'bad' : 'warn') : 'ok'}" data-out="h-total">${used} / ${HOURS} год</span></span></header>
+  return `<section class="card sheet" id="weekplan"><header class="card-h"><h2>Ваш тиждень <span class="hand-s">${used} з ${HOURS} годин</span></h2><span class="row gap"><button class="btn sm" data-act="autoHours">${icon('bolt', 14)} Підібрати за мене</button><span class="chip ${over ? (used > 62 ? 'bad' : 'warn') : 'ok'}" data-out="h-total">${used} / ${HOURS} год</span></span></header>
     <p class="muted sm">На що ви витратите час цього тижня. Кнопки змінюють по ${STEP} годин, а натискання на стовпчик ставить висоту одразу. Звичайний тиждень — ${HOURS} годин: більше можна, але сили падатимуть.</p>
     <div class="hcols">${cols}</div>
     ${s.team.length ? `<label class="switch"><input type="checkbox" data-in="crunch" ${s.crunch ? 'checked' : ''}><span></span>Команда працює понаднормово: на чверть швидше, але настрій падає</label>` : ''}
@@ -56,7 +56,7 @@ function lastWeek(S) {
   const L = S.s.last; if (!L) return '';
   const m = L.money, r = L.rec;
   const out = m.salaries + m.mkt + m.servers + m.tools + m.formFee + m.cogs + m.tax + (m.loyal || 0) + (m.loan || 0) + m.extra;
-  return `<section class="card"><header class="card-h"><h3>${icon('chart')} Минулий тиждень</h3><span class="muted sm">тиждень ${L.week + 1}</span></header>
+  return `<section class="card"><header class="card-h"><h2>${icon('chart')} Минулий тиждень</h2><span class="muted sm">тиждень ${L.week + 1}</span></header>
     <div class="mini-stats">
       <div><span>Виручка</span><b class="pos">${money(m.revenue)}</b></div>
       <div><span>Витрати</span><b class="neg">${money(out)}</b></div>
@@ -117,7 +117,7 @@ function help(S, ui) {
   const q = (ui.q || '').toLowerCase();
   const items = Object.entries(GLOSSARY).filter(([k, v]) => !q || k.toLowerCase().includes(q) || v.toLowerCase().includes(q));
   return `<div class="grid g2">
-    <section class="card"><header class="card-h"><h3>${icon('book')} Як грати</h3></header><ol class="steps">
+    <section class="card"><header class="card-h"><h2>${icon('book')} Як грати</h2></header><ol class="steps">
       <li><b>Етап 1. Ніша й продукт.</b> Оцініть нішу, знайдіть конкурентів, поговоріть із клієнтами, опишіть бізнес-план і першу версію. Питайте про минуле й факти, а не про свою ідею.</li>
       <li><b>Етап 2. Аудиторія й бренд.</b> Сегментація 5W, маркетингова стратегія, SMART-ціль, логотип і стиль.</li>
       <li><b>Етап 3. Позиціонування.</b> SWOT, унікальна пропозиція, назва, PR.</li>
@@ -128,22 +128,22 @@ function help(S, ui) {
       <li><b>Етап 8. Фриланс.</b> Біржі, резюме, пошук замовника, оформлення ФОП.</li>
       <li><b>Етап 9. Платежі й капітал.</b> Віртуальні банки й картки, види грошей, інвестування, крипто й трейдинг.</li>
     </ol><p class="muted sm">Гра триває ${WEEKS} тижнів (2 роки). Усі люди й компанії вигадані.</p></section>
-    <section class="card"><header class="card-h"><h3>${icon('save')} Збереження й файли</h3></header><ul class="facts">
+    <section class="card"><header class="card-h"><h2>${icon('save')} Збереження й файли</h2></header><ul class="facts">
       <li><b>Шлях стартапу.</b> Дев’ять етапів. На кожному є свої вправи й справи; коли їх виконано, наступний етап і нові розділи відкриваються самі. Раніше відкрити їх не можна. Пункти вправ необов’язкові: вправу можна завершити й не все заповнивши, але повна дає більше зірок.</li>
       <li>Гра автоматично зберігається в цьому браузері. Але на спільному комп'ютері чи в іншому браузері її не буде — тому <b>зберігайте у файл</b>.</li>
       <li><b>Зберегти у файл</b> — кнопка «Зберегти» вгорі сторінки або в меню (Ctrl+S). У файлі є все: кожен тиждень, усі рішення, журнал дій, бізнес-план, бренд, пошта, команда, фінанси.</li>
       <li><b>Відкрити файл</b> — кнопка в меню (або Ctrl+O). Можна також просто перетягнути файл на сторінку. Гра продовжиться з того самого місця.</li>
     </ul><div class="row gap wrap"><button class="btn primary" data-act="saveFile">${icon('save', 16)} Зберегти у файл</button><button class="btn" data-act="openFile">${icon('open', 16)} Відкрити файл</button></div></section>
-    <section class="card"><header class="card-h"><h3>${icon('user')} Для викладача</h3></header><ol class="steps">
+    <section class="card"><header class="card-h"><h2>${icon('user')} Для викладача</h2></header><ol class="steps">
       <li><b>Учні здають файл.</b> Наприкінці заняття чи гри учень натискає «Зберегти у файл» і надсилає файл .edvault (власний формат симулятора; старі файли .json теж відкриваються).</li>
       <li><b>Найпростіше — сторінка перевірки.</b> Відкрийте <a href="startup-check" target="_blank" rel="noopener"><b>Перевірка роботи</b></a> і перетягніть туди файл учня: усі вправи, бізнес-план, інтерв’ю та звіт видно лише для перегляду, змінити нічого не можна, ваша власна гра не зачіпається.</li>
       <li><b>Або відкрийте файл у симуляторі.</b> «Відкрити файл» → «Відкрити звіт». Тоді ваша власна гра в цьому браузері буде замінена, тож за потреби спершу збережіть її.</li>
       <li><b>Підсумковий звіт</b> показує результати, бізнес-план із перевіркою даними, ключові рішення, журнал дій по тижнях і таблицю всіх тижнів. Його можна надрукувати або зберегти в PDF.</li>
       <li><b>Чесність.</b> Якщо файл змінювали вручну після збереження, симулятор попередить про це і в звіті, і під час відкриття.</li>
     </ol></section>
-    <section class="card"><header class="card-h"><h3>${icon('search')} Словник</h3></header>
+    <section class="card"><header class="card-h"><h2>${icon('search')} Словник</h2></header>
       <input class="inp" type="search" placeholder="Знайти термін…" value="${esc(ui.q || '')}" data-in="q" aria-label="Пошук термінів">
-      <dl class="gloss">${items.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('') || '<p class="empty">Нічого не знайдено</p>'}</dl></section>
+      <dl class="gloss" tabindex="0">${items.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('') || '<p class="empty">Нічого не знайдено</p>'}</dl></section>
   </div>`;
 }
 
@@ -167,24 +167,24 @@ export function report(S) {
       <div class="kpi"><span class="kpi-l">Ваша частка</span><b>${pct(stake, 1)}</b><small>≈ ${money(val * stake)}</small></div>
       <div class="kpi"><span class="kpi-l">Команда</span><b>${s.team.length + 1} ${plural(s.team.length + 1, 'людина', 'людини', 'людей')}</b></div>
     </div>
-    <section class="card"><header class="card-h"><h3>Бізнес-план (Lean Canvas)</h3></header><div class="canvas ro">${Object.keys(CANVAS).map(block).join('')}</div></section>
+    <section class="card"><header class="card-h"><h2>Бізнес-план (Lean Canvas)</h2></header><div class="canvas ro">${Object.keys(CANVAS).map(block).join('')}</div></section>
     ${exSummary(S)}
     <div class="grid g2">
-      <section class="card"><header class="card-h"><h3>Гроші</h3></header>${lineChart([{ v: h.map(x => x.cash), color: 'var(--acc)', label: 'Гроші', area: true }], { labels, fmt: x => money(x).replace(' ₴', '') })}</section>
-      <section class="card"><header class="card-h"><h3>Користувачі</h3></header>${lineChart([{ v: h.map(x => x.users), color: '#0ea5e9', label: 'Активні' }, { v: h.map(x => x.paid), color: '#16a34a', label: 'Платні' }], { labels, fmt: num })}</section>
+      <section class="card"><header class="card-h"><h2>Гроші</h2></header>${lineChart([{ v: h.map(x => x.cash), color: 'var(--acc)', label: 'Гроші', area: true }], { labels, fmt: x => money(x).replace(' ₴', '') })}</section>
+      <section class="card"><header class="card-h"><h2>Користувачі</h2></header>${lineChart([{ v: h.map(x => x.users), color: '#0ea5e9', label: 'Активні' }, { v: h.map(x => x.paid), color: '#16a34a', label: 'Платні' }], { labels, fmt: num })}</section>
     </div>
     ${I.custom ? (() => { const mg = marketVsGuess(I), per = I.kind === 'hardware' ? 'за штуку' : 'на місяць';
       const miss = (g, r) => g ? (r / g >= .8 && r / g <= 1.25 ? 'ok' : 'warn') : '';
-      return `<section class="card"><header class="card-h"><h3>Паспорт ідеї</h3><span class="chip">${esc(KINDS[I.sub]?.t || '')} · ${esc(SCOPES[I.scope]?.t.toLowerCase() || '')}</span></header>
+      return `<section class="card"><header class="card-h"><h2>Паспорт ідеї</h2><span class="chip">${esc(KINDS[I.sub]?.t || '')} · ${esc(SCOPES[I.scope]?.t.toLowerCase() || '')}</span></header>
       <dl class="passport"><dt>Проблема</dt><dd>${esc(I.problem)}</dd><dt>Ідея</dt><dd>${esc(I.pitch)}</dd>
         <dt>Клієнти</dt><dd>${Object.values(I.segments).map(g => esc(g.t)).join(', ')}</dd>
         <dt>Конкуренти</dt><dd>${I.competitors.length ? I.competitors.map(c => `${esc(c.t)}${c.price ? ` (${money(c.price)} ${per})` : ''}${c.weak ? ` — ${esc(c.weak)}` : ''}`).join('; ') : 'не названо'}</dd></dl>
       ${mg.length ? `<p class="sm muted">Ваші оцінки ринку на старті й те, як було насправді.</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Група</th><th>Клієнтів: ваша оцінка</th><th>Насправді</th><th>Ціна: ваша оцінка</th><th>Насправді готові платити</th></tr></thead><tbody>${mg.map(x => `<tr><td>${esc(x.seg)}</td><td>${x.size[0] ? num(x.size[0]) : '—'}</td><td class="${miss(x.size[0], x.size[1])}">${num(x.size[1])}</td><td>${x.price[0] ? money(x.price[0]) : '—'}</td><td class="${miss(x.price[0], x.price[1])}">${money(x.price[1])}</td></tr>`).join('')}</tbody></table></div>` : ''}</section>`; })() : ''}
     ${I.custom ? (() => { const av = assumptionsVsReality(I), segs = Object.values(I.segments).map(g => g.short); let hit = 0, all = 0; av.forEach(f => f.rows.forEach(x => { all++; if (x.guess === x.real) hit++; }));
-      return `<section class="card"><header class="card-h"><h3>Ваші припущення ↔ реальність</h3><span class="chip ${hit / Math.max(1, all) >= .7 ? 'ok' : 'warn'}">вгадано ${hit} з ${all}</span></header><p class="sm muted">Кому, на вашу думку, потрібна кожна функція, і як було насправді. Справжню картину можна було дізнатися з інтерв'ю й опитувань.</p>
+      return `<section class="card"><header class="card-h"><h2>Ваші припущення ↔ реальність</h2><span class="chip ${hit / Math.max(1, all) >= .7 ? 'ok' : 'warn'}">вгадано ${hit} з ${all}</span></header><p class="sm muted">Кому, на вашу думку, потрібна кожна функція, і як було насправді. Справжню картину можна було дізнатися з інтерв'ю й опитувань.</p>
       <div style="overflow-x:auto"><table class="tbl guess"><thead><tr><th>Функція</th>${segs.map(t => `<th>${esc(t)}</th>`).join('')}</tr></thead><tbody>${av.map(f => `<tr><td>${esc(f.t)}</td>${f.rows.map(x => `<td class="${x.guess !== x.real ? 'miss' : ''}"><span class="${x.guess ? 'y' : 'n'}">ви: ${x.guess ? 'так' : 'ні'}</span> · <span class="${x.real ? 'y' : 'n'}">ринок: ${x.real ? 'так' : 'ні'}</span></td>`).join('')}</tr>`).join('')}</tbody></table></div>
       <p class="sm muted">Наскільки болить проблема насправді: ${Object.values(I.segments).map(g => `${esc(g.short)} — ${Math.round(g.pain * 10)}/10`).join(', ')}.</p></section>`; })() : ''}
-    <section class="card"><header class="card-h"><h3>Ключові рішення</h3></header><ul class="facts">
+    <section class="card"><header class="card-h"><h2>Ключові рішення</h2></header><ul class="facts">
       <li>Цільовий сегмент: <b>${esc(S.seg().t)}</b>. Модель: ${esc(S.model(S.modelOf(s.target)).t)}, ціна ${money(s.price[s.target])}${S.I.kind === 'hardware' ? ` за ${S.I.uw ? 'штуку' : 'пристрій'}` : ' на місяць'}.</li>
       <li>Інтерв'ю: ${sum(Object.values(s.know).map(k => k.n))}, з них без підказувальних запитань — ${sum(Object.values(s.know).map(k => k.good))}.</li>
       <li>Функцій у продукті: ${s.product.built.length}. Якість ${Math.round(s.product.quality)}%, багів ${Math.round(s.product.bugs)}.</li>
@@ -192,10 +192,10 @@ export function report(S) {
       <li>Залучено інвестицій: ${(n => n ? `${n} ${plural(n, 'раунд', 'раунди', 'раундів')}` : 'ні')(Object.values(s.inv).filter(v => ['invested', 'accel'].includes(v.status)).length)}${s.loan ? `, кредит ${money(s.loan.amt)}` : ''}${s.crowd?.status === 'won' ? `, краудфандинг ${money(s.crowd.raised)}` : ''}.</li>
       <li>Бренд: впізнаваність ${pct(s.brand.aware)}, відповідність сегменту ${pct(S.brandFit())}.</li>
     </ul></section>
-    <section class="card"><header class="card-h"><h3>Досягнення</h3></header><div class="achs">${Object.entries(ACHIEVEMENTS).filter(([k]) => s.ach[k]).map(([k, a]) => `<div class="ach on">${icon('star', 18)}<span><b>${esc(a.t)}</b><small>${esc(a.d)}</small></span></div>`).join('') || '<p class="muted">Поки немає.</p>'}</div></section>
-    <section class="card"><header class="card-h"><h3>Журнал рішень</h3><span class="muted sm">${(s.journal || []).length} ${plural((s.journal || []).length, 'запис', 'записи', 'записів')}</span></header>
+    <section class="card"><header class="card-h"><h2>Досягнення</h2></header><div class="achs">${Object.entries(ACHIEVEMENTS).filter(([k]) => s.ach[k]).map(([k, a]) => `<div class="ach on">${icon('star', 18)}<span><b>${esc(a.t)}</b><small>${esc(a.d)}</small></span></div>`).join('') || '<p class="muted">Поки немає.</p>'}</div></section>
+    <section class="card"><header class="card-h"><h2>Журнал рішень</h2><span class="muted sm">${(s.journal || []).length} ${plural((s.journal || []).length, 'запис', 'записи', 'записів')}</span></header>
       ${(s.journal || []).length ? `<ol class="journal">${s.journal.map(j => `<li><b>Тиждень ${j.w + 1}</b><span>${esc(j.t)}</span></li>`).join('')}</ol>` : '<p class="muted">Записів поки немає.</p>'}</section>
-    <section class="card"><header class="card-h"><h3>Усі тижні</h3><span class="muted sm">гроші, користувачі, виручка й витрати</span></header>
+    <section class="card"><header class="card-h"><h2>Усі тижні</h2><span class="muted sm">гроші, користувачі, виручка й витрати</span></header>
       ${h.length ? `<div style="overflow-x:auto"><table class="tbl sm weeks"><thead><tr><th>Тиждень</th><th>Гроші</th><th>Активні</th><th>Платні</th><th>Виручка</th><th>Витрати</th><th>Енергія</th></tr></thead><tbody>${h.map(x => `<tr><td>${x.week + 1}</td><td>${money(x.cash)}</td><td>${num(x.users)}</td><td>${num(x.paid)}</td><td>${money(x.rev)}</td><td>${money(x.cost)}</td><td>${x.energy != null ? x.energy + '%' : '—'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Ще не минуло жодного тижня.</p>'}</section>
   </div>`;
 }

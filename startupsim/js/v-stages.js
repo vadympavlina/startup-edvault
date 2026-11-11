@@ -42,7 +42,7 @@ export function stageSheet(S, ui, info) {
 // на інших сторінках: тонка смужка з поточним етапом
 export function stageBar(S, info) {
   const st = info.list[info.cur], pct = st.m ? st.n / st.m : 1;
-  return `<button class="stbar" data-act="stage" data-i="${info.cur}" aria-label="Етап ${info.cur + 1} з ${STAGES.length}: ${esc(st.t)}. Відкрити етап"><span class="n">${info.cur + 1}</span><span><small>Етап ${info.cur + 1} з ${STAGES.length}</small><b>${esc(st.t)}</b></span><span class="x-bar"><i style="width:${pct * 100}%"></i></span><span class="sc">${st.n} з ${st.m}</span>${icon('right', 16)}</button>`;
+  return `<button class="stbar" data-act="stage" data-i="${info.cur}"><span class="n">${info.cur + 1}</span><span><small>Етап ${info.cur + 1} з ${STAGES.length}</small><b>${esc(st.t)}</b></span><span class="x-bar"><i style="width:${pct * 100}%"></i></span><span class="sc">${st.n} з ${st.m}</span>${icon('right', 16)}</button>`;
 }
 
 // SMART-ціль, поставлена у вправі: прогрес до неї видно на головній
@@ -69,5 +69,5 @@ const SUMM = {
 export function exSummary(S) {
   const n = exCount(S); if (!n) return '';
   const rows = STAGE_T.map((t, i) => { const ex = exAll().filter(e => e.stage === i && exDone(S, e.id)); return ex.length ? `<tr><th scope="row">${i + 1}. ${esc(t)}</th><td>${ex.map(e => { const r = SUMM[e.id]?.(S, X(S, e.id)); return `<div class="xsr"><b>${esc(e.t)}</b>${r ? ` <span class="muted">· ${esc(r)}</span>` : ''} ${stars(exStars(S, e.id))}</div>`; }).join('')}</td></tr>` : ''; }).join('');
-  return `<section class="card"><header class="card-h"><h3>${icon('award')} Вправи етапів</h3><span class="chip ok">${n} з ${exAll().length}</span></header><table class="tbl xrep"><tbody>${rows}</tbody></table></section>`;
+  return `<section class="card"><header class="card-h"><h2>${icon('award')} Вправи етапів</h2><span class="chip ok">${n} з ${exAll().length}</span></header><table class="tbl xrep"><tbody>${rows}</tbody></table></section>`;
 }

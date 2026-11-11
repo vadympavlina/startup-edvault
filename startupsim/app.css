@@ -90,8 +90,8 @@ h1, h2, h3 { line-height: 1.25; letter-spacing: -.01em; }
 /* ── загальні елементи ── */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--sh); margin-bottom: 16px; }
 .card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-.card-h h3 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.card-h h3 .ic { color: var(--acc-tx); }
+.card-h :is(h2,h3) { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.card-h :is(h2,h3) .ic { color: var(--acc-tx); }
 .grid { display: grid; gap: 16px; margin-bottom: 0; }
 .grid.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 16px; }
@@ -232,7 +232,7 @@ output { font-weight: 600; font-size: 13.5px; white-space: nowrap; font-variant-
 .seg-card.target { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-soft); }
 .seg-card header .btn { white-space: nowrap; }
 .seg-card header { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-.seg-card h3 { font-size: 16px; } .seg-card header small { color: var(--tx3); font-size: 12.5px; }
+.seg-card :is(h2,h3) { font-size: 16px; } .seg-card header small { color: var(--tx3); font-size: 12.5px; }
 .seg-card .ins { grid-template-columns: 1fr 1fr; }
 .seg-card footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 8px; flex-wrap: wrap; }
 .survey { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
@@ -259,7 +259,7 @@ output { font-weight: 600; font-size: 13.5px; white-space: nowrap; font-variant-
 
 /* ── продукт ── */
 .launch { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 18px 22px; border-radius: var(--r); border: 1.5px dashed var(--line); background: #fff; margin-bottom: 16px; }
-.launch h3 { display: flex; gap: 8px; align-items: center; font-size: 17px; } .launch p { color: var(--tx2); font-size: 14px; margin-top: 4px; }
+.launch :is(h2,h3) { display: flex; gap: 8px; align-items: center; font-size: 17px; } .launch p { color: var(--tx2); font-size: 14px; margin-top: 4px; }
 .launch.ready { border-style: solid; border-color: var(--acc); background: linear-gradient(110deg, var(--acc-soft), #fff 70%); }
 .kanban { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
 .kanban > section { background: #eef0f5; border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
@@ -314,7 +314,7 @@ output { font-weight: 600; font-size: 13.5px; white-space: nowrap; font-variant-
 .season div { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
 .season i { width: 100%; max-width: 34px; border-radius: 6px 6px 3px 3px; background: #dfe3ec; } .season small { font-size: 12px; color: var(--tx3); }
 .season .now i { background: var(--acc); } .season .now small { color: var(--acc-tx); font-weight: 700; }
-.promo { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; } .promo h3 { font-size: 15px; display: flex; gap: 8px; align-items: center; } .promo h3 .ic { color: var(--acc-tx); } .promo p { font-size: 13.5px; color: var(--tx2); flex: 1; }
+.promo { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; } .promo :is(h2,h3) { font-size: 15px; display: flex; gap: 8px; align-items: center; } .promo :is(h2,h3) .ic { color: var(--acc-tx); } .promo p { font-size: 13.5px; color: var(--tx2); flex: 1; }
 .promo .btn, .promo .chip { align-self: flex-start; } .promo.on { border-color: #bbe5c8; background: linear-gradient(#fff, #f6fdf8); }
 
 /* ── ціна, фінанси ── */
@@ -571,7 +571,7 @@ h1, h2, h3, h4, .pg-h h1, .md-h h2 { font-family: Rubik, 'Golos Text', sans-seri
 .kpi > b { font-family: Rubik, sans-serif; font-weight: 700; }
 .kpi.warn { border-color: var(--ink); background: #fff8e8; } .kpi.bad { border-color: var(--ink); background: #fff1f1; }
 .card .card, .card .kpi { box-shadow: none; border-width: 1.5px; border-color: var(--line); }
-.card-h h3 { font-size: 17px; }
+.card-h :is(h2,h3) { font-size: 17px; }
 .chip { font-family: Rubik, sans-serif; font-weight: 600; }
 .mini-stats div { background: var(--board); }
 .mini-stats b { font-family: Rubik, sans-serif; font-weight: 600; }
@@ -587,7 +587,7 @@ h1, h2, h3, h4, .pg-h h1, .md-h h2 { font-family: Rubik, 'Golos Text', sans-seri
 .pin { position: relative; background: #fff; border-radius: 4px; padding: 22px 20px 18px; margin-bottom: 26px; box-shadow: 0 12px 24px -16px rgba(29,36,51,.6), 0 0 0 1px rgba(29,36,51,.06); }
 .pin::before { content: ''; position: absolute; top: -8px; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #E5484D; box-shadow: inset -3px -3px 0 rgba(0,0,0,.22); }
 .pin.status { transform: rotate(.6deg); }
-.pin h3 { font-size: 19px; margin-bottom: 4px; }
+.pin :is(h2,h3) { font-size: 19px; margin-bottom: 4px; }
 .mentor .mt-h { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
 .mentor .face { width: 46px; height: 46px; border-radius: 50%; background: #FFD6A8; border: 2px solid var(--ink); display: grid; place-items: center; font: 700 16px Rubik, sans-serif; flex: none; }
 .mentor.urgent .face { background: #ffb3b3; }
@@ -760,3 +760,10 @@ body.simple .adv { display: none; }
 .card a:not(.btn):hover { color: var(--acc); }
 .card ul + .row { margin-top: 14px; }
 .rp-h { align-items: flex-start; } .rp-h h1 { margin-top: 0; line-height: 1.15; } .rp-h > .lgm, .rp-h > .logo { flex: none; }
+
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.skip-link{position:absolute;left:12px;top:-60px;z-index:200;padding:10px 16px;border-radius:8px;background:#111;color:#fff;font-weight:600;text-decoration:none;transition:top .15s}
+.skip-link:focus{top:12px}
+#main:focus{outline:none}
+@media (pointer:coarse){.btn,.ib,.term,.tab,.st-it{min-height:44px}.ib{min-width:44px}}

@@ -38,13 +38,13 @@ function attention() {
   const started = exAll().filter(e => exState(S, e.id) === 'started').length;
   if (started) out.push(['', `Розпочато, але не завершено вправ: ${started}.`]);
   if (!out.length) out.push(['ok', 'Зауважень немає.']);
-  return `<section class="card"><header class="card-h"><h3>На що звернути увагу</h3></header><ul class="ck-att">${out.map(([k, x]) => `<li class="${k}">${esc(x)}</li>`).join('')}</ul></section>`;
+  return `<section class="card"><header class="card-h"><h2>На що звернути увагу</h2></header><ul class="ck-att">${out.map(([k, x]) => `<li class="${k}">${esc(x)}</li>`).join('')}</ul></section>`;
 }
 function overview() {
   const sum = summaryOf(S), st = stat(S);
   const rows = st.info.list.map((x, i) => { const ex = exOf(i), dn = ex.filter(e => exDone(S, e.id)).length; return `<li class="ck-sr"><span class="ck-sn">${x.done ? icon('check', 14) : i + 1}</span><span class="ck-sl"><b>${esc(x.t)}</b><small>обов’язкових кроків: ${x.n} з ${x.m}${ex.length ? ` · вправ: ${dn} з ${ex.length}` : ''}</small></span><i class="ck-pb"><u style="width:${x.m ? Math.round(x.n / x.m * 100) : 0}%"></u></i></li>`; }).join('');
-  return `${attention()}<section class="card" style="margin-top:14px"><header class="card-h"><h3>Проходження етапів</h3><span class="muted sm">зірок за вправи: ${st.stars}</span></header><ul class="ck-stages">${rows}</ul></section>
-    <section class="card" style="margin-top:14px"><header class="card-h"><h3>Підсумок</h3></header><dl class="ck-sum">${Object.entries(sum).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></section>`;
+  return `${attention()}<section class="card" style="margin-top:14px"><header class="card-h"><h2>Проходження етапів</h2><span class="muted sm">зірок за вправи: ${st.stars}</span></header><ul class="ck-stages">${rows}</ul></section>
+    <section class="card" style="margin-top:14px"><header class="card-h"><h2>Підсумок</h2></header><dl class="ck-sum">${Object.entries(sum).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></section>`;
 }
 
 function exBlock(def) {
@@ -58,7 +58,7 @@ function exercises() {
   const F = [['all', 'Усі', exAll().length], ['done', 'Виконані', n('done')], ['started', 'Розпочаті', n('started')], ['none', 'Не розпочаті', n('none')]];
   return `<div class="ck-bar"><div class="ck-flt" role="group" aria-label="Фільтр">${F.map(([k, t, c]) => `<button type="button" data-flt="${k}" class="${flt === k ? 'on' : ''}">${t} <small>${c}</small></button>`).join('')}</div>
     <input class="inp ck-q" id="q" type="search" placeholder="Пошук по відповідях учня" value="${esc(q)}" aria-label="Пошук по відповідях"><button class="btn sm" type="button" data-all="1">Розгорнути все</button><button class="btn sm" type="button" data-all="0">Згорнути</button></div>
-    <div id="exl">${STAGES.map((st, i) => { const l = exOf(i); return l.length ? `<section class="ck-st"><h3>Етап ${i + 1}. ${esc(STAGE_T[i])} <span class="muted sm">${l.filter(e => exDone(S, e.id)).length} з ${l.length} виконано</span></h3>${l.map(exBlock).join('')}</section>` : ''; }).join('')}<p class="muted ck-none" hidden>За цим фільтром нічого не знайдено.</p></div>`;
+    <div id="exl">${STAGES.map((st, i) => { const l = exOf(i); return l.length ? `<section class="ck-st"><h2>Етап ${i + 1}. ${esc(STAGE_T[i])} <span class="muted sm">${l.filter(e => exDone(S, e.id)).length} з ${l.length} виконано</span></h2>${l.map(exBlock).join('')}</section>` : ''; }).join('')}<p class="muted ck-none" hidden>За цим фільтром нічого не знайдено.</p></div>`;
 }
 function applyFilter() {
   const box = $('exl'); if (!box) return; const ql = q.trim().toLowerCase();
@@ -87,7 +87,7 @@ function brand() {
 function interviews() {
   const l = S.s.interviews || [];
   if (!l.length) return '<section class="card"><p class="muted">Учень не провів жодного інтерв’ю.</p></section>';
-  return `<section class="card"><header class="card-h"><h3>${icon('mic')} Інтерв’ю з клієнтами</h3><span class="muted sm">усього: ${l.length}</span></header><div class="ivlist">${[...l].reverse().map(v => `<details class="ivh ck-iv"><summary><b>${esc(v.name)}</b> <span class="muted">${esc(v.who)} · ${esc(S.seg(v.seg)?.short || '')} · тиждень ${v.w + 1}</span>${v.bad ? `<span class="chip warn">підказувальні запитання: ${v.bad}</span>` : '<span class="chip ok">лише факти</span>'}</summary><div class="chat">${v.log.map(x => `<p class="q">${esc(x.q)}</p><p class="a">${esc(x.a)}</p>`).join('')}</div></details>`).join('')}</div></section>`;
+  return `<section class="card"><header class="card-h"><h2>${icon('mic')} Інтерв’ю з клієнтами</h2><span class="muted sm">усього: ${l.length}</span></header><div class="ivlist">${[...l].reverse().map(v => `<details class="ivh ck-iv"><summary><b>${esc(v.name)}</b> <span class="muted">${esc(v.who)} · ${esc(S.seg(v.seg)?.short || '')} · тиждень ${v.w + 1}</span>${v.bad ? `<span class="chip warn">підказувальні запитання: ${v.bad}</span>` : '<span class="chip ok">лише факти</span>'}</summary><div class="chat">${v.log.map(x => `<p class="q">${esc(x.q)}</p><p class="a">${esc(x.a)}</p>`).join('')}</div></details>`).join('')}</div></section>`;
 }
 
 /* таблиця класу: усі відкриті файли одним списком */
@@ -96,7 +96,7 @@ const rowsOf = () => list.map((e, i) => { const st = stat(e.S), s = e.S.s; retur
 function classTable() {
   const rs = rowsOf().sort((a, b) => (typeof a[sortK] === 'string' ? a[sortK].localeCompare(b[sortK], 'uk') : a[sortK] - b[sortK]) * sortD);
   const th = (k, t) => `<th><button type="button" data-sort="${k}" class="${sortK === k ? 'on' : ''}">${t}${sortK === k ? (sortD > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
-  return `<section class="card"><header class="card-h"><h3>Клас</h3><span class="muted sm">учнів: ${rs.length}</span><button class="btn sm" type="button" id="csv">${icon('save', 14)} Таблиця для Excel</button></header>
+  return `<section class="card"><header class="card-h"><h2>Клас</h2><span class="muted sm">учнів: ${rs.length}</span><button class="btn sm" type="button" id="csv">${icon('save', 14)} Таблиця для Excel</button></header>
     <div style="overflow-x:auto"><table class="tbl ck-tbl"><thead><tr>${th('name', 'Учень')}${th('group', 'Клас')}${th('company', 'Компанія')}${th('stage', 'Етап')}${th('done', 'Вправи')}${th('stars', 'Зірки')}${th('week', 'Тиждень')}<th></th></tr></thead>
     <tbody>${rs.map(r => `<tr><td><button type="button" class="ck-lnk" data-open="${r.i}">${esc(r.name)}</button></td><td>${esc(r.group) || '—'}</td><td>${esc(r.company)}</td><td>${r.stage} з ${STAGES.length}</td><td>${r.done} з ${r.all}</td><td>${r.stars}</td><td>${r.week}</td><td>${r.edited ? '<span class="chip warn">змінено</span>' : ''}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
