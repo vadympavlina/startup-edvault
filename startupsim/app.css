@@ -767,3 +767,11 @@ body.simple .adv { display: none; }
 .skip-link:focus{top:12px}
 #main:focus{outline:none}
 @media (pointer:coarse){.btn,.ib,.term,.tab,.st-it{min-height:44px}.ib{min-width:44px}}
+.req{display:inline-flex;align-items:center;gap:4px}.req.ok{color:var(--ok)}.req.no{color:var(--bad)}
+
+/* телефон: у кожної вкладки видно підпис */
+@media (max-width: 560px) {
+  .navtabs-in .tab { flex-direction: column; gap: 2px; padding: 6px 4px; min-width: 56px; flex: 1; font-size: 11px; line-height: 1.15; }
+  .navtabs-in .tab span:not(.badge) { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .navtabs-in .tab { position: relative; } .navtabs-in .tab .badge { position: absolute; top: 2px; right: 8px; margin: 0; }
+}

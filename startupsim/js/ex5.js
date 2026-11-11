@@ -2,7 +2,7 @@
 import { ROLES } from './data.js';
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone } from './ex-core.js';
+import { stars, reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 
@@ -91,7 +91,7 @@ reg({
     if (d.tab === 'scrum') {
       const rest = STORIES.filter(s => !d.done.includes(s.id)), tot = sumOf(d.pick.map(i => STORIES[i].pts));
       return `${head}${box('Спринт-планування', `<p class="sub">Можливості команди за спринт: <b>${cap} очок</b> (ви + ${S.s.team.length} ${S.s.team.length === 1 ? 'колега' : 'колег'}). Оберіть історії з бек-логу: що найцінніше й вміщається?</p>
-        <div class="xlist">${rest.map(s => `<div class="xitem sty ${d.pick.includes(s.id) ? 'on' : ''}"><span><b>${esc(s.t)}</b><small>цінність ${'★'.repeat(Math.round(s.val / 2))} · ризик ${s.risk >= .25 ? 'високий' : s.risk >= .1 ? 'середній' : 'низький'}</small></span><span class="xtag">${s.pts} оч.</span>${xp('agile', 'pick', s.id, d.pick.includes(s.id) ? 'У спринті' : 'Додати', d.pick.includes(s.id), { set: 'tog', t: 'n' })}</div>`).join('')}</div>
+        <div class="xlist">${rest.map(s => `<div class="xitem sty ${d.pick.includes(s.id) ? 'on' : ''}"><span><b>${esc(s.t)}</b><small>цінність ${stars(Math.round(s.val / 2), 5)} · ризик ${s.risk >= .25 ? 'високий' : s.risk >= .1 ? 'середній' : 'низький'}</small></span><span class="xtag">${s.pts} оч.</span>${xp('agile', 'pick', s.id, d.pick.includes(s.id) ? 'У спринті' : 'Додати', d.pick.includes(s.id), { set: 'tog', t: 'n' })}</div>`).join('')}</div>
         <div class="mvpbar"><div class="x-bar"><i style="width:${clamp(tot / cap, 0, 1) * 100}%;background:${tot > cap ? '#d33' : 'var(--ok)'}"></i></div><b>${tot} з ${cap} оч.</b></div>
         ${tot > cap ? tip('Ви беретеся за більше, ніж команда встигає: ризикуєте не закінчити нічого.', 'warn') : ''}<div class="xrow">${xb('agile', 'run', d.sprints ? 'Запустити наступний спринт' : 'Запустити спринт', { cls: 'primary', ic: 'play', dis: !d.pick.length })}</div>`, { ic: 'calendar' })}`;
     }

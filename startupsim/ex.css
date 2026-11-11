@@ -580,3 +580,10 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 .fail-card h3{margin:0 0 6px;font-size:1.05rem}
 .fail-card p{margin:0 0 14px;color:var(--ink2,#444);line-height:1.5}
 .recovery{padding:40px 16px}
+
+/* телефон: вступ вправи на всю ширину, без вузької колонки */
+@media (max-width: 560px) {
+  .ex-intro { flex-direction: column; gap: 8px; padding: 44px 14px 12px; }
+  .ex-intro .ex-ic { display: none; }
+  .ex-intro > div { padding-right: 0; width: 100%; }
+}

@@ -24,7 +24,7 @@ function customers(S) {
       ${K.likes ? `<p class="note warn sm">${icon('alert', 14)} ${K.likes} × «так, ідея класна» — це ввічливість, а не доказ. ${term('Mom Test', 'Чому?')}</p>` : ''}
       ${K.feats.length ? `<p class="sm"><b>Чого бракує:</b> ${K.feats.slice(0, 3).map(([f, n]) => `${esc(S.feature(f).t)} (${n})`).join(', ')}</p>` : ''}
       ${K.ch.length ? `<p class="sm"><b>Де шукати:</b> ${K.ch.slice(0, 3).map(([c, n]) => `${esc(CHANNELS[c].t)} (${n})`).join(', ')}</p>` : ''}
-      ${g.requires ? `<p class="sm muted">Без цього не куплять: ${g.requires.map(f => `${S.has(f) ? '✓' : '✗'} ${esc(S.feature(f).t)}`).join(', ')}</p>` : ''}
+      ${g.requires ? `<p class="sm muted">Без цього не куплять: ${g.requires.map(f => `<span class="req ${S.has(f) ? 'ok' : 'no'}">${icon(S.has(f) ? 'check' : 'x', 13)} ${esc(S.feature(f).t)}${S.has(f) ? '' : ' (немає)'}</span>`).join(', ')}</p>` : ''}
       <footer><button class="btn primary sm" data-act="interview" data-k="${k}" ${S.talksLeft() > 0 && !s.interview ? '' : 'disabled'}>${icon('mic', 16)} Інтерв'ю</button>
         <span class="muted sm">${s.product.launched ? `користувачів: ${num(u.free + u.trial + u.paid)}, платних: ${num(u.paid)}` : `лист очікування: ${num(Math.round(u.wait))}`}</span></footer>
     </article>`;
