@@ -6,13 +6,35 @@ import { logoMark } from './logo.js';
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-export function h(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
+// Захист у глибину: усе, що вставляється як HTML, проходить фільтр. Тексти користувача мають бути екрановані через esc(),
+// а фільтр прибирає небезпечне, навіть якщо десь екранування забули: скрипти, обробники подій (onerror, onclick…), javascript:-посилання.
+const BAD_TAGS = new Set(['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META', 'BASE', 'FRAME', 'FRAMESET', 'APPLET', 'STYLE']);
+const URL_ATTRS = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'data', 'poster']);
+export function scrub(root) {
+  const walk = node => {
+    for (const el of [...node.children]) {
+      if (BAD_TAGS.has(el.tagName.toUpperCase())) { el.remove(); continue; }
+      for (const a of [...el.attributes]) {
+        const k = a.name.toLowerCase();
+        if (k.startsWith('on') || k === 'srcdoc') el.removeAttribute(a.name);
+        else if (URL_ATTRS.has(k) && /^\s*(javascript|vbscript|data\s*:\s*text\/html)/i.test(a.value)) el.removeAttribute(a.name);
+      }
+      walk(el);
+    }
+  };
+  walk(root); return root;
+}
+// Вставляє HTML у елемент: розбір у шаблоні (зображення ще не вантажаться), фільтр, і лише тоді в документ
+export function fill(el, html) { const t = document.createElement('template'); t.innerHTML = html; scrub(t.content); el.replaceChildren(t.content); return el; }
+export function h(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); scrub(t.content); return t.content.firstElementChild; }
 export const nl2br = s => esc(s).replace(/\n/g, '<br>');
 
 // Термін із поясненням: підкреслений, по кліку — підказка
 export const term = (k, label = k) => GLOSSARY[k] ? `<button class="term" data-term="${esc(k)}" type="button">${esc(label)}</button>` : esc(label);
 
 /* ── вікно ── */
+// картка замість частини екрана, яка не змогла відмалюватися
+export const failCard = (title, text, extra = '') => `<section class="fail-card" role="alert"><h3>${esc(title)}</h3><p>${esc(text)}</p>${extra}</section>`;
 export function modal({ title, html, cls = '', onOpen, onClose, wide = false }) {
   const el = h(`<div class="md-back"><section class="md ${wide ? 'wide' : ''} ${cls}" role="dialog" aria-modal="true" aria-label="${esc(title || '')}">
     ${title ? `<header class="md-h"><h2>${esc(title)}</h2><button class="ib" data-md-close aria-label="Закрити">${icon('x', 20)}</button></header>` : ''}
@@ -30,7 +52,7 @@ export function modal({ title, html, cls = '', onOpen, onClose, wide = false }) 
       onClose?.(); document.removeEventListener('keydown', key);
       setTimeout(() => { if (document.querySelector('.md-back:not(.out)')) return; const back = prev?.isConnected ? prev : prevKey && [...document.querySelectorAll('[data-act]')].find(b => [b.dataset.act, b.dataset.k, b.dataset.id, b.dataset.to].join('|') === prevKey); back?.focus?.({ preventScroll: true }); }, 0);
     },
-    set(html2) { el.querySelector('.md-b').innerHTML = html2; },
+    set(html2) { fill(el.querySelector('.md-b'), html2); },
   };
   const key = e => { if (e.key === 'Escape') api.close(); };
   document.addEventListener('keydown', key);
@@ -54,7 +76,7 @@ let toastT = 0;
 export function toast(text, kind = '') {
   let el = $('#toast');
   if (!el) { el = h('<div id="toast" class="toast" role="status" aria-live="polite"></div>'); document.body.appendChild(el); }
-  el.className = `toast on ${kind}`; el.innerHTML = `${kind === 'bad' ? icon('alert', 18) : kind === 'good' ? icon('check', 18) : icon('info', 18)}<span>${esc(text)}</span>`;
+  el.className = `toast on ${kind}`; fill(el, `${kind === 'bad' ? icon('alert', 18) : kind === 'good' ? icon('check', 18) : icon('info', 18)}<span>${esc(text)}</span>`);
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3400);
 }
 

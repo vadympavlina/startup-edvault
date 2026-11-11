@@ -53,7 +53,7 @@ reg({
       <section><h4>Шрифт і голос</h4><p>${F ? `Шрифт: <b>${esc(F.t)}</b>. ` : ''}${f.tone.length ? `Характер: <b>${esc(f.tone.join(', ').toLowerCase())}</b>.` : ''}</p>${f.vals.length ? `<p class="bb-v">${f.vals.map(v => `<span>${esc(v)}</span>`).join('')}</p>` : ''}${f.slogan ? `<p class="bb-sl">«${esc(f.slogan)}»</p>` : ''}</section>
       ${len(d.promise) ? `<section><h4>Обіцянка</h4><p>${esc(d.promise)}</p></section>` : ''}
       ${(d.dos || []).some(len) || (d.donts || []).some(len) ? `<section class="two"><div><h4>Завжди</h4><ul>${d.dos.filter(len).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div><div><h4>Ніколи</h4><ul>${d.donts.filter(len).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></section>` : ''}
-      <footer><button type="button" class="btn sm" onclick="print()">${icon('printer', 14)} Надрукувати сторінку</button></footer></div>`;
+      <footer><button type="button" class="btn sm" data-act="print">${icon('printer', 14)} Надрукувати сторінку</button></footer></div>`;
   },
   ready(S, d) {
     const r = review(S, d), own = len(d.promise) >= 20 && d.dos.filter(len).length >= 1 && d.donts.filter(len).length >= 1;

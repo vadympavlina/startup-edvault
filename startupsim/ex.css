@@ -574,3 +574,9 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 .xsl > input { grid-column: 1 / -1; grid-row: 2; min-width: 0; width: 100%; }
 .ax5 .xsl, .w5s .xsl { grid-template-columns: none; }
 .fst > span { overflow-wrap: anywhere; hyphens: auto; font-size: 13.5px; } @media (max-width: 760px) { .fst { grid-template-columns: 128px minmax(0, 1fr); } }
+
+/* картка помилки: замість частини екрана, яка не змогла відмалюватися */
+.fail-card{max-width:560px;margin:24px auto;padding:20px 22px;border:1px solid var(--bad-border,#e9b3ae);border-left:4px solid var(--bad,#c0392b);border-radius:12px;background:var(--surface,#fff)}
+.fail-card h3{margin:0 0 6px;font-size:1.05rem}
+.fail-card p{margin:0 0 14px;color:var(--ink2,#444);line-height:1.5}
+.recovery{padding:40px 16px}

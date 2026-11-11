@@ -1,11 +1,8 @@
 // Повний прогін гри в браузері: усі вправи всіх етапів (через кнопки) і всі 104 тижні, з перевіркою екранів
 //   node tests/startup-full-e2e.mjs [idea ...]
-import { readFileSync } from 'node:fs';
 import { startServer, launch, newPage } from './_harness.mjs';
 
 const ideas = process.argv.slice(2).length ? process.argv.slice(2) : ['homework'];
-const src = readFileSync(new URL('./startup-ex.test.mjs', import.meta.url), 'utf8');
-const fillSrc = src.slice(src.indexOf("const long = "), src.indexOf('\n};', src.indexOf('const FILL = {')) + 3);
 const server = await startServer(), browser = await launch();
 const report = [];
 for (const idea of ideas) {
@@ -16,7 +13,6 @@ for (const idea of ideas) {
   await p.click('[data-w="next"]'); await p.click(`[data-v="${idea}"]`); await p.click('[data-w="next"]');
   await p.fill('[data-w="name"]', 'Марта Коваль'); await p.fill('[data-w="company"]', 'Записатись'); await p.click('[data-w="next"]'); await p.waitForSelector('#main');
   await p.waitForTimeout(500);
-  await p.evaluate(fs => { const m = new Function('EX', 'X', fs + '\nreturn FILL;'); window.__fill = m; }, fillSrc).catch(() => {});
   const clearModals = async () => { for (let i = 0; i < 8; i++) { const n = await p.locator('.md:visible').count(); if (!n) return; const b = p.locator('.md:visible .btn.primary, .md:visible [data-md-close]').last(); if (await b.count()) await b.click({ timeout: 2000 }).catch(() => {}); else await p.keyboard.press('Escape'); await p.waitForTimeout(120); } };
   const scan = async tag => {
     const r = await p.evaluate(() => { const t = document.querySelector('#main')?.innerText || ''; const m = t.match(/undefined|NaN|\[object|Infinity/); return { bad: m && m[0], over: document.documentElement.scrollWidth > innerWidth + 1 }; });
@@ -29,7 +25,7 @@ for (const idea of ideas) {
   for (const [id] of ids) {
     const res = await p.evaluate(async id => {
       const m = await import('/startupsim/js/ex-core.js'), S = window.Startup.sim, C = window.Startup.C;
-      const FILL = window.__fill(m.EX, m.X); const d = m.X(S, id);
+      const FILL = (await import('/tests/fill.mjs')).makeFill(m.EX, m.X); const d = m.X(S, id);
       try { FILL[id]?.(S, d); } catch (e) { return 'fill:' + e.message; }
       C.go('ex-' + id); return 'ok';
     }, id);

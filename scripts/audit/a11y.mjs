@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { startServer, launch, newPage } from '../../tests/_harness.mjs';
 const axeSrc = readFileSync(new URL('../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
 const server = await startServer(), b = await launch(), errors = [];
-const p = await newPage(await b.newContext({ viewport: { width: 1366, height: 900 } }), errors); p.setDefaultTimeout(10000);
+const p = await newPage(await b.newContext({ viewport: { width: 1366, height: 900 }, bypassCSP: true }), errors); p.setDefaultTimeout(10000);
 const agg = new Map();
 const scan = async tag => {
   await p.evaluate(s => { if (!window.axe) (0, eval)(s); }, axeSrc);

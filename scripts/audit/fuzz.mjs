@@ -15,10 +15,11 @@ console.log('листків у стані:', leaves.length);
 let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const MUT = [['видалено', () => undefined], ['null', () => null], ['рядок', () => 'x'], ['-1', () => -1], ['1e300', () => 1e300], ['{}', () => ({})], ['[]', () => []], ['0', () => 0]];
 const errs = new Map(); let tested = 0, rejected = 0, crashed = 0;
+let degraded = 0; const origErr = console.error; console.error = () => {};
 const renderAll = S => {
   const ui = { view: 'dash' };
   for (const [k, v] of Object.entries(VIEWS)) { try { String(v.render(S, ui)); } catch (e) { return `${k}: ${e.message}`; } }
-  for (const def of exAll()) { try { String(exPage(def)(S, ui)); } catch (e) { return `ex-${def.id}: ${e.message}`; } }
+  for (const def of exAll()) { try { if (String(exPage(def)(S, ui)).includes('fail-card')) degraded++; } catch (e) { return `ex-${def.id}: ${e.message}`; } }
   try { const info = stageInfo(S); stageRail(S, ui, info); stageSheet(S, ui, info); stageBar(S, info); goalCard(S); } catch (e) { return `stage: ${e.message}`; }
   return null;
 };
@@ -32,6 +33,8 @@ for (let i = 0; i < N; i++) {
   let S, msg; try { S = new Sim(st); msg = renderAll(S); try { S.endWeek(); } catch (e) { msg = msg || 'endWeek: ' + e.message; } } catch (e) { msg = 'Sim: ' + e.message; }
   if (msg) { crashed++; const key = msg.replace(/\s+/g, ' ').slice(0, 90); const r = errs.get(key) || { n: 0, ex: [] }; r.n++; if (r.ex.length < 2) r.ex.push(`${path.slice(0, 4).join('.')}=${mn}`); errs.set(key, r); }
 }
+console.error = origErr;
+console.log(`вправ показано з карткою помилки (а не падінням): ${degraded}`);
 console.log(`перевірено ${tested}, відхилено okState ${rejected}, падінь ${crashed}`);
 [...errs].sort((a, b) => b[1].n - a[1].n).slice(0, 14).forEach(([k, r]) => console.log(String(r.n).padStart(3), k, '|', r.ex.join('; ')));
 if (crashed) process.exitCode = 1;

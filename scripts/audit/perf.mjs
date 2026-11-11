@@ -1,8 +1,5 @@
 // Швидкодія: завантаження, час відмальовування екранів, розмір збереження, час тижня, використання CSS. npm run audit:perf (код виходу 1, якщо перевищено бюджет)
-import { readFileSync } from 'node:fs';
 import { startServer, launch, newPage } from '../../tests/_harness.mjs';
-const src = readFileSync(new URL('../../tests/startup-ex.test.mjs', import.meta.url), 'utf8');
-const fillSrc = src.slice(src.indexOf("const long = "), src.indexOf('\n};', src.indexOf('const FILL = {')) + 3);
 const server = await startServer(), b = await launch(), errors = [];
 const ctx = await b.newContext({ viewport: { width: 1366, height: 900 } });
 const p = await newPage(ctx, errors); p.setDefaultTimeout(10000);
@@ -18,12 +15,12 @@ const views = await p.evaluate(async () => { const m = await import('/startupsim
 const times = await p.evaluate(async views => { const out = []; for (const v of views) { const t = performance.now(); window.Startup.C.go(v); await new Promise(r => requestAnimationFrame(r)); out.push([v, +(performance.now() - t).toFixed(1)]); } return out; }, views);
 times.sort((a, b) => b[1] - a[1]);
 // заповнюємо всі вправи й міряємо збереження
-const sv = await p.evaluate(async fs => {
-  const m = await import('/startupsim/js/ex-core.js'), S = window.Startup.sim, FILL = new Function('EX', 'X', fs + '\nreturn FILL;')(m.EX, m.X);
+const sv = await p.evaluate(async () => {
+  const m = await import('/startupsim/js/ex-core.js'), S = window.Startup.sim, FILL = (await import('/tests/fill.mjs')).makeFill(m.EX, m.X);
   for (const e of m.exAll()) { const d = m.X(S, e.id); try { FILL[e.id]?.(S, d); } catch {} S.s.ex.done[e.id] = { w: 0, s: 3 }; }
   const t = performance.now(); const str = JSON.stringify({ s: S.s, view: 'dash' }); const ms = performance.now() - t;
   return { kb: +(str.length / 1024).toFixed(1), stringifyMs: +ms.toFixed(2) };
-}, fillSrc);
+});
 // 104 тижні: час тижня й розмір збереження
 const wk = await p.evaluate(async () => { const S = window.Startup.sim, ts = []; S.s.cash = 5e6; for (let i = 0; i < 104; i++) { const t = performance.now(); try { S.endWeek(); } catch (e) { return { err: e.message, at: i }; } ts.push(performance.now() - t); if (S.s.over) break; } ts.sort((a, b) => a - b); return { weeks: ts.length, medianMs: +ts[ts.length >> 1].toFixed(2), maxMs: +ts.at(-1).toFixed(2), saveKb: +(JSON.stringify(S.s).length / 1024).toFixed(1), histLen: S.s.history.length, mailLen: S.s.inbox.length, journal: S.s.journal.length }; });
 const heap = await p.evaluate(() => performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null);

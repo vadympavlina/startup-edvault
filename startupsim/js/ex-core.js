@@ -1,7 +1,7 @@
 // Симулятор стартапу · вправи: реєстр, стан у збереженні, спільні елементи розмітки, введення й перетягування.
 // Кожна вправа — це опис { id, stage, t, d, icon, intro, data, view, live, ready, acts, finish }.
 // Усе, що учень вводить чи обирає, лежить у s.ex.d[id] і потрапляє в збереження та файл разом зі станом гри.
-import { esc, term, modal, toast } from './ui.js';
+import { esc, term, modal, toast, fill, failCard } from './ui.js';
 import { aiPrompts, AI_TIPS } from './ai.js';
 import { icon } from './icons.js';
 
@@ -11,7 +11,18 @@ export const EX = {};
 export const reg = (...defs) => defs.forEach(d => { EX[d.id] = d; });
 const R = S => (S.s.ex ||= { d: {}, done: {} });
 // дані вправи: створюються з початкових значень при першому відкритті
-export const X = (S, id) => (R(S).d[id] ||= EX[id]?.data ? EX[id].data(S) : {});
+const checked = new WeakSet();
+export const X = (S, id) => {
+  const r = R(S);
+  let d = r.d[id];
+  if (!d || typeof d !== 'object' || Array.isArray(d)) d = r.d[id] = EX[id]?.data ? EX[id].data(S) : {};
+  // пошкоджений файл: поля з іншим типом, ніж у початкових даних, скидаємо до типових
+  else if (!checked.has(d)) {
+    checked.add(d);
+    if (EX[id]?.data) { try { const base = EX[id].data(S); for (const [k, v] of Object.entries(base)) if (!(k in d) || (v !== null && typeof v !== typeof d[k]) || Array.isArray(v) !== Array.isArray(d[k]) || (v === null) !== (d[k] === null)) d[k] = v; } catch { /* лишаємо як є */ } }
+  }
+  return d;
+};
 // читання не створює s.ex: інакше підрахунок змінював би стан гри
 export const exDone = (S, id) => !!S.s.ex?.done?.[id];
 export const exStars = (S, id) => S.s.ex?.done?.[id]?.s || 0;
@@ -112,19 +123,26 @@ function footInner(S, def, d) {
 }
 export function exPage(def) {
   return (S, ui) => {
+    try { return page(def, S, ui); } catch (e) {
+      console.error('Вправа ' + def.id, e);
+      return `<div class="ex" data-ex-root="${def.id}"><button class="ex-back" data-act="exBack" data-ex="${def.id}">${icon('left', 16)} Назад</button>${failCard('Вправу не вдалося показати', 'Її дані в збереженні пошкоджені. Решта гри працює. Можна скинути дані цієї вправи.', `<button class="btn" data-act="exReset" data-ex="${def.id}">Скинути дані вправи</button>`)}</div>`;
+    }
+  };
+}
+function page(def, S, ui) {
     const d = X(S, def.id), done = S.s.ex.done[def.id];
     return `<div class="ex" data-ex-root="${def.id}">
       <button class="ex-back" data-act="exBack" data-ex="${def.id}">${icon('left', 16)} Етап ${def.stage + 1} · ${esc(STAGE_T[def.stage])}</button>
       <section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${def.intro}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
       <div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${def.view(S, d, { ui, done })}</div>` : def.view(S, d, { ui, done })}${def.live ? `<div class="ex-live" data-live>${def.live(S, d, { ui, done })}</div>` : ''}</div>
       <footer class="ex-foot" role="group" aria-label="Завершення вправи">${footInner(S, def, d)}</footer></div>`;
-  };
 }
 export const exViews = () => Object.fromEntries(exAll().map(def => [`ex-${def.id}`, { t: def.t, icon: def.icon, render: exPage(def), ex: def.id }]));
 
 /* ═════════ дії ═════════ */
 const arr = (d, p) => { const a = get(d, p); if (Array.isArray(a)) return a; put(d, p, []); return get(d, p); };
 export const exActs = {
+  exReset(C, el) { const def = EX[el.dataset.ex]; if (!def) return; delete C.S.s.ex?.d?.[def.id]; C.render(); C.toast('Дані вправи скинуто', 'good'); },
   ex(C, el) {
     const S = C.S, def = EX[el.dataset.ex]; if (!def) return;
     const d = X(S, def.id), k = el.dataset.do, p = el.dataset.p;
@@ -180,9 +198,9 @@ function patchLive(C, def, d) {
   const ctx = { ui: C.ui, done: C.S.s.ex.done[def.id] };
   // змінюємо лише те, що справді змінилося: інакше кнопка під курсором зникне між натисканням і відпусканням
   const box = document.querySelector('[data-live]'), h1 = box && def.live ? def.live(C.S, d, ctx) : null;
-  if (box && h1 != null && box._h !== h1) { box.innerHTML = h1; box._h = h1; }
+  if (box && h1 != null && box._h !== h1) { fill(box, h1); box._h = h1; }
   const f = document.querySelector('.ex-foot'), h2 = f ? footInner(C.S, def, d) : null;
-  if (f && f._h !== h2) { f.innerHTML = h2; f._h = h2; }
+  if (f && f._h !== h2) { fill(f, h2); f._h = h2; }
 }
 let saveT = 0;
 export function installEx(C) {

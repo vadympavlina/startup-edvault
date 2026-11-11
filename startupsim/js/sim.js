@@ -93,9 +93,51 @@ export const okState = s => !!s && s.v === 1 && Number.isFinite(s.week) && Numbe
 /* ═════════ рушій ═════════ */
 const CUSTOM = { t: 'Розробка на замовлення', cost: 14, custom: true, desc: 'Окрема версія для клієнта.' };
 
+/* Приводить збереження до очікуваної форми: пошкоджені чи старі поля замінюються типовими, гра не падає. */
+const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const fin = (v, d) => (Number.isFinite(v) ? v : d);
+export function repairState(s) {
+  const O = ['founder', 'company', 'hours', 'mkt', 'price', 'product', 'users', 'organic', 'landing', 'stock', 'know', 'inv', 'deck', 'ach', 'flags', 'comp', 'dismissed'];
+  const A = ['cap', 'team', 'candidates', 'surveys', 'offers', 'inbox', 'history', 'journal', 'promos', 'promoLog', 'orders', 'gigs', 'myGigs', 'sprints', 'newAch'];
+  for (const k of O) if (!isObj(s[k])) s[k] = {};
+  for (const k of A) if (!Array.isArray(s[k])) s[k] = [];
+  const dflt = (o, d) => { for (const [k, v] of Object.entries(d)) if (typeof o[k] !== typeof v || (v === null ? false : Array.isArray(v) !== Array.isArray(o[k]))) o[k] = Array.isArray(v) ? [...v] : isObj(v) ? { ...v } : v; };
+  dflt(s.founder, { name: 'Засновник', group: '', bg: 'dev', energy: 100, burnout: 0 });
+  if (!BACKGROUNDS[s.founder.bg]) s.founder.bg = 'dev';
+  dflt(s.company, { name: 'Мій стартап', color: '#6366f1', sym: 'spark', form: 'none' });
+  dflt(s.hours, { product: 0, customers: 0, content: 0, sales: 0, invest: 0, freelance: 0, rest: 0 });
+  dflt(s.mkt, { ads: 0, bloggers: 0, referral: 0, split: .6, events: 0 });
+  dflt(s.product, { built: [], queue: [], mode: 'balanced', fix: .15, bugs: 0, debt: 0, quality: 55, launched: false, progress: {} });
+  dflt(s.organic, { social: 0, seo: 0 });
+  dflt(s.landing, { cur: -1, tried: [] });
+  if (s.landing.test != null && !isObj(s.landing.test)) s.landing.test = null;
+  dflt(s.stock, { units: 0, orders: [] });
+  dflt(s.deck, { slides: [], honest: true });
+  for (const k of ['cash', 'week', 'seq', 'rs', 'unitCost', 'talks', 'ledgerExtra', 'ledgerIn', 'gigsDone', 'gigIncome']) if (k in s || k === 'seq') s[k] = fin(s[k], k === 'seq' ? 1 : 0);
+  if (!fin(s.seq) || s.seq < 1) s.seq = 1;
+  for (const f of ['energy', 'burnout']) s.founder[f] = fin(s.founder[f], f === 'energy' ? 100 : 0);
+  // розділи ринку: у кожного сегмента є лічильники користувачів і знання про нього
+  const seg = s.idea === 'custom' ? s.custom?.segments : IDEAS[s.idea]?.segments;
+  for (const k of Object.keys(seg || {})) {
+    if (!isObj(s.users[k])) s.users[k] = {};
+    dflt(s.users[k], { wait: 0, free: 0, trial: 0, paid: 0, pipe: [], ever: 0, paidEver: 0 });
+    if (!isObj(s.know[k])) s.know[k] = {};
+    dflt(s.know[k], { n: 0, good: 0, bad: 0, pains: [], wtps: [], badWtps: [], likes: 0, ch: {}, feats: {}, sols: [] });
+    s.price[k] = fin(s.price[k], 0);
+  }
+  if (!seg || !(s.target in seg)) s.target = Object.keys(seg || {})[0];
+  if (s.sprint != null && !(isObj(s.sprint) && Array.isArray(s.sprint.built))) s.sprint = null;
+  s.candidates = s.candidates.filter(c => isObj(c)).map(c => ({ ...c, id: String(c.id ?? 'c0'), name: String(c.name ?? 'Кандидат'), role: ROLES[c.role] ? c.role : 'dev', skill: fin(c.skill, 1), ask: fin(c.ask, 0), trait: fin(c.trait, 0) }));
+  s.team = s.team.filter(m => isObj(m)).map(m => ({ ...m, name: String(m.name ?? 'Колега'), role: ROLES[m.role] ? m.role : 'dev', skill: fin(m.skill, 1), salary: fin(m.salary, 0) }));
+  s.inbox = s.inbox.filter(m => isObj(m)); s.history = s.history.filter(h => isObj(h)); s.journal = s.journal.filter(j => isObj(j));
+  if (s.ex != null && !isObj(s.ex)) delete s.ex;
+  if (s.ex) { if (!isObj(s.ex.d)) s.ex.d = {}; if (!isObj(s.ex.done)) s.ex.done = {}; for (const [id, v] of Object.entries(s.ex.d)) if (!isObj(v)) delete s.ex.d[id]; }
+  return s;
+}
+
 export class Sim {
   constructor(state) {
-    this.s = state;
+    this.s = repairState(state);
     this.r = rng(this.s);
     this.initMods();
   }

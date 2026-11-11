@@ -86,7 +86,7 @@ reg({
   },
   live(S, d) {
     fixS(d); const g = S.seg(), done = [len(d.goal) >= 4, len(d.msg) >= 15, d.ch.length >= 2, d.budget > 0, d.met.length >= 2];
-    return `${box(`Аркуш стратегії · ${esc(S.s.company.name)}`, `<dl class="sheetl"><dt>Мета</dt><dd>${esc(d.goal) || '<i>ще не обрано</i>'}</dd><dt>Кому</dt><dd>${esc(g.t)}</dd><dt>Повідомлення</dt><dd>${d.msg ? `«${esc(d.msg)}»` : '<i>ще не написано</i>'}</dd><dt>Канали</dt><dd>${d.ch.map(k => esc(CHANNELS[k].t)).join(', ') || '<i>не обрано</i>'}</dd><dt>Бюджет</dt><dd>${money0(d.budget)} на місяць</dd><dt>Показники</dt><dd>${d.met.join(', ') || '<i>не обрано</i>'}</dd></dl>`, { ic: 'plan' })}
+    return `${box(`Аркуш стратегії · ${esc(S.s.company.name)}`, `<dl class="sheetl"><dt>Мета</dt><dd>${esc(d.goal) || '<i>ще не обрано</i>'}</dd><dt>Кому</dt><dd>${esc(g.t)}</dd><dt>Повідомлення</dt><dd>${d.msg ? `«${esc(d.msg)}»` : '<i>ще не написано</i>'}</dd><dt>Канали</dt><dd>${d.ch.map(k => esc(CHANNELS[k].t)).join(', ') || '<i>не обрано</i>'}</dd><dt>Бюджет</dt><dd>${money0(d.budget)} на місяць</dd><dt>Показники</dt><dd>${d.met.map(esc).join(', ') || '<i>не обрано</i>'}</dd></dl>`, { ic: 'plan' })}
       ${box('Чи все зроблено', checks([[done[0], 'Є мета', 'Крок 1'], [done[1], 'Є головне повідомлення', 'Напишіть хоча б одне речення'], [done[2], 'Обрано хоча б два канали', 'Крок 3'], [done[3], 'Задано бюджет', 'Крок 4'], [done[4], 'Обрано хоча б два показники', 'Крок 5']]), { ic: 'check' })}`;
   },
   acts: { tpl(S, d, el) { d.msg = el.dataset.a; } },

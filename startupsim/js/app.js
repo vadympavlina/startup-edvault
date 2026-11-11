@@ -5,7 +5,7 @@ import { ARCH, KINDS, SIZES, SCOPES, ideaCheck } from './custom.js';
 import { serializeGame, unpackGame, fileName } from './file.js';
 import { icon } from './icons.js';
 import { takeMigration } from './migrate.js';
-import { esc, $, $$, h, modal, toast, termPop, confirmBox, logo, nl2br } from './ui.js';
+import { esc, $, $$, h, fill, modal, toast, termPop, confirmBox, logo, nl2br, failCard } from './ui.js';
 import { coreViews, coreActs, coreIns, hoursUsed } from './v-core.js';
 import { marketViews, marketActs, marketIns } from './v-market.js';
 import { moneyViews, moneyActs, moneyIns } from './v-money.js';
@@ -75,8 +75,27 @@ let migrated = '';
     } catch { /* пошкоджені дані — ігноруємо */ }
   }
 }
-try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && okState(saved.s)) { S = new Sim(saved.s); ui.view = saved.view || 'dash'; } } catch { /* почнемо заново */ }
-const save = () => { if (!S) return; try { localStorage.setItem(KEY, JSON.stringify({ s: S.s, view: ui.view })); } catch { /* сховище переповнене */ } };
+const BROKEN_KEY = 'edvault-startup-broken';
+let broken = null; // сире збереження, яке не вдалося прочитати: його не стираємо
+try {
+  const raw = localStorage.getItem(KEY);
+  if (raw) {
+    try {
+      const saved = JSON.parse(raw);
+      if (saved && okState(saved.s)) { S = new Sim(saved.s); ui.view = saved.view || 'dash'; } else broken = raw;
+    } catch { broken = raw; S = null; }
+  }
+} catch { /* сховище недоступне */ }
+if (broken) { try { localStorage.setItem(BROKEN_KEY, broken); } catch { /* немає місця */ } }
+let saveWarned = false;
+const save = () => {
+  if (!S) return;
+  try { localStorage.setItem(KEY, JSON.stringify({ s: S.s, view: ui.view })); saveWarned = false; }
+  catch {
+    // сховище переповнене чи заборонене: гра триває, але прогрес не збережеться в браузері
+    if (!saveWarned) { saveWarned = true; toast('Браузер не зберіг прогрес: немає місця або заборонено сховище. Збережіть гру у файл.', 'bad'); }
+  }
+};
 
 /* ═════════ контекст для розділів ═════════ */
 const C = {
@@ -143,7 +162,7 @@ function loadText(text) {
 
 /* ═════════ малювання ═════════ */
 // частину сторінки переписуємо лише тоді, коли її розмітка справді змінилася
-const setHtml = (el, html) => { if (el && el._h !== html) { el.innerHTML = html; el._h = html; } };
+const setHtml = (el, html) => { if (el && el._h !== html) { fill(el, html); el._h = html; } };
 // після перемальовки повертаємо фокус на «ту саму» кнопку, щоб клавіатура не губилася
 const focusKey = el => el && el !== document.body && el.dataset && (el.dataset.act || el.dataset.in) ? [el.tagName, ...['act', 'in', 'k', 'd', 'to', 'id', 'i', 'v'].map(a => el.dataset[a] ?? '')].join('|') : null;
 // колір компанії учень обирає сам, тож рахуємо читабельні відтінки: для кнопок з білим текстом
@@ -226,10 +245,15 @@ function render() {
   document.body.classList.toggle('simple', isSimple(S));
   const info = syncStage(S), fk = focusKey(document.activeElement);
   setTimeout(() => { if (S) celebrate(info); }, 0);
-  theme(); topbar(); road(info); tabs(info);
+  for (const part of [theme, topbar, () => road(info), () => tabs(info)]) { try { part(); } catch (e) { console.error(e); } }
   const V = VIEWS[ui.view] || VIEWS.dash;
   const hint = VIEW_HINTS[ui.view] && !S.s.dismissed['hint-' + ui.view] ? `<aside class="view-hint">${icon('bulb', 18)}<p>${VIEW_HINTS[ui.view]}</p><button class="btn sm ghost" data-act="dismissTip" data-id="hint-${ui.view}">Зрозуміло</button></aside>` : '';
-  setHtml($('#main'), `${ui.view === 'dash' ? '' : `<header class="pg-h"><h1>${icon(V.icon, 24)} ${V.t}</h1>${S.s.over ? `<span class="chip bad">Гру завершено</span>` : ''}</header>${hint}`}${V.render(S, ui, info)}`);
+  let body;
+  try { body = V.render(S, ui, info); } catch (e) {
+    console.error('Розділ ' + ui.view, e);
+    body = failCard('Цей розділ не вдалося показати', 'Збереження містить дані, яких гра не розуміє. Інші розділи працюють. Збережіть гру у файл і напишіть викладачеві.', `<div class="row gap wrap"><button class="btn" data-act="go" data-to="dash">На головну</button><button class="btn" data-act="saveFile">${icon('save', 16)} Зберегти у файл</button></div>`);
+  }
+  setHtml($('#main'), `${ui.view === 'dash' ? '' : `<header class="pg-h"><h1>${icon(V.icon, 24)} ${V.t}</h1>${S.s.over ? `<span class="chip bad">Гру завершено</span>` : ''}</header>${hint}`}${body}`);
   if (fk && (!document.activeElement || document.activeElement === document.body)) [...document.querySelectorAll('[data-act], [data-in]')].find(el => focusKey(el) === fk && !el.disabled)?.focus({ preventScroll: true });
   save();
 }
@@ -338,12 +362,12 @@ function startWizard() {
       <dl class="wzp-f"><div><dt>Засновник</dt><dd class="${w.name.trim() ? '' : 'wzp-ph'}">${esc(w.name.trim() || 'Ваше ім’я')}${w.group.trim() ? ` · ${esc(w.group.trim())}` : ''}</dd></div>
         <div><dt>Досвід</dt><dd>${esc(bg.t)}</dd></div><div><dt>Власні гроші на старті</dt><dd>${money(150000)}</dd></div><div><dt>Шлях</dt><dd>9 етапів, до 2 років гри</dd></div></dl>`;
   };
-  const upPrev = () => { const a = el.querySelector('.wz-prev'); if (a) a.innerHTML = prevHtml(); };
+  const upPrev = () => { const a = el.querySelector('.wz-prev'); if (a) fill(a, prevHtml()); };
   const draw = () => {
     const st = steps(), key = st[w.step];
-    el.innerHTML = `<div class="wz-card ${key === 'hello' ? 'solo' : ''}"><div class="wz-main"><div class="wz-steps">${st.map((k, i) => `<span class="${i === w.step ? 'on' : i < w.step ? 'done' : ''}"><i>${i < w.step ? icon('check', 14) : i + 1}</i><small>${TITLES[k]}</small></span>`).join('')}</div>
+    fill(el, `<div class="wz-card ${key === 'hello' ? 'solo' : ''}"><div class="wz-main"><div class="wz-steps">${st.map((k, i) => `<span class="${i === w.step ? 'on' : i < w.step ? 'done' : ''}"><i>${i < w.step ? icon('check', 14) : i + 1}</i><small>${TITLES[k]}</small></span>`).join('')}</div>
       <div class="wz-body">${VIEW[key]()}</div>
-      <div class="wz-nav">${w.step ? `<button class="btn" data-w="back">${icon('left', 16)} Назад</button>` : S ? `<button class="btn ghost" data-w="cancel">Скасувати</button>` : '<span></span>'}<button class="btn primary lg" data-w="next">${w.step === st.length - 1 ? `${icon('rocket', 18)} Заснувати компанію` : `Далі ${icon('right', 16)}`}</button></div></div><aside class="wz-prev" aria-label="Ваша компанія" aria-live="polite">${prevHtml()}</aside></div>`;
+      <div class="wz-nav">${w.step ? `<button class="btn" data-w="back">${icon('left', 16)} Назад</button>` : S ? `<button class="btn ghost" data-w="cancel">Скасувати</button>` : '<span></span>'}<button class="btn primary lg" data-w="next">${w.step === st.length - 1 ? `${icon('rocket', 18)} Заснувати компанію` : `Далі ${icon('right', 16)}`}</button></div></div><aside class="wz-prev" aria-label="Ваша компанія" aria-live="polite">${prevHtml()}</aside></div>`);
     el.querySelector('[autofocus]')?.focus();
   };
   const setPath = (path, v) => { const ks = path.split('.'); let o = c; for (let i = 0; i < ks.length - 1; i++) o = o[ks[i]]; o[ks.at(-1)] = v; };
@@ -427,7 +451,7 @@ document.addEventListener('click', e => {
   if (k === 'locked') return askUnlock(a.dataset.to);
   if (k === 'saveFile') return saveFile();
   if (k === 'newGame') return confirmBox('Почати нову гру?', 'Почати заново', { danger: true, sub: 'Поточна компанія буде втрачена.' }).then(ok => { if (ok) startWizard(); });
-  const fn = ACTS[k]; if (fn) { fn(C, a, e); save(); }
+  const fn = ACTS[k]; if (fn) { try { fn(C, a, e); } catch (err) { reportError(err); } save(); }
 });
 document.addEventListener('input', e => { const el = e.target.closest('[data-in]'); if (!el || !S) return; const fn = INS[el.dataset.in]; if (fn && (el.type === 'range' || el.tagName === 'TEXTAREA' || el.type === 'text' || el.type === 'search' || !el.type || el.type === 'number')) fn(C, el, e); });
 document.addEventListener('change', e => { const el = e.target.closest('[data-in]'); if (!el || !S) return; const fn = INS[el.dataset.in]; if (!fn) return; if (el.type === 'range') { save(); render(); return; } if (el.type === 'checkbox' || el.type === 'radio' || el.tagName === 'SELECT') fn(C, el, e); else if (el.tagName === 'TEXTAREA' || el.type === 'text') { save(); } });
@@ -441,9 +465,33 @@ document.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [
 document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drop-on'); });
 document.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; document.body.classList.remove('drop-on'); if (!f) return; e.preventDefault(); readFile(f); });
 
+/* ═════════ помилки: гра не мертвіє, користувач бачить, що робити ═════════ */
+let lastErr = 0;
+function reportError(err) {
+  console.error(err);
+  if (Date.now() - lastErr < 4000) return; // не засипаємо повідомленнями
+  lastErr = Date.now();
+  toast('Щось пішло не так. Прогрес збережено, можна продовжити. Якщо повторюється, збережіть гру у файл.', 'bad');
+}
+addEventListener('error', e => reportError(e.error || e.message));
+addEventListener('unhandledrejection', e => reportError(e.reason));
+
+// збереження не читається: показуємо вихід замість порожньої сторінки
+function recovery() {
+  const el = $('#main') || document.body;
+  $('#top') && fill($('#top'), '');
+  fill(el, `<div class="recovery">${failCard('Збережену гру не вдалося відкрити', 'Файл у браузері пошкоджений або створений іншою версією гри. Його копію збережено, нічого не втрачено. Оберіть, що робити далі.', `<div class="row gap wrap"><button class="btn primary" data-rec="file">${icon('open', 16)} Відкрити гру з файлу</button><button class="btn" data-rec="download">${icon('save', 16)} Завантажити пошкоджене збереження</button><button class="btn" data-rec="new">Почати нову гру</button></div>`)}</div>`);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('[data-rec]'); if (!b) return;
+    if (b.dataset.rec === 'file') openFile();
+    else if (b.dataset.rec === 'download') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([broken], { type: 'application/json' })); a.download = 'edvault-startup-poshkodzhene.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+    else if (b.dataset.rec === 'new') { broken = null; fill(el, ''); startWizard(); }
+  });
+}
+
 installEx(C);
 window.Startup = { S, C, get sim() { return S; } };
-if (S) render(); else startWizard();
+if (S) { try { render(); } catch (e) { console.error(e); S = null; broken = broken || localStorage.getItem(KEY); recovery(); } } else if (broken) recovery(); else startWizard();
 $('#boot')?.remove();
 if (migrated === 'ok') setTimeout(() => toast('Вашу збережену гру зі старої адреси перенесено', 'good'), 400);
 else if (migrated === 'exists') setTimeout(() => toast('Тут уже є збережена гра, стару не чіпали. Її можна відкрити з файлу.', ''), 400);

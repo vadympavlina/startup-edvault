@@ -8,7 +8,7 @@ import { EX, exAll, exOf, exDone, exStars, exCount, stars, STAGE_T } from './ex-
 import { coreViews } from './v-core.js';
 import { marketViews } from './v-market.js';
 import { icon } from './icons.js';
-import { esc, logo } from './ui.js';
+import { esc, logo, fill } from './ui.js';
 import './ex1.js'; import './ex-need.js'; import './ex-start.js'; import './ex1b.js'; import './ex-aud.js'; import './ex-brand.js'; import './ex-bbook.js';
 import './ex2.js'; import './ex3.js'; import './ex3b.js'; import './ex4.js'; import './ex5.js'; import './ex6.js'; import './ex7.js'; import './ex8.js'; import './ex9.js';
 
@@ -73,9 +73,9 @@ function fillEx(det) {
   body.dataset.ready = '1';
   try {
     const d = (S.s.ex.d[def.id] ||= def.data ? def.data(S) : {}), done = S.s.ex.done[def.id], ctx = { ui, done };
-    body.innerHTML = `<div class="ck-ro" inert><div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${def.view(S, d, ctx)}</div>` : def.view(S, d, ctx)}${def.live ? `<div class="ex-live">${def.live(S, d, ctx)}</div>` : ''}</div></div>`;
+    fill(body, `<div class="ck-ro" inert><div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${def.view(S, d, ctx)}</div>` : def.view(S, d, ctx)}${def.live ? `<div class="ex-live">${def.live(S, d, ctx)}</div>` : ''}</div></div>`);
     body.querySelectorAll('textarea,input,select,button').forEach(el => { el.disabled = true; el.setAttribute('tabindex', '-1'); });
-  } catch { body.innerHTML = '<p class="muted">Цю вправу не вдалося показати.</p>'; }
+  } catch { fill(body, '<p class="muted">Цю вправу не вдалося показати.</p>'); }
 }
 
 function brand() {
@@ -110,16 +110,16 @@ const TABS = () => [...(list.length > 1 ? [['class', 'Клас']] : []), ['over'
 
 function render() {
   const err = error ? `<div class="ck-err" role="alert">${esc(error)}</div>` : '';
-  if (!list.length) { tools.innerHTML = ''; main.innerHTML = dropZone() + err; return; }
-  tools.innerHTML = `<button class="btn" id="pick" type="button">${icon('open', 16)} Додати файли</button><button class="btn" id="prt" type="button">${icon('printer', 16)} Друк</button>`;
+  if (!list.length) { fill(tools, ''); fill(main, dropZone() + err); return; }
+  fill(tools, `<button class="btn" id="pick" type="button">${icon('open', 16)} Додати файли</button><button class="btn" id="prt" type="button">${icon('printer', 16)} Друк</button>`);
   if (tab === 'class' && list.length < 2) tab = 'over';
   const bar = `${err}${list.length > 1 ? `<label class="ck-sw">Учень: <select id="who" class="inp">${list.map((e, i) => `<option value="${i}" ${i === cur ? 'selected' : ''}>${esc(e.S.s.founder.name)} · ${esc(e.S.s.company.name)}</option>`).join('')}</select></label>` : ''}`;
-  if (tab === 'class') { main.innerHTML = `${bar}<nav class="ck-tabs" role="tablist">${tabsHtml()}</nav>${classTable()}`; return; }
+  if (tab === 'class') { fill(main, `${bar}<nav class="ck-tabs" role="tablist">${tabsHtml()}</nav>${classTable()}`); return; }
   const s = S.s, c = s.company, saved = meta.savedAt ? new Date(meta.savedAt).toLocaleString('uk-UA') : '';
   const body = tab === 'over' ? overview() : tab === 'ex' ? exercises() : tab === 'brand' ? safe(brand) : tab === 'plan' ? ro(safe(() => marketViews.plan.render(S, ui))) : tab === 'iv' ? interviews() : ro(safe(() => coreViews.report.render(S, ui)));
-  main.innerHTML = `${bar}${meta.edited ? '<div class="ck-warn" role="alert"><b>Увага.</b> Дані у файлі не збігаються з контрольною сумою: файл могли змінювати вручну після збереження.</div>' : ''}
+  fill(main, `${bar}${meta.edited ? '<div class="ck-warn" role="alert"><b>Увага.</b> Дані у файлі не збігаються з контрольною сумою: файл могли змінювати вручну після збереження.</div>' : ''}
     <div class="ck-who">${logo(c, 56)}<div><h1>${esc(s.founder.name)}${s.founder.group ? ` · ${esc(s.founder.group)}` : ''}</h1><p>${esc(c.name)} · ${esc(S.I.t)} · ${money(s.cash)} на рахунку${saved ? ` · збережено ${esc(saved)}` : ''}</p></div></div>
-    <nav class="ck-tabs" role="tablist">${tabsHtml()}</nav><div class="ck-view" data-tab-view="${tab}">${body}</div>`;
+    <nav class="ck-tabs" role="tablist">${tabsHtml()}</nav><div class="ck-view" data-tab-view="${tab}">${body}</div>`);
   main.querySelectorAll('.ck-view textarea,.ck-view input:not([type=search]),.ck-view select').forEach(el => { el.disabled = true; });
   if (tab === 'ex') applyFilter();
 }

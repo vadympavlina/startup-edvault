@@ -119,7 +119,7 @@ function genNames(th, style, seed) {
 const nameScore = n => {
   const w = n.replace(/[^а-яіїєґa-z]/gi, ''), cons = (w.match(/[бвгґджзйклмнпрстфхцчшщbcdfghjklmnpqrstvwxz]{4,}/gi) || []).length, vowels = (w.match(/[аеєиіїоуюяaeiouy]/gi) || []).length / Math.max(1, w.length);
   const free = hash('dom' + n.toLowerCase()) % 100 < 58;
-  const list = [[w.length >= 4 && w.length <= 9, 'Коротка: 4–9 літер', 25], [cons === 0 && vowels > .28, 'Легко вимовляється', 25], [/^[А-ЯІЇЄҐA-Z][а-яіїєґa-z]+$/.test(n), 'Одне слово, без цифр і тире', 15], [free, free ? `Домен ${n.toLowerCase()}.com.ua вільний` : `Домен ${n.toLowerCase()}.com.ua зайнятий`, 20], [hash('mem' + n) % 100 < 70, 'Запам’ятовується (нема схожих гучних брендів)', 15]];
+  const list = [[w.length >= 4 && w.length <= 9, 'Коротка: 4–9 літер', 25], [cons === 0 && vowels > .28, 'Легко вимовляється', 25], [/^[А-ЯІЇЄҐA-Z][а-яіїєґa-z]+$/.test(n), 'Одне слово, без цифр і тире', 15], [free, free ? `Домен ${esc(n.toLowerCase())}.com.ua вільний` : `Домен ${esc(n.toLowerCase())}.com.ua зайнятий`, 20], [hash('mem' + n) % 100 < 70, 'Запам’ятовується (нема схожих гучних брендів)', 15]];
   return { list, score: sumOf(list.map(x => (x[0] ? x[2] : 0))), free };
 };
 reg({
