@@ -699,7 +699,7 @@ export class Sim {
     const refCost = Math.round(refPaid * s.mkt.referral); mkSpend.referral = refCost;
     const mkt = mkSpend.ads + mkSpend.bloggers + mkSpend.events + refCost;
     const formFee = s.company.form === 'fop' ? 1300 / W2M : s.company.form === 'tov' ? 6000 / W2M : 0;
-    const tools = 400 + s.team.length * 150;
+    const tools = 400 + s.team.length * 150 + s.week * 25; // накладні витрати (оренда, бухгалтер, зв'язок) ростуть: пасивна компанія з часом збанкрутує
     let tax = 0;
     if (s.company.form === 'fop') tax = revenue * .05;
     const pre = revenue - (servers + salaries + mkt + formFee + tools + cogs);
@@ -886,7 +886,7 @@ export const EVENTS = {
   leak: { p: .15, when: S => S.s.product.launched && S.activeUsers() > 250 && !S.hasFlag('security') && S.s.week > 10,
     make: () => ({ from: 'Розробка', title: 'Витік даних користувачів', body: 'Ми знайшли вразливість: дані частини користувачів (імена й пошти) могли потрапити до сторонніх. Що робимо?' }),
     choices: () => [{ t: 'Чесно повідомити всіх і виправити', do: S => { for (const k of S.segIds) { const u = S.s.users[k]; u.free = Math.round(u.free * .94); u.paid = Math.round(u.paid * .97); } const sec = Object.keys(S.I.features).find(f => S.feature(f).security && !S.has(f)); if (sec) { S.unqueue(sec); S.s.product.queue.unshift(sec); S.s.product.progress[sec] ||= 0; } else S.s.product.debt += 6; return sec ? 'Частина користувачів пішла, але більшість оцінила чесність. Захист даних додано на початок розробки.' : 'Частина користувачів пішла, але більшість оцінила чесність. Розробники закрили вразливість — це забрало трохи часу.'; } }, { t: 'Тихо виправити й нікому не казати', do: S => { if (S.r.chance(.6)) { for (const k of S.segIds) { const u = S.s.users[k]; u.free = Math.round(u.free * .75); u.paid = Math.round(u.paid * .8); } S.s.cash -= 80000; S.s.ledgerExtra = (S.s.ledgerExtra || 0) + 80000; return 'Через місяць журналісти дізналися про витік. Скандал: чверть користувачів пішла, а ще штраф 80 000 ₴. Приховувати — гірше, ніж визнати.'; } return 'Цього разу пронесло. Але ризик був величезний.'; } }] },
-  acquire: { p: .3, when: S => S.mrr() > 120000 || S.activeUsers() > 6000,
+  acquire: { p: .3, when: S => S.mrr() > 120000 || S.activeUsers() > 6000 || S.valuation() > 5000000,
     make: S => { const v = Math.round(S.valuation() * 1.4 / 100000) * 100000; return { from: 'Корпорація «Велика ІТ»', title: 'Пропозиція купити вашу компанію', data: { v }, body: `Ми хочемо придбати вашу компанію за ${money(v)}. Ваша частка — ${pct(S.stake(), 1)}, тобто ви особисто отримаєте ${money(v * S.stake())}. Гра закінчиться, але це успішний фінал.` }; },
     choices: () => [{ t: 'Продати компанію', do: (S, e) => { S.s.over = { kind: 'sold', week: S.s.week, value: e.data.v }; return 'Угоду підписано!'; } }, { t: 'Ні, будуємо далі', do: () => 'Ви вірите, що компанія коштуватиме більше. Ризиковано, але сміливо.' }] },
   intern: { kind: 'team', p: .15, when: S => S.s.week > 4 && S.s.team.length < 6,
