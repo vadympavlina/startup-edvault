@@ -5,6 +5,16 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:e2e": "node tests/run-browser-tests.mjs"
+    "test:e2e": "node tests/run-browser-tests.mjs",
+    "audit": "npm run audit:xss && npm run audit:fuzz && npm run audit:a11y && npm run audit:keyboard && npm run audit:perf",
+    "audit:perf": "node scripts/audit/perf.mjs",
+    "audit:xss": "node scripts/audit/xss.mjs && node scripts/audit/xss-checker.mjs",
+    "audit:fuzz": "node scripts/audit/fuzz.mjs",
+    "audit:a11y": "node scripts/audit/a11y.mjs",
+    "audit:keyboard": "node scripts/audit/keyboard.mjs"
+  },
+  "type": "module",
+  "devDependencies": {
+    "axe-core": "^4.10.0"
   }
 }
