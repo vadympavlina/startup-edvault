@@ -6,18 +6,19 @@
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "node tests/run-browser-tests.mjs",
-    "audit": "npm run audit:preload && npm run audit:xss && npm run audit:fuzz && npm run audit:a11y && npm run audit:keyboard && npm run audit:perf && npm run audit:balance",
+    "audit": "npm run audit:build && npm run audit:xss && npm run audit:fuzz && npm run audit:a11y && npm run audit:keyboard && npm run audit:perf && npm run audit:balance",
     "audit:perf": "node scripts/audit/perf.mjs",
     "audit:xss": "node scripts/audit/xss.mjs && node scripts/audit/xss-checker.mjs",
     "audit:fuzz": "node scripts/audit/fuzz.mjs",
     "audit:a11y": "node scripts/audit/a11y.mjs",
     "audit:keyboard": "node scripts/audit/keyboard.mjs",
-    "preload": "node scripts/preload.mjs",
-    "audit:preload": "node scripts/preload.mjs --check",
-    "audit:balance": "node scripts/audit/balance.mjs"
+    "audit:balance": "node scripts/audit/balance.mjs",
+    "build": "node scripts/preload.mjs",
+    "audit:build": "node scripts/preload.mjs --check"
   },
   "type": "module",
   "devDependencies": {
-    "axe-core": "^4.10.0"
+    "axe-core": "^4.10.0",
+    "playwright": "^1.49.1"
   }
 }
