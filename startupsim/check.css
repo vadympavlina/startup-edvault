@@ -1,12 +1,12 @@
 /* Сторінка перевірки для викладача: лише перегляд */
 body.ck { background: var(--bg); }
-.ck-top { background: #fff; border-bottom: 1px solid var(--bd, #e3e6ee); position: sticky; top: 0; z-index: 20; }
+.ck-top { background: var(--white); border-bottom: 1px solid var(--bd, var(--line-3)); position: sticky; top: 0; z-index: 20; }
 .ck-in { max-width: 1180px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
 .ck-brand b { display: block; font: 700 18px/1.2 Rubik, system-ui, sans-serif; }
 .ck-brand span { color: var(--mu, #667); font-size: 13px; }
 .ck-tools { display: flex; gap: 10px; flex-wrap: wrap; }
 .ck-main { max-width: 1180px; width: 100%; margin: 0 auto; padding: 24px 24px 80px; }
-.ck-drop { margin: 40px auto; max-width: 620px; text-align: center; padding: 48px 28px; border: 2px dashed var(--bd2, #c9cfdd); border-radius: 18px; background: #fff; }
+.ck-drop { margin: 40px auto; max-width: 620px; text-align: center; padding: 48px 28px; border: 2px dashed var(--bd2, #c9cfdd); border-radius: 18px; background: var(--white); }
 .ck-drop.over { border-color: var(--acc); background: var(--acc-bg, #eef0ff); }
 .ck-drop h1 { font: 700 24px/1.3 Rubik, system-ui, sans-serif; margin: 0 0 8px; }
 .ck-drop p { color: var(--mu, #667); margin: 0 0 20px; }
@@ -15,21 +15,21 @@ body.ck { background: var(--bg); }
 .ck-who { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
 .ck-who h1 { font: 700 26px/1.2 Rubik, system-ui, sans-serif; margin: 0; }
 .ck-who p { margin: 2px 0 0; color: var(--mu, #667); }
-.ck-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 1px solid var(--bd, #e3e6ee); }
+.ck-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 1px solid var(--bd, var(--line-3)); }
 .ck-tabs button { border: 0; background: none; padding: 10px 16px; font: 600 14px/1 inherit; color: var(--mu, #667); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
-.ck-tabs button.on { color: var(--acc-tx, #3d3fb8); border-color: var(--acc); }
+.ck-tabs button.on { color: var(--acc-tx, var(--acc-dk)); border-color: var(--acc); }
 .ck-sum { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 18px; margin: 0; }
 .ck-sum div { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--bd, #eceff5); }
 .ck-sum dt { color: var(--mu, #667); font-size: 12.5px; }
 .ck-sum dd { margin: 0; font-weight: 600; }
 .ck-st { margin: 0 0 22px; }
 .ck-st > :is(h2,h3) { font: 700 16px/1.3 Rubik, system-ui, sans-serif; margin: 0 0 8px; display: flex; gap: 10px; align-items: center; }
-.ck-ex { border: 1px solid var(--bd, #e3e6ee); border-radius: 14px; background: #fff; margin-bottom: 8px; }
+.ck-ex { border: 1px solid var(--bd, var(--line-3)); border-radius: 14px; background: var(--white); margin-bottom: 8px; }
 .ck-ex > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .ck-ex > summary::-webkit-details-marker { display: none; }
 .ck-ex > summary b { flex: 1 1 220px; }
 .ck-ex > summary .muted { font-size: 13px; }
-.ck-ex[open] > summary { border-bottom: 1px solid var(--bd, #e3e6ee); }
+.ck-ex[open] > summary { border-bottom: 1px solid var(--bd, var(--line-3)); }
 .ck-ex.none > summary { cursor: default; opacity: .62; }
 .ck-body { padding: 16px; }
 .ck-body .ex-body { margin: 0; }
@@ -50,20 +50,20 @@ body.ck { background: var(--bg); }
 .ck-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .ck-sr { display: grid; grid-template-columns: 30px 1fr 220px; gap: 12px; align-items: center; }
 .ck-sn { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #eef0f6; font-weight: 700; font-size: 13px; }
-.ck-sr:has(.ck-pb u[style*="100%"]) .ck-sn { background: #2ea66a; color: #fff; }
+.ck-sr:has(.ck-pb u[style*="100%"]) .ck-sn { background: #2ea66a; color: var(--white); }
 .ck-sl small { display: block; color: var(--mu, #667); }
 .ck-pb { height: 8px; border-radius: 99px; background: #e6e9f2; overflow: hidden; display: block; }
 .ck-pb u { display: block; height: 100%; background: var(--acc); }
 .ck-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
 .ck-flt { display: flex; gap: 4px; background: #eef0f6; padding: 3px; border-radius: 10px; }
 .ck-flt button { border: 0; background: none; padding: 6px 12px; border-radius: 8px; font: 600 13px/1 inherit; cursor: pointer; color: var(--mu, #667); }
-.ck-flt button.on { background: #fff; color: var(--acc-tx, #3d3fb8); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.ck-flt button.on { background: var(--white); color: var(--acc-tx, var(--acc-dk)); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .ck-flt small { opacity: .7; }
 .ck-q { flex: 1 1 240px; max-width: 360px; }
 .ck-sw { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; font-weight: 600; }
 .ck-sw select { max-width: 360px; }
 .ck-tbl th button { border: 0; background: none; font: inherit; font-weight: 700; cursor: pointer; color: inherit; }
-.ck-tbl th button.on { color: var(--acc-tx, #3d3fb8); }
-.ck-lnk { border: 0; background: none; font: inherit; font-weight: 700; color: var(--acc-tx, #3d3fb8); cursor: pointer; text-decoration: underline; }
+.ck-tbl th button.on { color: var(--acc-tx, var(--acc-dk)); }
+.ck-lnk { border: 0; background: none; font: inherit; font-weight: 700; color: var(--acc-tx, var(--acc-dk)); cursor: pointer; text-decoration: underline; }
 .ck-brand-v { max-width: 680px; margin-bottom: 12px; }
 @media (max-width: 700px) { .ck-sr { grid-template-columns: 30px 1fr; } .ck-sr .ck-pb { grid-column: 1 / -1; } }
