@@ -375,7 +375,7 @@ const M = {
       } else if (s.week > g.deadline + 2) {
         s.myGigs = s.myGigs.filter(x => x !== g); s.gigsDone++; s.rating = s.gigsDone === 1 ? 2 : (s.rating * (s.gigsDone - 1) + 2) / s.gigsDone;
         if (g.got) { s.cash -= g.got; s.ledgerExtra = (s.ledgerExtra || 0) + g.got; }
-        this.mail({ from: g.client, kind: 'freelance', title: 'Замовлення скасовано', body: `Ви зірвали всі терміни. Я знайшов іншого виконавця й поставив вам низьку оцінку.${g.got ? ` Передоплату ${fmt(g.got)} довелося повернути.` : ''}` });
+        this.mail({ from: g.client, kind: 'freelance', title: 'Замовлення скасовано', body: `Ви зірвали всі терміни. Знайдено іншого виконавця, а вам поставлено низьку оцінку.${g.got ? ` Передоплату ${fmt(g.got)} довелося повернути.` : ''}` });
       }
     }
     if (s.week - (s.flags.gigWeek ?? -9) >= 2) this.refreshGigs();
