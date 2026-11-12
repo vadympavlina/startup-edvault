@@ -55,3 +55,19 @@ test('посади й риси кандидатів мають жіночі фо
 test('запитання співбесіди: кожне має підказку або позначку підказувального', () => {
   for (const q of QUESTIONS) assert.ok(q.hint || q.bad, q.id);
 });
+
+test('промпти для ШІ: у кожній вправі є запит із ролею, контекстом і правилами, звертання без роду', async () => {
+  const { aiPrompts } = await import('../startupsim/js/ai.js');
+  const { exAll } = await import('../startupsim/js/ex-core.js');
+  const S = newGame({ idea: 'homework', founder: 'Тест', company: 'Зошит', seed: 2 });
+  for (const def of exAll()) {
+    const list = aiPrompts(S, def);
+    assert.ok(list.length >= 3, def.id);
+    assert.ok(list.some(x => x.k === 'think') && list.some(x => x.k === 'check'), def.id);
+    for (const x of list) {
+      assert.match(x.p, /Роль:[\s\S]*Контекст:[\s\S]*Завдання:[\s\S]*Правила відповіді:/, def.id + ' ' + x.t);
+      assert.match(x.p, /Зошит/, 'назва компанії підставлена');
+      assert.doesNotMatch(x.p, /\{(idea|pitch|company|title)\}|\(-ла\)|\(-лась\)|я (зробив|вибрав|записав|склав)\b/, def.id + ' ' + x.t);
+    }
+  }
+});

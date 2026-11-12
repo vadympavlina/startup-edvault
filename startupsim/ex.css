@@ -587,3 +587,8 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
   .ex-intro .ex-ic { display: none; }
   .ex-intro > div { padding-right: 0; width: 100%; }
 }
+
+/* промпти для ШІ: структурований текст, видно, для чого кожен */
+.ai-it header > span { display: grid; gap: 1px; } .ai-it .ai-k { color: var(--tx-m); font-size: 12.5px; font-weight: 500; }
+.ai-it .ai-p { margin: 6px 0 0; padding: 10px 12px; background: #f6f7f9; border-radius: 10px; font: 400 13.5px/1.5 'Golos Text', system-ui, sans-serif; white-space: pre-wrap; word-break: break-word; color: #2b3447; max-height: 240px; overflow: auto; }
+.ai-it.ai-think { border-color: var(--sky); } .ai-it.ai-check { border-color: var(--ok); }

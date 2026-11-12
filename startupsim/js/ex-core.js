@@ -165,8 +165,8 @@ export const exActs = {
     const def = EX[el.dataset.ex]; if (!def) return;
     const list = aiPrompts(C.S, def);
     modal({ title: `Промпти для ШІ · ${def.t}`, wide: true, cls: 'ai-md',
-      html: `<p class="sm muted">Скопіюйте промпт, вставте його в чат із ШІ й допишіть свої дані там, де є квадратні дужки. Це приклади: змінюйте їх під себе.</p>
-        <div class="ai-list">${list.map((x, i) => `<article class="ai-it"><header><b>${esc(x.t)}</b><button type="button" class="btn sm" data-ai-copy="${i}">${icon('save', 14)} Копіювати</button></header><p>${esc(x.p)}</p></article>`).join('')}</div>
+      html: `<p class="sm muted">Скопіюйте промпт, вставте його в чат із ШІ й допишіть свої дані там, де є квадратні дужки. Кожен промпт уже містить роль, опис вашого проєкту й правила відповіді. Це приклади: змінюйте їх під себе.</p>
+        <div class="ai-list">${list.map((x, i) => `<article class="ai-it ai-${x.k}"><header><span><b>${esc(x.t)}</b><small class="ai-k">${x.k === 'think' ? 'ШІ ставить запитання' : x.k === 'check' ? 'ШІ перевіряє вашу роботу' : 'ШІ допомагає зробити'}</small></span><button type="button" class="btn sm" data-ai-copy="${i}">${icon('save', 14)} Копіювати</button></header><pre class="ai-p">${esc(x.p)}</pre></article>`).join('')}</div>
         <ul class="ai-tips">${AI_TIPS.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`,
       onOpen: api => api.el.addEventListener('click', async e => {
         const b = e.target.closest('[data-ai-copy]'); if (!b) return;
