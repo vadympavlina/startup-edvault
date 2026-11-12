@@ -1,5 +1,5 @@
 // Симулятор стартапу · розділи: Команда, Фриланс.
-import { ROLES, TRAITS } from './data.js';
+import { ROLES, TRAITS, gx, roleName } from './data.js';
 import { money, num, pct, plural, sum, W2M } from './sim.js';
 import { TASKS } from './mods.js';
 import { icon } from './icons.js';
@@ -11,17 +11,17 @@ const stars = (n, max = 5) => `<span class="stars" aria-label="${n} з ${max}">$
 function team(S) {
   const s = S.s, pay = sum(s.team.map(m => m.salary));
   const member = m => `<article class="member">
-    <div class="mb-h"><span class="av" style="--h:${(m.name.charCodeAt(0) * 37) % 360}">${esc(m.name.split(' ').map(x => x[0]).join(''))}</span><div><b>${esc(m.name)}</b><small>${esc(ROLES[m.role].t)}${m.cofounder ? ' · співзасновник' : m.intern ? ' · стажист' : ''}</small></div>${stars(m.skill)}</div>
+    <div class="mb-h"><span class="av" style="--h:${(m.name.charCodeAt(0) * 37) % 360}">${esc(m.name.split(' ').map(x => x[0]).join(''))}</span><div><b>${esc(m.name)}</b><small>${esc(roleName(m.role, m.fem))}${m.cofounder ? ' · співзасновник' : m.intern ? ' · стажист' : ''}</small></div>${stars(m.skill)}</div>
     <div class="mb-r"><span>Зарплата</span><b>${money(m.salary)}/міс</b></div>
     <div class="mb-r m"><span>Мораль</span>${meter(m.morale / 100, { color: m.morale < 35 ? 'var(--bad)' : m.morale < 55 ? 'var(--warn)' : 'var(--ok)', label: 'Мораль' })}<b>${Math.round(m.morale)}</b></div>
-    <p class="sm muted">${esc(TRAITS[m.trait]?.t || '')}</p>
+    <p class="sm muted">${esc(gx(TRAITS[m.trait]?.t || '', m.fem))}</p>
     ${m.cofounder || m.intern ? '' : `<div class="row gap"><button class="btn sm" data-act="raise" data-id="${m.id}">Підвищити на 10%</button><button class="btn sm ghost danger" data-act="fire" data-id="${m.id}">Звільнити</button></div>`}</article>`;
   const cand = c => `<article class="member cand">
-    <div class="mb-h"><span class="av" style="--h:${(c.name.charCodeAt(0) * 37) % 360}">${esc(c.name.split(' ').map(x => x[0]).join(''))}</span><div><b>${esc(c.name)}</b><small>${esc(ROLES[c.role].t)}</small></div></div>
+    <div class="mb-h"><span class="av" style="--h:${(c.name.charCodeAt(0) * 37) % 360}">${esc(c.name.split(' ').map(x => x[0]).join(''))}</span><div><b>${esc(c.name)}</b><small>${esc(roleName(c.role, c.fem))}</small></div></div>
     <div class="mb-skill"><span>Навички</span>${c.seen ? stars(c.skill) : `<span class="chip sm">від ${c.lo} до ${c.hi} з 5</span>`}</div>
     <div class="mb-r"><span>Хоче</span><b>${money(c.ask)}/міс</b></div>
     <div class="mb-r"><span>Ринкова зарплата</span><b>${money(S.marketSalary(c.role, c.seen ? c.skill : Math.round((c.lo + c.hi) / 2)))}</b></div>
-    <p class="sm muted">${c.seen ? esc(TRAITS[c.trait].t) : 'Характер і реальні навички стануть зрозумілі на співбесіді.'}</p>
+    <p class="sm muted">${c.seen ? esc(gx(TRAITS[c.trait].t, c.fem)) : 'Характер і реальні навички стануть зрозумілі на співбесіді.'}</p>
     <div class="row gap">${c.seen ? '' : `<button class="btn sm" data-act="meet" data-id="${c.id}">${icon('mic', 14)} Співбесіда</button>`}<button class="btn sm primary" data-act="offer" data-id="${c.id}">Запропонувати</button></div></article>`;
   return `<div class="kpis"><div class="kpi"><span class="kpi-l">Команда</span><b>${s.team.length + 1} ${plural(s.team.length + 1, 'людина', 'людини', 'людей')}</b><small>з вами</small></div><div class="kpi"><span class="kpi-l">Зарплати на місяць</span><b>${money(pay)}</b></div><div class="kpi"><span class="kpi-l">Середня мораль</span><b>${s.team.length ? Math.round(sum(s.team.map(m => m.morale)) / s.team.length) : '—'}</b></div><div class="kpi"><span class="kpi-l">Понаднормова робота</span><b>${s.crunch ? 'так' : 'ні'}</b><small>${s.crunch ? '+25% швидкості, мораль падає' : 'нормальний темп'}</small></div></div>
   <section class="card"><header class="card-h"><h2>${icon('users')} Команда</h2>${s.team.length ? `<label class="switch"><input type="checkbox" data-in="crunch" ${s.crunch ? 'checked' : ''}><span></span>Понаднормово</label>` : ''}</header>
@@ -35,7 +35,7 @@ function offerModal(C, id) {
   let sal = c.ask, eq = 0;
   const draw = api => {
     const p = S.acceptChance(c, sal, eq / 100);
-    api.set(`<p><b>${esc(c.name)}</b>, ${esc(ROLES[c.role].t.toLowerCase())}. Хоче ${money(c.ask)} на місяць.</p>
+    api.set(`<p><b>${esc(c.name)}</b>, ${esc(roleName(c.role, c.fem).toLowerCase())}. Хоче ${money(c.ask)} на місяць.</p>
       <div class="sl"><label>Зарплата</label><input type="range" min="${Math.round(c.ask * .5 / 1000) * 1000}" max="${Math.round(c.ask * 1.5 / 1000) * 1000}" step="1000" value="${sal}" data-o="sal"><output>${money(sal)}/міс</output></div>
       <div class="sl"><label>Частка компанії</label><input type="range" min="0" max="5" step=".5" value="${eq}" data-o="eq"><output>${String(eq).replace('.', ',')}%</output></div>
       <p class="sm muted">${eq ? `Це ≈ ${money(S.valuation() * eq / 100)} за поточною оцінкою. Ваша частка зменшиться з ${pct(S.stake(), 1)} до ${pct(S.stake() * (1 - eq / 100), 1)}.` : 'Без частки в компанії.'}</p>

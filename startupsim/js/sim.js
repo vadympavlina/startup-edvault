@@ -1,7 +1,7 @@
 // Симулятор стартапу · рушій. Без DOM: працює і в браузері, і в тестах (node).
 // Один хід — тиждень. Гравець планує тиждень (години засновника, бюджети, розробку), натискає
 // «Завершити тиждень» — і рушій рахує воронку, гроші, команду, інвесторів, події.
-import { IDEAS, CHANNELS, MODELS, BACKGROUNDS, ROLES, FIRST, LAST, FEM, TRAITS, INVESTORS, SLIDES, ACHIEVEMENTS } from './data.js';
+import { IDEAS, CHANNELS, MODELS, BACKGROUNDS, ROLES, FIRST, LAST, FEM, gx, whoFem, roleName, TRAITS, INVESTORS, SLIDES, ACHIEVEMENTS } from './data.js';
 import { applyMods, PROMOS, LOYALTY } from './mods.js';
 import { makeCustomIdea, DEFAULT_UW } from './custom.js';
 
@@ -307,9 +307,10 @@ export class Sim {
   startInterview(k) {
     if (this.s.interview || this.talksLeft() <= 0 || !this.I.segments[k]) return null;
     const g = this.seg(k), r = this.r;
-    const first = r.pick(FIRST), name = `${first} ${r.pick(LAST)}`;
+    // спершу хто це (опис), потім ім'я того ж роду: «мама учня» не може бути Андрієм
+    const who = r.pick(g.who), fem = whoFem(who), first = r.pick(FIRST.filter(n => FEM.has(n) === fem)), name = `${first} ${r.pick(LAST)}`;
     const p = {
-      name, fem: FEM.has(first), who: r.pick(g.who), seg: k,
+      name, fem, who, seg: k,
       pain: clamp(r.norm(g.pain, .18), .05, 1),
       wtp: Math.round(g.wtp * Math.exp(r.norm(0, .35)) / 10) * 10,
       ch: r.weighted(Object.fromEntries(Object.entries(g.fit).filter(([c]) => g.channelSay[c]))),
@@ -325,7 +326,6 @@ export class Sim {
     const q = QUESTIONS.find(x => x.id === qid); if (!q) return null;
     const p = iv.p, g = this.seg(p.seg), K = this.s.know[p.seg], r = this.r, I = this.I;
     let a;
-    const ua = p.fem ? 'а' : '';
     switch (qid) {
       case 'how': a = `Зараз ${p.sol}. ${p.pain > .62 ? 'Але це забирає купу сил і нервів.' : p.pain < .35 ? 'І мене це, загалом, влаштовує.' : 'Працює так собі, але живемо.'}`; K.sols.push(p.sol); break;
       case 'last': a = r.pick(p.pain > .5 ? g.high : g.low); K.pains.push(clamp(p.pain + r.norm(0, .08), 0, 1)); break;
@@ -337,11 +337,12 @@ export class Sim {
       }
       case 'worst': { const f = this.feature(p.feat); a = f ? `Найбільше бракує, щоб було щось таке: ${f.desc.charAt(0).toLowerCase() + f.desc.slice(1)}` : 'Та навіть не знаю.'; if (f) K.feats[p.feat] = (K.feats[p.feat] || 0) + 1; break; }
       case 'where': a = `Зазвичай ${g.channelSay[p.ch] || 'питаю знайомих'}.`; K.ch[p.ch] = (K.ch[p.ch] || 0) + 1; break;
-      case 'like': a = r.chance(.88) ? `Так, звучить класно! Я б точно спробував${ua}.` : 'Хм, ну може бути цікаво.'; K.likes++; break;
+      case 'like': a = r.chance(.88) ? 'Так, звучить класно! Я б точно {спробувала|спробував}.' : 'Хм, ну може бути цікаво.'; K.likes++; break;
       case 'pay': { const x = Math.round(p.wtp * r.range(1.6, 3) / 10) * 10; a = `Ну… мабуть, ${money(x)}${g.b2b || I.kind === 'hardware' ? '' : ' на місяць'}, чому б ні.`; K.badWtps.push(x); break; }
       case 'would': a = r.chance(.85) ? 'Ну… мабуть, так. Чому б ні.' : 'Якщо буде зручно — то так.'; K.likes++; break;
     }
-    iv.asked.push(qid); iv.log.push({ q: this.qText(q), a });
+    a = gx(a, p.fem);
+    iv.asked.push(qid); iv.log.push({ id: qid, q: this.qText(q), a });
     return a;
   }
   qText(q) { return q.t.replace('{problem}', this.I.problem).replace('{pitch}', `«${this.I.pitch}»`); }
@@ -421,7 +422,7 @@ export class Sim {
     const m = { id: this.id('m'), name: c.name, fem: c.fem, role: c.role, skill: c.skill, salary: Math.round(salary), morale: 72 + (this.trait(c).morale || 0), trait: c.trait, joined: this.s.week, eq: equity };
     this.s.team.push(m);
     if (equity > 0) this.issue(m.id, m.name, 'team', equity);
-    this.award('hire'); this.log(`Найнято: ${m.name}, ${ROLES[m.role].t.toLowerCase()}, ${money(m.salary)}/міс${equity ? `, частка ${pct(equity, 1)}` : ''}.`);
+    this.award('hire'); this.log(`Найнято: ${m.name}, ${roleName(m.role, m.fem).toLowerCase()}, ${money(m.salary)}/міс${equity ? `, частка ${pct(equity, 1)}` : ''}.`);
     return { ok: true, m };
   }
   fire(id) {
