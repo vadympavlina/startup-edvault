@@ -129,7 +129,7 @@ reg({
   data: () => ({ a: {}, say: '' }),
   view(S, d) {
     return `${CON.map((c, i) => box(`Ситуація ${i + 1}`, `<p class="jt" style="margin:0 0 8px">${esc(c.s)}</p><div class="xcol1 qlist">${c.o.map(([t, , why, best], k) => `<div class="opt ${d.a[i] === k ? (best ? 'ok' : 'warn') : ''}">${xp('conflict', `a.${i}`, k, esc(t), d.a[i] === k, { t: 'n', cls: 'card' })}${d.a[i] === k ? `<p class="sm">${esc(why)}</p>` : ''}</div>`).join('')}</div>`, { ic: 'users' })).join('')}
-    ${box('Перша фраза', xin('conflict', 'say', d, { area: true, rows: 2, max: 200, label: 'З якої фрази ви почнете найважчу розмову?', ph: 'Я помітив(ла), що… Допоможи мені зрозуміти, що…', hint: 'Говоріть про факти й свої відчуття, а не про характер людини.' }), { ic: 'mic' })}`;
+    ${box('Перша фраза', xin('conflict', 'say', d, { area: true, rows: 2, max: 200, label: 'З якої фрази ви почнете найважчу розмову?', ph: 'Помічаю, що… Допоможи мені зрозуміти, що…', hint: 'Говоріть про факти й свої відчуття, а не про характер людини.' }), { ic: 'mic' })}`;
   },
   live(S, d) {
     const v = MET.map((n, j) => 5 + sumOf(CON.map((c, i) => d.a[i] != null ? c.o[d.a[i]][1][j] : 0)));

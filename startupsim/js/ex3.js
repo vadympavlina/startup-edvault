@@ -74,7 +74,7 @@ reg({
     return `${box('Ваша ціна', `${xsl('price', 'final', d, { min: Math.max(10, Math.round(u * 1.01)), max: Math.max(400, Math.round(Math.max(mx, f) * 1.6)), step: 10, label: `Ціна за ${perWord(S)}`, u: ' ₴' })}
       <div class="pline" aria-hidden="true">${M.map(x => `<i style="left:${(x.p - mn) / span * 90 + 5}%" title="${x.t}"><b>${x.k === 'cost' ? 'Витрати' : x.k === 'comp' ? 'Конкуренти' : 'Цінність'}</b></i>`).join('')}<em style="left:${(f - mn) / span * 90 + 5}%">ваша</em></div>
       <div class="kpis3"><div><small>Прибуток із одиниці</small><b class="${m > 0 ? 'pos' : 'neg'}">${money0(m)}</b></div><div><small>Націнка</small><b>${u ? pc(m / u) : '—'}</b></div><div><small>Беззбитковість</small><b>${be === Infinity ? 'недосяжна' : `${be.toLocaleString('uk-UA')} ${noun(S)}`}</b></div></div>
-      ${xin('price', 'why', d, { label: 'Чому ви обрали саме таку ціну?', area: true, rows: 2, max: 240, ph: 'Я обрав(ла) цю ціну, тому що…', cls: 'mt' })}
+      ${xin('price', 'why', d, { label: 'Чому ви обрали саме таку ціну?', area: true, rows: 2, max: 240, ph: 'Ціна така, тому що…', cls: 'mt' })}
       <div class="xrow mt">${xb('price', 'apply', d.applied && S.s.price[S.s.target] === d.final ? 'Ціну застосовано в грі' : 'Застосувати ціну в грі', { cls: 'primary', ic: 'check', dis: S.s.price[S.s.target] === d.final })}<small class="muted">Змінить ціну для сегмента «${esc(S.seg().short)}» у розділі «Ціна».</small></div>`, { ic: 'coins' })}`;
   },
   acts: { apply(S, d, el, C) { S.s.price[S.s.target] = d.final; d.applied = true; C.toast(`Ціну в грі змінено: ${money0(d.final)}`, 'good'); } },

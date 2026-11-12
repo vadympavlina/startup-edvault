@@ -129,12 +129,21 @@ export function exPage(def) {
     }
   };
 }
+// «Що зробити»: розділи вправи пронумеровано кроками, по кліку — перехід до розділу
+const stripTags = s => String(s).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+function stepMap(main) {
+  const titles = [...main.matchAll(/<section class="xbox[^"]*"><header>(?:<svg[\s\S]*?<\/svg>)?<h2>([\s\S]*?)<\/h2>/g)].map(m => stripTags(m[1]).replace(/^\d+\.\s*/, ''));
+  if (titles.length < 2 || titles.length > 8) return '';
+  return `<nav class="ex-map" aria-label="Що зробити у вправі"><b>Що зробити</b><ol>${titles.map((t, i) => `<li><button type="button" data-act="exJump" data-i="${i}"><span>${i + 1}</span>${esc(t)}</button></li>`).join('')}</ol></nav>`;
+}
 function page(def, S, ui) {
     const d = X(S, def.id), done = S.s.ex.done[def.id];
+    const main = def.view(S, d, { ui, done });
     return `<div class="ex" data-ex-root="${def.id}">
       <button class="ex-back" data-act="exBack" data-ex="${def.id}">${icon('left', 16)} Етап ${def.stage + 1} · ${esc(STAGE_T[def.stage])}</button>
       <section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${def.intro}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
-      <div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${def.view(S, d, { ui, done })}</div>` : def.view(S, d, { ui, done })}${def.live ? `<div class="ex-live" data-live>${def.live(S, d, { ui, done })}</div>` : ''}</div>
+      ${stepMap(main)}
+      <div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${main}</div>` : main}${def.live ? `<div class="ex-live" data-live>${def.live(S, d, { ui, done })}</div>` : ''}</div>
       <footer class="ex-foot" role="group" aria-label="Завершення вправи">${footInner(S, def, d)}</footer></div>`;
 }
 export const exViews = () => Object.fromEntries(exAll().map(def => [`ex-${def.id}`, { t: def.t, icon: def.icon, render: exPage(def), ex: def.id }]));
@@ -174,6 +183,11 @@ export const exActs = {
         try { await navigator.clipboard.writeText(text); toast('Промпт скопійовано', 'good'); }
         catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Промпт скопійовано', 'good'); } catch { toast('Не вдалося скопіювати: виділіть текст вручну', 'bad'); } ta.remove(); }
       }) });
+  },
+  exJump(C, el) {
+    const b = document.querySelectorAll('.ex-body .xbox')[+el.dataset.i]; if (!b) return;
+    b.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    b.classList.add('ex-flash'); setTimeout(() => b.classList.remove('ex-flash'), 1200);
   },
   exBack(C, el) { const def = EX[el.dataset.ex]; C.ui.stage = def?.stage ?? null; C.go('dash'); },
   exDone(C, el) {

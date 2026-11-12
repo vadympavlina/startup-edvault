@@ -104,7 +104,7 @@ reg({
       <div class="kpis3">${R.map(([k, r]) => `<div><small>${SCN[k][0]}</small><b class="${r.end >= r.bench.at(-1) ? 'pos' : 'neg'}">${Math.round(r.end)} <small>найбільше падіння ${pc(r.dd)}</small></b></div>`).join('')}</div>
       ${worst * 100 > d.tol ? tip(`У найгіршому сценарії портфель падає на ${pc(worst)}, а ви готові пережити лише ${d.tol}%. Зробіть портфель обережнішим або змініть очікування.`, 'warn') : tip(`Найбільше падіння — ${pc(worst)}: це в межах ваших ${d.tol}%.`, 'ok')}
       ${checks([[Object.values(d.al).filter(v => v > 0).length >= 3, 'Диверсифікація: гроші розподілено хоча б між трьома інструментами', 'Не кладіть усі яйця в один кошик'], [(d.al.stock || 0) <= 40, 'Окремі акції не перевищують 40%', 'Окремі акції — найризикованіший інструмент'], [worst * 100 <= d.tol, 'Падіння вкладається у вашу толерантність']])}
-      ${xin('portfolio', 'why', d, { label: 'Чому ви склали портфель саме так?', area: true, rows: 2, max: 240, cls: 'mt', ph: 'Я обрав(ла) такий розподіл, тому що…' })}`, { ic: 'trend' })}`;
+      ${xin('portfolio', 'why', d, { label: 'Чому ви склали портфель саме так?', area: true, rows: 2, max: 240, cls: 'mt', ph: 'Розподіл такий, тому що…' })}`, { ic: 'trend' })}`;
   },
   acts: { preset(S, d, el) { d.al = { ...MIX[el.dataset.a][1] }; d.ran = false; }, run(S, d) { d.ran = true; d.seed++; } },
   ready(S, d) {
@@ -124,7 +124,7 @@ const TS = 30;
 function mkWorld(seed) { const r = mk(seed); const p = [100], ev = []; for (let i = 1; i <= TS; i++) { let g = r.norm(0, .045); if (r.chance(.12)) { const n = r.pick(NEWS); g += n[1]; ev[i] = n[0]; } p.push(Math.max(20, p[i - 1] * (1 + g))); } return { p, ev }; }
 reg({
   id: 'trading', stage: 8, t: 'Криптовалюта й трейдинг', d: 'Спробуйте віртуальну торгівлю на 30 днів і розпізнайте шахраїв.', icon: 'bitcoin', min: 20,
-  intro: `${term('Криптовалюта', 'Криптовалюта')} — цифрові гроші без центрального емітента, її ціна коливається дуже сильно. ${term('Трейдинг', 'Трейдинг')} — купівля й продаж, щоб заробити на зміні ціни. Спробуйте на віртуальних 10 000 ₴ протягом 30 днів і подивіться, чи вдасться перемогти просте «купив і тримаю». Це лише навчання: реальні гроші в це не вкладайте, поки не розумієте ризиків.`,
+  intro: `${term('Криптовалюта', 'Криптовалюта')} — цифрові гроші без центрального емітента, її ціна коливається дуже сильно. ${term('Трейдинг', 'Трейдинг')} — купівля й продаж, щоб заробити на зміні ціни. Спробуйте на віртуальних 10 000 ₴ протягом 30 днів і подивіться, чи вдасться перемогти просте «купити й тримати». Це лише навчання: реальні гроші в це не вкладайте, поки не розумієте ризиків.`,
   data: () => ({ seed: 7, day: 0, cash: 10000, qty: 0, hist: [], log: [], lev: false, q: {}, why: '', done: false }),
   view(S, d) {
     const W = mkWorld(d.seed), price = W.p[d.day], val = d.cash + d.qty * price, profit = val - 10000;
@@ -137,7 +137,7 @@ reg({
   },
   live(S, d) {
     return `${box('Шахрай чи ні?', OFFERS.map(([t, bad, why], i) => `<div class="quiz"><b>${esc(t)}</b><div class="xrow">${xp('trading', `q.${i}`, 1, 'Небезпечно', d.q[i] === 1, { t: 'n', cls: d.q[i] != null ? (bad === 1 ? 'right' : d.q[i] === 1 ? 'wrong' : '') : '' })}${xp('trading', `q.${i}`, 0, 'Виглядає чесно', d.q[i] === 0, { t: 'n', cls: d.q[i] != null ? (bad === 0 ? 'right' : d.q[i] === 0 ? 'wrong' : '') : '' })}</div>${d.q[i] != null ? `<p class="x-tip ${d.q[i] === bad ? 'ok' : 'warn'}">${icon(d.q[i] === bad ? 'check' : 'info', 16)}<span>${d.q[i] === bad ? 'Правильно. ' : 'Не зовсім. '}${esc(why)}</span></p>` : ''}</div>`).join(''), { ic: 'shield', side: `правильно ${OFFERS.filter(([, b], i) => d.q[i] === b).length} з ${OFFERS.length}` })}
-    ${box('Висновок', xin('trading', 'why', d, { label: 'Що ви зрозуміли про ризик і торгівлю?', area: true, rows: 3, max: 300, ph: 'Я зрозумів(ла), що…' }), { ic: 'bulb' })}${d.day >= TS ? `<div class="xrow">${xb('trading', 'again', 'Спробувати ще раз', { ic: 'refresh' })}</div>` : ''}`;
+    ${box('Висновок', xin('trading', 'why', d, { label: 'Що ви зрозуміли про ризик і торгівлю?', area: true, rows: 3, max: 300, ph: 'Головний висновок: …' }), { ic: 'bulb' })}${d.day >= TS ? `<div class="xrow">${xb('trading', 'again', 'Спробувати ще раз', { ic: 'refresh' })}</div>` : ''}`;
   },
   acts: {
     buy(S, d, el) { const W = mkWorld(d.seed), pr = W.p[d.day], amt = d.cash * +el.dataset.a, fee = amt * .005; if (amt < 1) return false; d.qty += (amt - fee) / pr; d.cash -= amt; },

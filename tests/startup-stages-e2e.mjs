@@ -194,6 +194,34 @@ await step('до пройдених етапів можна повертатис
   assert.doesNotMatch(await p.locator('.ws .k').innerText(), /попередній/i);
 });
 
+await step('вправа: «Що зробити» показує кроки сторінки й веде до потрібного розділу', async () => {
+  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; });
+  await go('ex-swot'); await p.waitForSelector('.ex[data-ex-root="swot"]');
+  assert.equal(await p.locator('.ex-map li').count(), 3, 'три кроки вправи');
+  assert.match(await p.locator('.ex-map').innerText(), /Куди це належить[\s\S]*SWOT-матриця[\s\S]*Що з цим робити/);
+  await p.click('.ex-map li:nth-child(3) button');
+  await p.waitForTimeout(500);
+  assert.ok(await p.locator('.ex-body .xbox').nth(2).evaluate(el => el.getBoundingClientRect().top < innerHeight), 'третій розділ у видимій частині');
+});
+
+await step('інтерв’ю з клієнтом у грі: ім’я того ж роду, що й опис, відповіді без помилок форм, кожна відповідь підписана «Факт» або «Туман»', async () => {
+  await p.evaluate(() => { const S = window.Startup.sim; S.s.hours.customers = 21; S.s.talks = 0; S.s.interview = null; window.Startup.C.go('customers'); });
+  await p.waitForSelector('[data-act="interview"]');
+  await p.click('[data-act="interview"]');
+  await p.waitForSelector('.md.iv');
+  const who = await p.locator('.iv-who').innerText();
+  const fem = await p.evaluate(() => window.Startup.sim.s.interview.p.fem);
+  assert.equal(await p.evaluate(() => { const iv = window.Startup.sim.s.interview; return iv.p.fem; }), fem);
+  for (const q of ['last', 'like', 'spend']) await p.click(`[data-q="${q}"]`);
+  const txt = await p.locator('.md.iv .chat').innerText();
+  assert.doesNotMatch(txt, /[{}|]|спробувава/, 'у відповідях немає розмітки роду: ' + txt);
+  assert.equal(await p.locator('.md.iv .ivtag').count(), 3, 'під кожною відповіддю є позначка');
+  assert.equal(await p.locator('.md.iv .ivtag.fog').count(), 1, 'підказувальне запитання позначено як туман');
+  assert.ok(who.length > 5);
+  await p.click('.md.iv [data-md-close]');
+  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 1; window.Startup.C.go('dash'); });
+});
+
 await step('підсумковий звіт показує виконані вправи', async () => {
   await go('report');
   assert.match(await p.locator('.report').innerText(), /Вправи етапів/);
@@ -222,3 +250,4 @@ await step('телефон: усі сторінки вправ без гориз
 
 await step('жодної помилки в консолі', async () => { assert.deepEqual(errors, []); });
 await browser.close(); server.close();
+

@@ -18,7 +18,7 @@ export function stageRail(S, ui, info) {
     const inner = `<span class="n">${cls === 'done' ? icon('check', 16) : cls === 'lock' ? icon('lock', 13) : i + 1}</span><span class="rt"><b>${esc(st.t)}</b><small>${cls === 'lock' ? 'ще закрито' : `${st.n} з ${st.m}${i === sel ? ' · відкрито' : ''}`}</small></span>`;
     return cls === 'lock'
       ? `<li><div class="rs ${cls}" role="group" aria-label="${esc(label)}">${inner}</div></li>`
-      : `<li><button type="button" class="rs ${cls} ${i === sel ? 'sel' : ''}" data-act="stage" data-i="${i}" aria-current="${i === sel ? 'step' : 'false'}" aria-label="${esc(label + (i === sel ? ', відкрито' : '. Відкрити цей етап'))}">${inner}</button></li>`;
+      : `<li><button type="button" class="rs ${cls} ${i === sel ? 'sel' : ''}" data-act="stage" data-i="${i}" aria-current="${i === sel ? 'step' : 'false'}" aria-describedby="rs-d${i}">${inner}<span class="sr-only" id="rs-d${i}">${esc(cls === 'done' ? 'Етап пройдено. ' : '')}${i === sel ? 'Зараз відкрито.' : 'Відкрити цей етап.'}</span></button></li>`;
   };
   return `<aside class="rail" aria-label="Етапи стартапу"><h2>Шлях стартапу</h2><ol>${info.list.map(row).join('')}</ol>
     <div class="rail-foot"><span>Вправ виконано</span><b>${info.ex} з ${info.exAll}</b><div class="x-bar"><i style="width:${info.exAll ? info.ex / info.exAll * 100 : 0}%"></i></div></div></aside>`;

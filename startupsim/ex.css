@@ -592,3 +592,15 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 .ai-it header > span { display: grid; gap: 1px; } .ai-it .ai-k { color: var(--tx-m); font-size: 12.5px; font-weight: 500; }
 .ai-it .ai-p { margin: 6px 0 0; padding: 10px 12px; background: #f6f7f9; border-radius: 10px; font: 400 13.5px/1.5 'Golos Text', system-ui, sans-serif; white-space: pre-wrap; word-break: break-word; color: #2b3447; max-height: 240px; overflow: auto; }
 .ai-it.ai-think { border-color: var(--sky); } .ai-it.ai-check { border-color: var(--ok); }
+
+/* «Що зробити»: кроки вправи одним рядом, по кліку — до розділу */
+.ex-map { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 2px; }
+.ex-map > b { font: 700 12.5px Rubik, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--tx-m); }
+.ex-map ol { display: flex; gap: 6px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.ex-map button { display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px 4px 4px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--white); font: 500 13px 'Golos Text', system-ui, sans-serif; color: var(--ink); cursor: pointer; }
+.ex-map button:hover { border-color: var(--ink); background: #f4f6f5; }
+.ex-map button span { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--acc); color: var(--white); font: 700 12px Rubik, sans-serif; }
+.ex-flash { animation: exflash 1.1s ease-out; }
+@keyframes exflash { 0% { box-shadow: 0 0 0 4px var(--acc); } 100% { box-shadow: 0 0 0 4px transparent; } }
+@media (prefers-reduced-motion: reduce) { .ex-flash { animation: none; outline: 3px solid var(--acc); } }
+@media (max-width: 760px) { .ex-map { display: block; } .ex-map > b { display: block; margin-bottom: 6px; } }
