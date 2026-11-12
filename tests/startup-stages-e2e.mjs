@@ -22,7 +22,8 @@ await start();
 
 await step('маршрут: дев’ять етапів, закриті не відкриваються, аркуш показує справи й прогрес', async () => {
   assert.equal(await p.locator('.rail .rs').count(), 9);
-  assert.equal(await p.locator('.rail button, .rail [data-act]').count(), 0, 'етапи маршруту не клікаються: між етапами не переходять');
+  assert.equal(await p.locator('.rail button.rs').count(), 1, 'зараз відкритий лише перший етап');
+  assert.equal(await p.locator('.rail .rs.lock').count(), 8, 'решту ще закрито');
   assert.match(await p.locator('.ws .k').innerText(), /Етап 1 з 9/i);
   assert.equal(await p.locator('.ws > .steps > .step').count(), 5);
   assert.match(await p.locator('.ws-prog small').innerText(), /0 з 5/);
@@ -168,6 +169,29 @@ await step('перший етап пройдено: відкривається �
   // смужка етапу на інших сторінках
   assert.match(await p.locator('.stbar').innerText(), /Етап 2 з 9/);
   await p.click('.stbar'); await p.waitForSelector('#main .ws');
+});
+
+await step('до пройдених етапів можна повертатися: перегляд, додаткові завдання, гра не перекидає далі', async () => {
+  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 1; window.Startup.C.render(); }); // раніше в цьому файлі етапи відкривали вручну
+  assert.equal(await p.locator('.rail button.rs').count(), 2, 'відкриті два етапи: обидва клікаються');
+  await p.click('.rail button.rs:nth-child(1), .rail li:nth-child(1) button.rs');
+  await p.waitForSelector('.ws .k');
+  assert.match(await p.locator('.ws .k').innerText(), /Етап 1 з 9[\s\S]*пройдено[\s\S]*попередній етап/i, 'показано перший етап');
+  assert.match(await p.locator('.ws h1').innerText(), /Оберіть нішу/);
+  assert.equal(await p.locator('.ws-opt[open]').count(), 1, 'додаткові завдання розгорнуто');
+  assert.match(await p.locator('.ws-next').first().innerText(), /Етап пройдено/);
+  assert.equal(await p.locator('.ws-next >> text=До етапу 2').count(), 1, 'є кнопка переходу далі');
+  // додаткове завдання з пройденого етапу: після нього повертаємося на той самий етап, а не на поточний
+  await p.click('.ws-opt .step:nth-child(1) .btn');
+  await p.waitForSelector('.ex[data-ex-root="interview"]');
+  await p.click('.ex-btns [data-act="exBack"]');
+  await p.waitForSelector('#main .ws');
+  assert.match(await p.locator('.ws .k').innerText(), /Етап 1 з 9/i, 'після додаткового завдання лишаємось на етапі 1: ' + await p.locator('.ws .k').innerText() + ' ui=' + await p.evaluate(() => window.Startup.C.ui.stage));
+  assert.equal(await p.locator('.rail .rs.sel').count(), 1);
+  assert.match(await p.locator('.rail .rs.sel').innerText(), /Ніша й продукт/);
+  await p.click('.ws-next >> text=До етапу 2'); await p.waitForSelector('#main .ws');
+  assert.match(await p.locator('.ws .k').innerText(), /Етап 2 з 9/i, 'повернулись до поточного');
+  assert.doesNotMatch(await p.locator('.ws .k').innerText(), /попередній/i);
 });
 
 await step('підсумковий звіт показує виконані вправи', async () => {

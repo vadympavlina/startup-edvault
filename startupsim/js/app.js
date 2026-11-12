@@ -101,7 +101,7 @@ const save = () => {
 const C = {
   get S() { return S; }, ui,
   // перехід із коду (підказка, лист, кнопка завдання) відкриває розділ навіть до його етапу
-  go(v) { if (!VIEWS[v]) return; if (S && !isOpen(S, v)) { askUnlock(v); return; } ui.view = v; const t = tabOf(v); if (t) (ui.tabLast ||= {})[t[0]] = v; if (v !== 'dash') ui.stage = null; closeMore(); render(); $('#main').scrollTo?.(0, 0); scrollTo(0, 0); if (!document.querySelector('.modal-back, .md-back, .wizard')) $('#main').focus({ preventScroll: true }); },
+  go(v) { if (!VIEWS[v]) return; if (S && !isOpen(S, v)) { askUnlock(v); return; } ui.view = v; const t = tabOf(v); if (t) (ui.tabLast ||= {})[t[0]] = v; if (v !== 'dash' && !v.startsWith('ex-')) ui.stage = null; closeMore(); render(); $('#main').scrollTo?.(0, 0); scrollTo(0, 0); if (!document.querySelector('.modal-back, .md-back, .wizard')) $('#main').focus({ preventScroll: true }); },
   render: () => render(), save, toast,
   out(k, text) { const el = document.querySelector(`[data-out="${k}"]`); if (el) el.textContent = text; },
   topbar: () => topbar(), theme: () => theme(), ending: () => ending(),
@@ -447,7 +447,7 @@ document.addEventListener('click', e => {
     if (v) C.go(v); else askUnlock(tb[3][0]);
     return;
   }
-  if (k === 'stage') { ui.stage = null; C.go('dash'); return; } // між етапами не переходять: лише на головну
+  if (k === 'stage') { const i = a.dataset.i, st = stageInfo(S); ui.stage = i != null && +i >= 0 && +i <= st.reached && +i !== st.cur ? +i : null; C.go('dash'); return; } // можна переглядати й повертатися до відкритих етапів
   if (k === 'locked') return askUnlock(a.dataset.to);
   if (k === 'saveFile') return saveFile();
   if (k === 'newGame') return confirmBox('Почати нову гру?', 'Почати заново', { danger: true, sub: 'Поточна компанія буде втрачена.' }).then(ok => { if (ok) startWizard(); });

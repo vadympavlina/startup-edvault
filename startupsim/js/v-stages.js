@@ -6,13 +6,19 @@ import { stars, exStars, goalNow, exAll, exDone, X, STAGE_T, exCount } from './e
 
 const plural = (n, a, b, c) => { const m = n % 100, k = m % 10; return m > 10 && m < 20 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c; };
 
-// ліворуч: дев'ять етапів вертикальним маршрутом
+// який етап показано: обраний вручну (лише з уже відкритих) або поточний
+export const shownStage = (ui, info) => (Number.isInteger(ui.stage) && ui.stage >= 0 && ui.stage <= info.reached ? ui.stage : info.cur);
+
+// ліворуч: дев'ять етапів вертикальним маршрутом. Відкриті етапи можна переглядати й повертатися до них
 export function stageRail(S, ui, info) {
-  const sel = info.cur; // між етапами не переходять: гра сама веде до наступного, коли виконано всі справи
+  const sel = shownStage(ui, info);
   const row = (st, i) => {
     const cls = st.done && (i < info.cur || info.allDone) ? 'done' : i === info.cur ? 'cur' : i <= info.reached ? 'open' : 'lock';
     const label = `Етап ${i + 1}: ${st.t}${cls === 'done' ? ', пройдено' : cls === 'lock' ? ', ще закрито' : `, виконано ${st.n} з ${st.m}`}`;
-    return `<li><div class="rs ${cls} ${i === sel ? 'sel' : ''}" role="group" aria-current="${i === sel ? 'step' : 'false'}" aria-label="${esc(label)}"><span class="n">${cls === 'done' ? icon('check', 16) : cls === 'lock' ? icon('lock', 13) : i + 1}</span><span class="rt"><b>${esc(st.t)}</b><small>${cls === 'lock' ? 'ще закрито' : `${st.n} з ${st.m}`}</small></span></div></li>`;
+    const inner = `<span class="n">${cls === 'done' ? icon('check', 16) : cls === 'lock' ? icon('lock', 13) : i + 1}</span><span class="rt"><b>${esc(st.t)}</b><small>${cls === 'lock' ? 'ще закрито' : `${st.n} з ${st.m}${i === sel ? ' · відкрито' : ''}`}</small></span>`;
+    return cls === 'lock'
+      ? `<li><div class="rs ${cls}" role="group" aria-label="${esc(label)}">${inner}</div></li>`
+      : `<li><button type="button" class="rs ${cls} ${i === sel ? 'sel' : ''}" data-act="stage" data-i="${i}" aria-current="${i === sel ? 'step' : 'false'}" aria-label="${esc(label + (i === sel ? ', відкрито' : '. Відкрити цей етап'))}">${inner}</button></li>`;
   };
   return `<aside class="rail" aria-label="Етапи стартапу"><h2>Шлях стартапу</h2><ol>${info.list.map(row).join('')}</ol>
     <div class="rail-foot"><span>Вправ виконано</span><b>${info.ex} з ${info.exAll}</b><div class="x-bar"><i style="width:${info.exAll ? info.ex / info.exAll * 100 : 0}%"></i></div></div></aside>`;
@@ -20,18 +26,19 @@ export function stageRail(S, ui, info) {
 
 // праворуч: аркуш обраного етапу
 export function stageSheet(S, ui, info) {
-  const i = info.cur, st = info.list[i], next = info.list[i + 1];
+  const i = shownStage(ui, info), st = info.list[i], next = info.list[i + 1], back = i !== info.cur;
   const first = st.req.find(x => !x.ok);
   const btn = (x, primary) => x.go === 'file' ? '' : `<button class="btn sm ${primary ? 'primary' : ''}" data-act="go" data-to="${x.go}" ${x.hl ? `data-hl="${esc(x.hl)}"` : ''}>${esc(x.btn)}</button>`;
   const step = (x, k, o) => `<li class="step ${x.ok ? 'ok' : x === first && !o ? 'now' : ''}"><span class="sn">${x.ok ? icon('check', 18) : x.ic ? icon(x.ic, 18) : k + 1}</span>
     <div><b>${esc(x.t)}</b><small>${esc(x.d)}</small>${x.ex && x.ok ? `<span class="sx">${stars(exStars(S, x.ex))}</span>` : ''}</div>${x.ok && !x.ex ? `<span class="chip ok">${icon('check', 14)} Готово</span>` : btn(x, x === first && !o)}</li>`;
-  const head = info.allDone && i === info.cur
+  const head = info.allDone && i === info.cur && !back
     ? `<p class="k">Усі етапи пройдено</p><h1>Ви пройшли весь шлях стартапу</h1><p class="lead">Усі розділи відкриті. Далі можна вдосконалювати вправи, розвивати компанію й готувати підсумковий звіт.</p>`
-    : `<p class="k">Етап ${i + 1} з ${STAGES.length}${st.done ? ' · пройдено' : ''}</p><h1>${esc(st.long)}</h1><p class="lead">${esc(st.why)}</p>`;
+    : `<p class="k">Етап ${i + 1} з ${STAGES.length}${st.done ? ' · пройдено' : ''}${back ? ' · ви переглядаєте попередній етап' : ''}</p><h1>${esc(st.long)}</h1><p class="lead">${esc(st.why)}</p>`;
   const pct = st.m ? st.n / st.m : 1;
-  const opt = st.opt.length ? `<details class="ws-opt"${st.on && !st.done ? '' : ''}><summary>${icon('plus', 15)} Додатково <span class="muted sm">${st.on} з ${st.opt.length}</span></summary><ol class="steps">${st.opt.map((x, k) => step(x, k, true)).join('')}</ol></details>` : '';
+  const opt = st.opt.length ? `<details class="ws-opt"${st.done || back ? ' open' : ''}><summary>${icon('plus', 15)} Додатково <span class="muted sm">${st.on} з ${st.opt.length}</span></summary><ol class="steps">${st.opt.map((x, k) => step(x, k, true)).join('')}</ol></details>` : '';
+  const nowBtn = back ? `<div class="ws-next"><div><b>Поточний етап: «${esc(info.list[info.cur].t)}»</b><small>Ваш прогрес збережено. Повернутися можна будь-коли.</small></div><button class="btn primary" data-act="stage" data-i="${info.cur}">До етапу ${info.cur + 1}</button></div>` : '';
   const foot = st.done
-    ? (next ? `<div class="ws-next ok">${icon('check', 20)}<div><b>Етап пройдено</b><small>Далі: «${esc(next.t)}» — ${esc(next.topics.join(', ').toLowerCase())}.</small></div><button class="btn primary" data-act="stage" data-i="${i + 1}">До етапу ${i + 2}</button></div>` : '')
+    ? (next && next.i <= info.reached ? `<div class="ws-next ok">${icon('check', 20)}<div><b>Етап пройдено</b><small>Можна виконати додаткові завдання тут або перейти далі: «${esc(next.t)}».</small></div><button class="btn ${back ? '' : 'primary'}" data-act="stage" data-i="${i + 1}">До етапу ${i + 2}</button></div>${nowBtn && next.i !== info.cur ? nowBtn : ''}` : next ? `<div class="ws-next ok">${icon('check', 20)}<div><b>Етап пройдено</b><small>Далі: «${esc(next.t)}» — ${esc(next.topics.join(', ').toLowerCase())}.</small></div><button class="btn primary" data-act="stage" data-i="${i + 1}">До етапу ${i + 2}</button></div>` : '')
     : (next ? `<div class="ws-next">${icon('lock', 18)}<div><b>Далі: етап ${i + 2} «${esc(next.t)}»</b><small>Відкриється, коли ви виконаєте всі справи цього етапу: ${esc(next.topics.join(', ').toLowerCase())}.</small></div></div>` : '');
   return `<section class="ws" aria-label="Етап ${i + 1}">${head}
     <ul class="topics" aria-label="Що розбираємо">${st.topics.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
