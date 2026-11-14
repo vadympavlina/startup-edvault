@@ -269,6 +269,19 @@ await step('телефон: усі сторінки вправ без гориз
   assert.deepEqual(bad, [], 'вправи не виходять за ширину екрана');
 });
 
+await step('неймінг: завершення вправи міняє назву компанії в грі й шапці', async () => {
+  await p.evaluate(() => { const S = window.Startup.sim; S.s.flags.st9 = 8; S.s.company.name = 'Стара'; window.Startup.C.go('ex-naming'); });
+  await p.waitForSelector('.namegrid .nm');
+  for (let i = 0; i < 3; i++) await p.locator('.namegrid .nm').nth(i).click();
+  await p.click('[data-act="ex"][data-do="poll"]');
+  await p.locator('.nmcard button', { hasText: /назву/ }).first().click();
+  const fin = await p.evaluate(() => window.Startup.sim.s.ex.d.naming.final);
+  await p.click('.ex-foot .btn.primary');
+  await p.waitForTimeout(300);
+  assert.equal(await p.evaluate(() => window.Startup.sim.s.company.name), fin);
+  assert.match(await p.evaluate(() => document.querySelector('.top')?.innerText || ''), new RegExp(fin));
+});
+
 await step('жодної помилки в консолі', async () => { assert.deepEqual(errors, []); });
 await browser.close(); server.close();
 

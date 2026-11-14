@@ -1,7 +1,7 @@
 // Симулятор стартапу · вправи етапу 3 «Позиціонування»: SWOT, унікальна пропозиція, неймінг, PR, відгуки.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, tip, box, checks, mk, hash, clamp, sumOf, plural } from './ex-core.js';
+import { reg, xb, xp, xin, tip, box, checks, mk, hash, clamp, sumOf, plural, X } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 
@@ -122,6 +122,15 @@ const nameScore = n => {
   const list = [[w.length >= 4 && w.length <= 9, 'Коротка: 4–9 літер', 25], [cons === 0 && vowels > .28, 'Легко вимовляється', 25], [/^[А-ЯІЇЄҐA-Z][а-яіїєґa-z]+$/.test(n), 'Одне слово, без цифр і тире', 15], [free, free ? `Домен ${esc(n.toLowerCase())}.com.ua вільний` : `Домен ${esc(n.toLowerCase())}.com.ua зайнятий`, 20], [hash('mem' + n) % 100 < 70, 'Запам’ятовується (нема схожих гучних брендів)', 15]];
   return { list, score: sumOf(list.map(x => (x[0] ? x[2] : 0))), free };
 };
+/* Нова назва компанії; копії старої назви в інших вправах (логотип) теж оновлюємо. */
+function applyName(S, name) {
+  const c = S.s.company, old = c.name;
+  if (!name || name === old) return false;
+  c.name = name;
+  try { const lg = X(S, 'logo'); if (lg && (!lg.name || lg.name === old)) lg.name = name; } catch { /* вправу ще не відкривали */ }
+  return true;
+}
+
 reg({
   id: 'naming', stage: 2, t: 'Неймінг', d: 'Згенеруйте назви, перевірте їх і оберіть найкращу.', icon: 'pen', min: 15,
   intro: `${term('Неймінг', 'Неймінг')} — вибір назви. Хороша назва коротка, легко вимовляється, її не плутають з іншими та можна зареєструвати домен. Згенеруйте варіанти, додайте свої, складіть шортлист і перевірте кожну назву.`,
@@ -139,8 +148,9 @@ reg({
     more(S, d) { d.seed++; },
     addOwn(S, d) { const el = document.getElementById('nm-own'), v = (el?.value || '').trim(); if (!v) { el?.focus(); return false; } if (!d.short.includes(v) && d.short.length < 6) d.short.push(v); },
     poll(S, d) { const r = mk(hash(d.short.join('|') + (d.pollN = (d.pollN || 0) + 1))), v = {}; d.short.forEach(n => { v[n] = 0; }); for (let i = 0; i < 5; i++) { const w = d.short.map(n => Math.max(1, nameScore(n).score + r.norm(0, 18))); let t = r.next() * sumOf(w), k = 0; while (t > w[k] && k < w.length - 1) { t -= w[k]; k++; } v[d.short[k]]++; } d.vote = v; },
-    rename(S, d, el, C) { S.s.company.name = d.final; S.log?.(`Компанію перейменовано: «${d.final}».`); C.toast(`Тепер компанія називається «${d.final}»`, 'good'); },
+    rename(S, d, el, C) { if (applyName(S, d.final)) { S.log?.(`Компанію перейменовано: «${d.final}».`); C.toast(`Тепер компанія називається «${d.final}»`, 'good'); C.topbar?.(); } },
   },
+  finish(S, d, C, again) { if (d.final && applyName(S, d.final)) { S.log?.(`Компанію перейменовано: «${d.final}».`); C?.topbar?.(); } },
   ready(S, d) {
     if (d.short.length < 3) return { ok: false, msg: 'Додайте до шортлиста хоча б три назви' };
     if (!d.vote) return { ok: false, msg: 'Спитайте п’ятьох знайомих' };
