@@ -29,7 +29,7 @@ reg({
     const cnt = { a: 0, d: 0, l: 0, c: 0 }; SIT.forEach(([, o], i) => { if (d.a[i] != null) cnt[o[d.a[i]][0]]++; });
     const n = sumOf(Object.values(cnt)), top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
     if (n < SIT.length) return `<p class="sm muted">Відповідайте далі: лишилось ${SIT.length - n}.</p>`;
-    return `${box('Ваш профіль', `<div class="srcsum">${radar(['a', 'd', 'l', 'c'].map(k => cnt[k]), ['Авторитарний', 'Демократичний', 'Ліберальний', 'Коучинг'], { max: Math.max(4, ...Object.values(cnt)), size: 280 })}<div class="srcl">${Object.entries(ST).map(([k, s]) => `<div class="stl ${k === top[0] ? 'top' : ''}"><b>${s[0]}: ${cnt[k]}</b><p>${s[1]}</p><small>${s[2]}</small></div>`).join('')}</div></div>
+    return `${box('Ваш профіль', `<div class="srcsum">${radar(['a', 'd', 'l', 'c'].map(k => cnt[k]), ['Авторитарний', 'Демократичний', 'Ліберальний', 'Коучинг'], { max: Math.max(4, ...Object.values(cnt)), size: 280 })}<div class="srcl">${Object.entries(ST).map(([k, s]) => `<div class="stl ${k === top[0] ? 'is-top' : ''}"><b>${s[0]}: ${cnt[k]}</b><p>${s[1]}</p><small>${s[2]}</small></div>`).join('')}</div></div>
       ${tip(`Ваш провідний стиль — <b>${ST[top[0]][0].toLowerCase()}</b>. Це сильна сторона, але в деяких ситуаціях його варто змінювати.`, 'ok')}
       <div class="xrow mt"><span class="xf-l">Який стиль вам хочеться розвивати?</span>${Object.entries(ST).map(([k, s]) => xp('leadership', 'mine', k, s[0], d.mine === k)).join('')}</div>
       ${xin('leadership', 'rule', d, { label: 'Одне правило керівника для вашої команди', area: true, rows: 2, max: 200, ph: 'Наприклад: «У кризі рішення приймаю я, у спокійний час радимося всі»', cls: 'mt' })}`, { ic: 'chart' })}`;
