@@ -32,11 +32,12 @@ reg({
   view(S, d) {
     const card = s => { const a = +d.mix[s.k] || 0; return `<article class="srcard ${a ? 'on' : ''}" style="--c:${s.col}"><header><b>${s.t}</b><span class="xtag">${s.tag}</span></header><p>${s.note}</p>
       <div class="rt"><span>Швидкість ${dots(s.sp)}</span><span>Дешевизна ${dots(s.cost)}</span><span>Контроль ${dots(s.ctl)}</span><span>Доступність ${dots(s.acc)}</span></div>${xsl('sources', `mix.${s.k}`, d, { min: 0, max: s.max, step: s.max >= 1000000 ? 100000 : 10000, label: 'Скільки беремо', u: ' ₴', v: a })}</article>`; };
-    return `${box('Скільки потрібно грошей', `<div class="xg c2">${xsl('sources', 'need', d, { min: 50000, max: 3000000, step: 50000, label: 'Потреба', u: ' ₴' })}${xsl('sources', 'pre', d, { min: 1000000, max: 20000000, step: 500000, label: 'Оцінка компанії до вкладень', u: ' ₴' })}</div><p class="sm muted">Потребу можна взяти з вправи про фінансовий план. Оцінка компанії визначає, яку частку віддасте за гроші інвестора.</p>`, { ic: 'wallet' })}
+    return `${box('Скільки потрібно грошей', `<div class="xg c2">${xsl('sources', 'need', d, { min: 50000, max: 3000000, step: 50000, label: 'Потреба', u: ' ₴' })}${xsl('sources', 'pre', d, { min: 1000000, max: 20000000, step: 500000, label: 'Оцінка компанії до вкладень', u: ' ₴' })}</div><div class="xrow mt">${xb('sources', 'needFromPlan', 'Взяти потребу з фінансового плану', { ic: 'refresh', cls: 'sm' })}</div><p class="sm muted">Оцінка компанії визначає, яку частку віддасте за гроші інвестора.</p>`, { ic: 'wallet' })}
     <div class="xg c2">${SRC.map(card).join('')}</div>
     ${box('Перші гроші для вашої компанії', S.hasFff() ? tip('Родина й друзі вже вклали 300 000 ₴ в обмін на 10% компанії.', 'ok') : `<p class="sm">Найпростіше джерело на старті: родина й друзі. У грі це справжні гроші: 300 000 ₴ одразу на рахунок в обмін на 10% компанії. Вирішуйте самі, чи брати їх зараз.</p>${xb('sources', 'takeFff', 'Взяти 300 000 ₴ за 10%', { cls: 'primary', ic: 'coins' })}`, { ic: 'users' })}`;
   },
   acts: {
+    needFromPlan(S, d, el, C) { const n = X(S, 'finplan').needNow; if (!n) { C.toast('У фінплані гроші не закінчуються, тож потреба невелика. Поставте суму вручну.'); return false; } d.need = clamp(Math.round(n / 50000) * 50000, 50000, 3000000); C.toast('Потребу взято з фінансового плану', 'good'); },
     takeFff(S, d, el, C) { if (!S.takeFff()) return false; C?.toast?.('Родина й друзі вклали 300 000 ₴', 'good'); },
   },
   live(S, d) {
@@ -84,7 +85,7 @@ reg({
     ${box('Перевірте себе', quiz('equity', 'q', d, EQQ), { ic: 'bulb', side: `правильно ${quizOk(d, 'q', EQQ)} з ${EQQ.length}` })}`;
   },
   ready(S, d) {
-    if ((d.ch || 0) < 3) return { ok: false, msg: 'Спробуйте різні суми й оцінки: змініть хоча б три значення' };
+    if ((d.ch || 0) < 1) return { ok: false, msg: 'Спробуйте свої суми й оцінку: змініть хоча б одне значення' };
     if (quizDone(d, 'q', EQQ) < EQQ.length) return { ok: false, msg: 'Дайте відповідь на всі запитання' };
     const ok = quizOk(d, 'q', EQQ);
     if (ok < 2) return { ok: false, msg: 'Перечитайте пояснення й виправте відповіді: потрібно хоча б 2 правильні' };

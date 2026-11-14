@@ -30,8 +30,8 @@ function customers(S) {
     </article>`;
   }).join('');
   const sv = s.surveys.filter(x => x.seg === s.target).at(-1);
-  return `<p class="lead">Інтерв'ю — найдешевший спосіб не зробити продукт, який нікому не потрібен. Кожне забирає 3 години з плану тижня (рядок «Клієнти»). Цього тижня лишилося: <b>${S.talksLeft()}</b>. ${term('Mom Test', 'Як правильно питати?')}</p>
-  ${S.talksLeft() === 0 && s.hours.customers < 3 ? `<p class="note warn">${icon('clock', 16)} У плані тижня немає годин на клієнтів. <button class="link" data-act="go" data-to="dash">Додати години</button></p>` : ''}
+  return `<p class="lead">Інтерв'ю — найдешевший спосіб не зробити продукт, який нікому не потрібен. Кожне забирає 3 години вашого тижня. Цього тижня лишилося розмов: <b>${S.talksLeft()}</b>. ${term('Mom Test', 'Як правильно питати?')}</p>
+  ${S.talksLeft() === 0 ? `<p class="note">${icon('clock', 16)} На цьому тижні розмови з клієнтами скінчилися. Нові будуть наступного тижня: натисніть «Завершити тиждень».</p>` : ''}
   <div class="grid g3">${cards}</div>
   <section class="card"><header class="card-h"><h2>${icon('mic')} Минулі інтерв'ю</h2><span class="muted sm">${(s.interviews || []).length ? `усього: ${s.interviews.length}` : ''}</span></header>
     ${(s.interviews || []).length ? `<div class="ivlist">${[...s.interviews].reverse().map(v => `<details class="ivh"><summary><b>${esc(v.name)}</b> <span class="muted">${esc(v.who)} · ${esc(S.seg(v.seg)?.short || '')} · тиждень ${v.w + 1}</span>${v.bad ? `<span class="chip warn">підказувальні запитання: ${v.bad}</span>` : `<span class="chip ok">лише факти</span>`}</summary><div class="chat">${v.log.map(l => `<p class="q">${esc(l.q)}</p><p class="a">${esc(l.a)}</p>`).join('')}</div></details>`).join('')}</div>` : `<p class="muted">Тут з'являться ваші розмови з клієнтами: їх можна буде перечитати. Розмова, де ви не поставили жодного запитання, не зараховується.</p>`}
@@ -185,7 +185,7 @@ function marketing(S) {
     ${row('ads', `<input type="range" min="0" max="100000" step="2000" value="${m.ads}" data-in="budget" data-k="ads" aria-label="Бюджет реклами"><output data-out="b-ads">${money(m.ads)}/тиж</output>`)}
     ${row('bloggers', `<div class="stepper"><button class="ib" data-act="blog" data-d="-1" aria-label="Менше">${icon('minus', 16)}</button><b>${m.bloggers}</b><button class="ib" data-act="blog" data-d="1" aria-label="Більше">${icon('plus', 16)}</button></div><small>${money(CHANNELS.bloggers.post)} за допис</small>`)}
     ${row('social', `<input type="range" min="0" max="100" step="10" value="${Math.round(m.split * 100)}" data-in="split" aria-label="Частка контенту для соцмереж"><output data-out="split">${Math.round(m.split * 100)}% контенту</output>`)}
-    ${row('seo', `<small>Решта контенту: ${Math.round((1 - m.split) * 100)}%. Години на контент — у плані тижня (зараз ${s.hours.content} год${s.team.some(x => x.role === 'mkt') ? ' + маркетолог' : ''}).</small>`)}
+    ${row('seo', `<small>Решта контенту: ${Math.round((1 - m.split) * 100)}%. Контент пишете ви${s.team.some(x => x.role === 'mkt') ? ' і маркетолог' : ''}: що далі ви в грі, то більше часу на нього.</small>`)}
     ${row('events', `<input type="range" min="0" max="20" step="2" value="${m.events}" data-in="budget" data-k="events" aria-label="Години на заходи"><output data-out="b-events">${m.events} год/тиж</output>`)}
     ${g.b2b ? row('sales', `<small>Години засновника на продажі: ${s.hours.sales}${s.team.some(x => x.role === 'sales') ? ' + менеджер' : ''}.</small>`) : ''}
     ${row('referral', `<input type="range" min="0" max="${Math.max(100, Math.round(s.price[s.target] * 1.5 / 10) * 10)}" step="10" value="${m.referral}" data-in="budget" data-k="referral" aria-label="Бонус за запрошеного"><output data-out="b-referral">${m.referral ? money(m.referral) + ' за клієнта' : 'вимкнено'}</output>`)}
@@ -241,7 +241,7 @@ export const marketActs = {
   brandColor: (C, el) => { C.S.s.company.color = el.dataset.c; C.render(); C.theme(); },
   brandSym: (C, el) => { C.S.s.company.sym = el.dataset.k; C.render(); C.topbar(); },
   brandSet: (C, el) => { C.S.setBrand(el.dataset.key, el.dataset.v); C.render(); },
-  drawLogo: C => { const q = C.S.drawLogo(); if (q == null) C.toast('Потрібно щонайменше 6 годин на «Продукт» у плані тижня', 'bad'); else C.toast(`Логотип готовий. Якість: ${pct(q)}`, q > .6 ? 'good' : ''); C.render(); },
+  drawLogo: C => { const q = C.S.drawLogo(); if (q == null) C.toast('Зараз немає вільного часу на логотип. Спробуйте наступного тижня', 'bad'); else C.toast(`Логотип готовий. Якість: ${pct(q)}`, q > .6 ? 'good' : ''); C.render(); },
   blog: (C, el) => { const s = C.S.s; s.mkt.bloggers = Math.max(0, Math.min(5, s.mkt.bloggers + +el.dataset.d)); C.render(); C.topbar(); },
   landing: (C, el) => { C.S.setLanding(+el.dataset.i); C.render(); },
   startAB: C => { const a = +(document.querySelector('[data-in="abA"]')?.value ?? 0), b = +(document.querySelector('[data-in="abB"]')?.value ?? 1); if (!C.S.startAB(a, b)) C.toast('Оберіть два різні варіанти', 'bad'); else C.toast('Тест запущено — результати після завершення тижня', 'good'); C.render(); },

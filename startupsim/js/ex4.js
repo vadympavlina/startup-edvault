@@ -141,9 +141,10 @@ reg({
     const R = d.s.map(s => pmx(S, d, s)), ok = R.filter(Boolean), best = ok.length ? Math.max(...ok.map(r => r.delta)) : 0;
     return `${box('Порівняння', ok.length ? `<div class="xlist">${R.map((r, i) => r ? `<div class="nrow ${r.delta === best && r.delta > 0 ? 'best' : ''}"><div class="nh"><b>Акція ${'ABC'[i]}: ${esc(r.M.t)}</b><span class="ns ${r.delta >= 0 ? 'pos' : 'neg'}">${r.delta >= 0 ? '+' : '−'}${money0(Math.abs(r.delta))}</span></div>${bar(Math.max(0, r.delta) / Math.max(1, best), { color: r.delta > 0 ? 'var(--ok)' : '#d33', label: 'Прибуток' })}<p class="sm muted">Продажі зростуть у ×${r.up.toFixed(2).replace('.', ',')}; щоб акція окупилась, потрібно хоча б ×${r.need === Infinity ? '∞' : r.need.toFixed(2).replace('.', ',')}. ${r.M.dip ? 'Після акції буде короткий спад (люди вже купили наперед).' : ''}</p>${xp('promomix', 'pick', i, d.pick === i ? 'Це моя найкраща акція' : 'Обрати як найкращу', d.pick === i, { t: 'n', cls: 'card' })}</div>` : '').join('')}</div><p class="sm muted">Число справа — зміна прибутку порівняно з тижнями без акції (з урахуванням витрат на запуск і спаду після).</p>` : '<p class="sm muted">Сконструюйте хоча б дві акції.</p>', { ic: 'chart' })}
     ${xin('promomix', 'why', d, { label: 'Чому ця акція найкраща? Коли її краще запускати?', area: true, rows: 2, max: 240, ph: 'Ця акція вигідніша, бо…', cls: 'mt' })}
-    <div class="xrow mt">${xb('promomix', 'toGame', 'Відкрити розділ «Акції» в грі', { ic: 'right' })}</div>`;
+    <div class="xrow mt">${xb('promomix', 'sync', 'Взяти ціну й собівартість з гри', { ic: 'refresh' })}${xb('promomix', 'toGame', 'Відкрити розділ «Акції» в грі', { ic: 'right' })}</div>`;
   },
-  acts: { toGame(S, d, el, C) { C.go('promo'); return false; } },
+  acts: { toGame(S, d, el, C) { C.go('promo'); return false; },
+    sync(S, d, el, C) { const c = X(S, 'costs'); d.price = price0(S); d.unit = Math.round(c.unit.reduce((a, x) => a + (+x.v || 0), 0)); C.toast('Ціну й собівартість взято з гри', 'good'); } },
   ready(S, d) {
     const R = d.s.map(s => pmx(S, d, s)), ok = R.filter(Boolean);
     if (ok.length < 2) return { ok: false, msg: 'Сконструюйте хоча б дві акції' };
@@ -190,7 +191,7 @@ reg({
     const tx = d.bg && lumA(d.bg) > .45 ? '#1d2433' : '#ffffff', ck = adCheck({ ...d, tx }), n = ck.filter(x => x[0]).length;
     if (len(d.head) < 8) return { ok: false, msg: 'Напишіть заголовок' };
     if (len(d.cta) < 3) return { ok: false, msg: 'Додайте заклик до дії' };
-    if ((d.t || 0) < 3) return { ok: false, msg: 'Оформте креатив: змініть хоча б три налаштування' };
+    if ((d.t || 0) < 1) return { ok: false, msg: 'Оформте креатив під свій бренд: змініть хоча б одне налаштування' };
     if (n < 4) return { ok: false, msg: `Креатив проходить лише ${n} з ${ck.length} перевірок: потрібно хоча б 4` };
     return { ok: true, stars: n === ck.length ? 3 : n >= 5 ? 2 : 1 };
   },

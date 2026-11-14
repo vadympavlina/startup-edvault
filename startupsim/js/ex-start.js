@@ -54,7 +54,7 @@ reg({
   },
   ready(S, d) {
     fixN(d);
-    if ((d.touched || 0) < 3) return { ok: false, msg: 'відповідайте на запитання: змініть хоча б три оцінки' };
+    if ((d.touched || 0) < 1) return { ok: false, msg: 'оцініть ідею: пересуньте хоча б одну оцінку' };
     if (len(d.why) < 25) return { ok: false, msg: 'поясніть свій вибір хоча б одним реченням' };
     return { ok: true, stars: 1 + (d.cmp.length + d.own.length ? 1 : 0) + (len(d.why) >= 90 ? 1 : 0), pick: rowsOf(S, d).find(r => r.id === d.pick)?.t };
   },

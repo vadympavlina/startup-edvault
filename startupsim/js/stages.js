@@ -86,6 +86,10 @@ export function suggestHours(S, stage) {
   const h = { ...P };
   // грошей майже немає — частину часу на підробіток
   if (S.runwayWeeks() < 8) { h.freelance = 10; h.product = Math.max(0, h.product - 6); h.rest = Math.max(4, h.rest - 4); }
+  // є активні фриланс-замовлення — на них потрібні години
+  if ((S.s.myGigs || []).length && h.freelance < 10) { const t = 10 - h.freelance; h.freelance = 10; h.product = Math.max(0, h.product - t); }
+  // на межі вигорання — більше відпочинку замість розробки
+  if (S.s.founder.energy < 35) { const t = Math.min(10, h.product); h.product -= t; h.rest += t; }
   return h;
 }
 

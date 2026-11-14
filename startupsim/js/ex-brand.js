@@ -144,7 +144,7 @@ reg({
   },
   ready(S, d) {
     if (len(d.name) < 2) return { ok: false, msg: 'Впишіть назву' };
-    if ((d.t || 0) < 3) return { ok: false, msg: 'Змініть щонайменше три налаштування логотипа' };
+    if ((d.t || 0) < 1) return { ok: false, msg: 'Оберіть стиль чи колір і зробіть логотип своїм' };
     const r = review(d);
     return { ok: true, stars: 1 + (r.score >= 80 ? 1 : 0) + ((d.variants || []).length >= 2 || len(d.tag) ? 1 : 0) };
   },

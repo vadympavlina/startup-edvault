@@ -138,7 +138,7 @@ reg({
   },
   acts: { sync(S, d, el, C) { const c = X(S, 'costs'), t = costTotals(c), pr = S.s.ex.done.price ? X(S, 'price').final : c.price; d.price = pr; d.unit = t.u; d.fixed = t.f; d.cash0 = Math.round(S.s.cash); d.start = Math.round(S.paidUsers()); C.toast('Дані оновлено з попередніх вправ', 'good'); } },
   ready(S, d) {
-    if ((d.ch || 0) < 3) return { ok: false, msg: 'Змініть хоча б три припущення, щоб побачити, як вони впливають' };
+    if ((d.ch || 0) < 1) return { ok: false, msg: 'Підлаштуйте план під свою ситуацію: змініть хоча б одне припущення' };
     if (len(d.action) < 20) return { ok: false, msg: 'Напишіть, що зробите, коли гроші почнуть закінчуватися' };
     const p = plan(d, 'pess');
     return { ok: true, stars: 1 + (p.minCash >= 0 ? 1 : 0) + (len(d.action) >= 70 ? 1 : 0) };

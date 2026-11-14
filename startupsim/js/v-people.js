@@ -65,7 +65,7 @@ function freelance(S, ui) {
       <p class="sm muted">Підозріло дешево й без відгуків? Буває, що такі «виконавці» беруть передоплату й зникають.</p></section>` : ''}
     ${s.orders.length ? `<section class="card"><header class="card-h"><h2>Мої замовлення</h2></header><table class="tbl"><thead><tr><th>Робота</th><th>Виконавець</th><th>Ціна</th><th>Статус</th><th>Якість</th></tr></thead><tbody>${s.orders.slice().reverse().map(o => `<tr><td>${esc(TASKS[o.task].t)}</td><td>${esc(o.who)}${o.escrow ? ' <span class="chip sm">безпечна угода</span>' : ''}</td><td>${money(o.price + o.fee)}</td><td>${stat[o.status]}${o.status === 'work' ? `, до тижня ${o.due + 1}` : ''}${o.status === 'weak' && o.escrow && !o.revised ? ` <button class="btn sm" data-act="revise" data-id="${o.id}">Доопрацювати</button>` : ''}</td><td>${o.status === 'done' || o.status === 'weak' ? pct(o.q) : '—'}</td></tr>`).join('')}</tbody></table></section>` : ''}`;
   }
-  return `${head}<p class="lead">Коли гроші закінчуються, засновники часто беруть фриланс-замовлення. Це рятує касу, але забирає час від стартапу. Години на фриланс — у плані тижня (зараз ${s.hours.freelance} год).</p>
+  return `${head}<p class="lead">Коли гроші закінчуються, засновники часто беруть фриланс-замовлення. Це рятує касу, але забирає час від стартапу. Години на фриланс гра виділяє сама, поки у вас є замовлення.</p>
     <div class="kpis"><div class="kpi"><span class="kpi-l">Рейтинг</span><b>${s.gigsDone ? s.rating.toFixed(1).replace('.', ',') : '—'}</b><small>${s.gigsDone} ${plural(s.gigsDone, 'замовлення', 'замовлення', 'замовлень')}</small></div><div class="kpi"><span class="kpi-l">Зароблено</span><b>${money(s.gigIncome)}</b></div><div class="kpi ${s.hours.freelance ? '' : 'warn'}"><span class="kpi-l">Годин на фриланс</span><b>${s.hours.freelance}</b><small><button class="link" data-act="go" data-to="dash">змінити на головній</button></small></div></div>
     ${s.myGigs.length ? `<section class="card"><header class="card-h"><h2>У роботі</h2></header>${s.myGigs.map(g => `<div class="gig"><div><b>${esc(g.t)}</b><small>${esc(g.client)} · ${{ prepay: 'передоплата 50%', escrow: 'через безпечну угоду', none: 'без передоплати' }[g.terms]} · дедлайн: тиждень ${g.deadline + 1}</small></div>${meter(g.done / g.hours)}<b>${g.done} / ${g.hours} год</b></div>`).join('')}</section>` : ''}
     <section class="card"><header class="card-h"><h2>Замовлення на біржі</h2><span class="muted sm">можна вести 2 одночасно</span></header>
@@ -86,7 +86,7 @@ export const peopleActs = {
   flTask: (C, el) => { C.ui.flTask = el.dataset.k; C.render(); },
   flOrder: (C, el) => { const ok = C.S.order(C.ui.flTask, el.dataset.id, C.ui.escrow !== false); C.toast(ok ? 'Замовлення оформлено' : 'Не вистачає грошей', ok ? 'good' : 'bad'); C.render(); C.topbar(); },
   revise: (C, el) => { if (C.S.revise(el.dataset.id)) C.toast('Відправлено на доопрацювання', 'good'); C.render(); },
-  takeGig: (C, el) => { const ok = C.S.takeGig(el.dataset.id, C.ui.gigTerms || 'prepay'); C.toast(ok ? 'Замовлення взято. Не забудьте години на фриланс у плані тижня!' : 'Можна вести лише 2 замовлення', ok ? 'good' : 'bad'); C.render(); C.topbar(); },
+  takeGig: (C, el) => { const ok = C.S.takeGig(el.dataset.id, C.ui.gigTerms || 'prepay'); C.toast(ok ? 'Замовлення взято. Години на нього знайдуться в наступному тижні автоматично.' : 'Можна вести лише 2 замовлення', ok ? 'good' : 'bad'); C.render(); C.topbar(); },
 };
 export const peopleIns = {
   escrow: (C, el) => { C.ui.escrow = el.checked; },

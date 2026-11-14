@@ -265,6 +265,7 @@ async function endWeek() {
   const pending = s.inbox.filter(m => m.choices && m.chosen == null && m.until === s.week);
   if (pending.length && !await confirmBox('Є листи, які чекають на ваше рішення', 'Завершити тиждень', { sub: `Якщо не відповісте цього тижня, рішення ухвалять без вас: ${pending.map(m => `«${m.title}»`).join(', ')}.` })) { C.go('inbox'); return; }
   if (hoursUsed(S) > 62 && !await confirmBox(`Ви запланували ${hoursUsed(S)} годин роботи`, 'Так, працюю', { sub: 'Енергія різко впаде, а з нею — продуктивність. Можливо, варто додати відпочинку?' })) return;
+  for (const [k, v] of Object.entries(suggestHours(S, stageInfo(S).cur))) S.setHours(k, v); // години розподіляються самі під поточний етап
   const rep = S.endWeek();
   const gs = goalNow(S);
   if (gs && !gs.g.done && gs.status === 'done') { gs.g.done = true; S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Ціль досягнуто!', body: `Ви досягли своєї SMART-цілі: ${gs.g.text}. Саме так працюють вимірні цілі: їх видно, і ними можна пишатися. Поставте нову, трохи амбітнішу.` }); toast('SMART-ціль досягнуто!', 'good'); }

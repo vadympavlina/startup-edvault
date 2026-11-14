@@ -26,5 +26,5 @@ reg({
       <div class="brandcard" style="--c:${c.color};font-family:${F.css}"><b>${esc(c.name)}</b><span>${esc(d.slogan || 'Ваш слоган з’явиться тут')}</span><i>${d.vals.map(esc).join(' · ')}</i></div>`, { ic: 'pen' })}`;
   },
   acts: { addOwn(S, d) { const el = document.getElementById('bv-own'), v = (el?.value || '').trim(); if (!v) { el?.focus(); return false; } if (!d.own.includes(v)) d.own.push(v); if (d.vals.length < 3) d.vals.push(v); } },
-  ready(S, d) { const wc = d.slogan.trim().split(/\s+/).filter(Boolean).length; return d.vals.length < 3 ? { ok: false, msg: 'Оберіть три цінності' } : (d.t || 0) < 2 ? { ok: false, msg: 'Налаштуйте хоча б дві шкали особистості' } : wc < 2 ? { ok: false, msg: 'Придумайте слоган із двох слів і більше' } : { ok: true, stars: 1 + (wc <= 7 ? 1 : 0) + (!CLICHE.test(d.slogan) ? 1 : 0) }; },
+  ready(S, d) { const wc = d.slogan.trim().split(/\s+/).filter(Boolean).length; return d.vals.length < 3 ? { ok: false, msg: 'Оберіть три цінності' } : (d.t || 0) < 1 ? { ok: false, msg: 'Налаштуйте характер бренду: пересуньте хоча б одну шкалу' } : wc < 2 ? { ok: false, msg: 'Придумайте слоган із двох слів і більше' } : { ok: true, stars: 1 + (wc <= 7 ? 1 : 0) + (!CLICHE.test(d.slogan) ? 1 : 0) }; },
 });

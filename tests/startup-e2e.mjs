@@ -70,20 +70,6 @@ await step('етапи: розділи наступного етапу закр�
   await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; window.Startup.C.render(); });
 });
 
-await step('план тижня: стовпчики й кнопки годин оновлюють суму, фокус лишається на кнопці', async () => {
-  await p.click('[data-act="hrs"][data-k="customers"][data-d="1"]');
-  assert.match(await p.locator('[data-out="h-total"]').innerText(), /^44 \/ 50/);
-  assert.equal((await S()).hours.customers, 20);
-  assert.equal(await p.evaluate(() => document.activeElement.dataset.k + document.activeElement.dataset.d), 'customers1', 'фокус не губиться після перемальовки');
-  // натискання на стовпчик ставить висоту: верх — 40 год, середина — 20 год
-  const tube = p.locator('.hcol[data-k="content"] .tube'), bb = await tube.boundingBox();
-  await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2);
-  assert.equal((await S()).hours.content, 20);
-  await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height - 2);
-  assert.equal((await S()).hours.content, 0);
-  await p.click('[data-act="hrs"][data-k="content"][data-d="1"]');
-  assert.equal((await S()).hours.content, 5);
-});
 
 await step('інтерв\'ю: три запитання, відповіді в чаті, інсайти на картці', async () => {
   await go('customers');
@@ -112,10 +98,6 @@ await step('продукт: функції в роботу, тиждень, за
   assert.equal(await p.locator('.kanban > section:nth-child(2) .kb-card').count(), 2);
   await p.evaluate(() => { const S = window.Startup.sim; S.s.hours.product = 40; S.s.product.progress.calendar = 12.9; });
   await p.click('[data-act="endWeek"]');
-  // понад 62 години — гра перепитує, чи справді працювати на знос
-  await p.waitForSelector('.md.confirm');
-  assert.match(await p.locator('.md.confirm').innerText(), /годин роботи/);
-  await p.click('.md.confirm .btn.primary');
   await p.waitForSelector('.md.week');
   assert.match(await p.locator('.md.week').innerText(), /Тиждень 1 завершено/);
   await closeModal();
@@ -168,7 +150,8 @@ await step('інвестори: пітч-дек збирається, без в�
   await p.click('[data-act="slideAdd"][data-k="logo"]');
   assert.match(await p.locator('.deck-notes').innerText(), /логотип/);
   await p.click('[data-act="pitch"][data-k="angel2"]');
-  assert.match(await p.locator('#toast').innerText(), /6 годин/);
+  assert.match(await p.locator('#toast').innerText(), /Зустріч заплановано/);
+  assert.ok((await S()).hours.invest >= 6, 'години на інвестора взято автоматично');
 });
 
 await step('команда: співбесіда відкриває навички, пропозиція з імовірністю згоди', async () => {
@@ -361,11 +344,8 @@ await step('простий режим: складне сховано, підка
   assert.match(await p.locator('.view-hint').innerText(), /співбесіду/);
   await p.click('.view-hint [data-act="dismissTip"]');
   assert.equal(await p.locator('.view-hint').count(), 0);
-  // години під етап
-  await go('dash');
-  await p.click('[data-act="autoHours"]');
-  const h = (await S()).hours;
-  assert.equal(Object.values(h).reduce((a, b) => a + b, 0), 50);
+  // години розподіляються самі після завершення тижня
+  await go('dash'); assert.equal(await p.locator('#weekplan').count(), 0, 'плану тижня на головному екрані немає');
   // кнопка завдання переводить у розділ і підсвічує, що натиснути
   const btn = p.locator('.ws .step:not(.ok) [data-hl]').first();
   if (await btn.count()) { await btn.click(); await p.waitForSelector('.flash'); }

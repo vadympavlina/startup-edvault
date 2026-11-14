@@ -87,7 +87,7 @@ function dash(S, ui, info = stageInfo(S)) {
   return `${s.over ? `<p class="note bad">${icon('alert', 16)} Гру завершено. <button class="link" data-act="go" data-to="report">Подивитися підсумки</button></p>` : ''}
   <div class="home v2">
     <aside class="col rail-col">${stageRail(S, ui, info)}${mentorCard(S)}${status(S)}</aside>
-    <div class="col">${stageSheet(S, ui, info)}${goalCard(S)}${weekPlan(S)}${lastWeek(S)}
+    <div class="col">${stageSheet(S, ui, info)}${goalCard(S)}${lastWeek(S)}
       ${h.length > 1 ? `<details class="card fold"><summary>${icon('chart')} Графіки за всі тижні</summary>
         <div class="grid g2">
           <div><h4>Гроші</h4>${lineChart([{ v: h.map(x => x.cash), color: 'var(--acc)', label: 'Гроші', area: true }], { labels, fmt: x => money(x).replace(' ₴', '') })}</div>
