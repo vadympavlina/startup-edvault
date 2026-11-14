@@ -282,7 +282,8 @@ await step('файл: зберегти всю гру у файл і відкри
   const bad = path + '-bad.json'; fs.writeFileSync(bad, '{"hello": 1}');
   const [fc3] = await Promise.all([q.waitForEvent('filechooser'), q.click('[data-act="more"]').then(() => q.click('.more-pop [data-act="openFile"]'))]);
   await fc3.setFiles(bad);
-  await q.waitForSelector('#toast.on');
+  // попереднє сповіщення («Гру відкрито») ще може висіти: чекаємо саме на повідомлення про помилку
+  await q.locator('#toast', { hasText: /не збереження|пошкоджений/ }).waitFor();
   assert.match(await q.locator('#toast').innerText(), /не збереження|пошкоджений/);
   assert.equal(await q.evaluate(() => window.Startup.sim.s.cash), 99999999);
 });

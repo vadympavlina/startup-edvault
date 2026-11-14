@@ -62,7 +62,7 @@ export function goalCard(S) {
 
 // короткий результат вправи для підсумкового звіту й файлу
 const list = a => a.filter(Boolean).join(', ');
-const SUMM = {
+export const SUMM = {
   interview: (S, d) => `розмов: ${(d.runs || []).length}`, palette: (S, d) => d.name && `палітра «${d.name}»`, premortem: (S, d) => `головних ризиків: ${d.top.length}`, cashflow: (S, d) => d.w && `передоплата на тижні ${d.w.adv}`,
   negotiate: (S, d) => d.deal && `інвестор отримав ${d.deal.e}%`, abtest: (S, d) => `тестів: ${d.runs.length}`, journey: (S, d) => `кроків клієнта: ${Object.keys(d.tp).length}`, conflict: (S, d) => `ситуацій розібрано: ${Object.keys(d.a).length}`,
   rate: (S, d) => d.pk && `ставка: ${Math.round((d.inc + 1760) / .95 / Math.max(1, (d.days - d.vac / 12) * d.hrs * d.bill / 100))} ₴/год`, scam: (S, d) => `розпізнано: ${Object.keys(d.a).length} з 8`, compound: (S, d) => `строк ${d.yrs} р.`,

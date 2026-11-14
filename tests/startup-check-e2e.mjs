@@ -70,7 +70,7 @@ await step('кілька файлів: таблиця класу, перемик
   await p.waitForSelector('.ck-tbl');
   assert.equal(await p.locator('.ck-tbl tbody tr').count(), 2);
   await p.click('[data-sort="name"]');
-  await p.click('.ck-lnk >> text=Іван Шевчук'); await p.waitForSelector('.ck-att');
+  await p.click('.ck-tbl .ck-lnk >> text=Іван Шевчук'); await p.waitForSelector('.ck-att');
   assert.match(await p.locator('.ck-who').innerText(), /Іван Шевчук/);
   await p.selectOption('#who', { label: 'Марта Коваль · Записатись' });
   assert.match(await p.locator('.ck-who').innerText(), /Марта Коваль/);
@@ -81,6 +81,37 @@ await step('кілька файлів: таблиця класу, перемик
   assert.equal(await p.locator('.ck-ex:not([hidden])').count(), 1);
   await p.fill('#q', 'абракадабра'); assert.equal(await p.locator('.ck-none').isVisible(), true);
   await p.click('[data-tab="brand"]'); assert.match(await p.locator('.ck-view').innerText(), /бренд/);
+});
+
+await step('клас: показники, матриця вправ, відкриття вправи з матриці, позначки викладача, клавіші, таблиця для Excel', async () => {
+  await p.click('[data-tab="class"]'); await p.waitForSelector('.ck-kpis');
+  assert.match(await p.locator('.ck-kpis').innerText(), /Учнів[\s\S]*2/);
+  assert.equal(await p.locator('.ck-mx .ck-dot').count(), 2 * (await p.evaluate(async () => (await import('/startupsim/js/ex-core.js')).exAll().length)), 'матриця: учні × вправи');
+  assert.equal(await p.locator('.ck-tbl tbody tr').count(), 2);
+  await p.fill('#cq', 'Іван'); assert.equal(await p.locator('.ck-tbl tbody tr').count(), 1, 'пошук учня'); await p.fill('#cq', '');
+  // вправа з матриці відкривається в роботі учня
+  await p.locator('.ck-mx tr', { hasText: 'Марта Коваль' }).locator('.ck-dot[data-jump="niche"]').click();
+  await p.waitForSelector('#ckx-niche[open]');
+  assert.match(await p.locator('.ck-who').innerText(), /Марта Коваль/);
+  // позначки
+  await p.click('#ckx-niche [data-mark="ok"]');
+  assert.equal(await p.locator('#ckx-niche [data-mark="ok"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await p.locator('#ckx-niche').getAttribute('data-mark-v'), 'ok');
+  assert.equal(await p.locator('#ckx-niche[open]').count(), 1, 'позначка не згортає вправу');
+  await p.click('[data-tab="over"]'); assert.match(await p.locator('.ck-kpis').innerText(), /Позначки\s*1 \/ 0/);
+  await p.click('[data-tab="ex"]'); await p.click('[data-flt="unmarked"]');
+  assert.equal(await p.locator('.ck-ex:not([hidden])[data-mark-v="ok"]').count(), 0, 'позначені не показуються у «Без позначки»');
+  await p.click('[data-flt="all"]');
+  await p.click('[data-next="1"]'); // усі вправи цього учня вже позначено: кнопка нічого не ламає
+  // клавіші
+  await p.click('.ck-head'); const who0 = await p.locator('.ck-who h1').innerText();
+  await p.keyboard.press('ArrowRight'); assert.notEqual(await p.locator('.ck-who h1').innerText(), who0, 'стрілка перемикає учня');
+  await p.keyboard.press('1'); await p.waitForSelector('.ck-kpis .ck-kpi');
+  assert.equal(await p.locator('.ck-tabs button.on').innerText(), 'Клас', 'клавіша 1 — вкладка «Клас»');
+  const dl = p.waitForEvent('download'); await p.click('#csv'); const f = await dl;
+  const csvText = await (await import('node:fs/promises')).readFile(await f.path(), 'utf8');
+  assert.match(csvText, /Зараховано \(позначки\)/); assert.match(csvText, /Марта Коваль/);
+  assert.equal(await p.evaluate(() => localStorage.length), 0, 'позначки не записуються в localStorage');
 });
 
 await step('змінений файл і сміття: попередження чи помилка', async () => {
