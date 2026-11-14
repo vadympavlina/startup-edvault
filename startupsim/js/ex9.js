@@ -12,11 +12,11 @@ const fairV = d => 1500000 + sumOf(TRAC.filter(t => d.tr.includes(t[0])).map(t =
 const BURN = 60000;
 reg({
   id: 'negotiate', stage: 4, opt: true, cols: true, t: 'Переговори з інвестором', d: 'Запропонуйте суму й частку та проведіть торг із бізнес-ангелом.', icon: 'handshake', min: 18,
-  intro: `Інвестор купує частку компанії, і ціна залежить від того, що ви вже довели. Оберіть, що у вас є, запропонуйте суму й частку, яку віддасте. Якщо попросите задорого, інвестор поверне зустрічну пропозицію: ви можете погодитись, поторгуватись або піти.`,
+  intro: `Інвестор дає гроші за частину компанії, і скільки він згоден дати, залежить від того, що ви вже зробили. Позначте, що у вас є, і запропонуйте суму та частину компанії, яку віддасте. Для початку спробуйте 500 000 ₴ за 15%. Якщо попросите задорого, інвестор поверне зустрічну пропозицію: ви можете погодитись, поторгуватись або піти.`,
   data: () => ({ tr: [], m: 1000000, e: 15, st: 'open', r: 0, log: [], cnt: null, deal: null }),
   view(S, d) {
     const open = d.st === 'open', cnt = d.st === 'counter';
-    return `${box('Що ви вже маєте', `<div class="xrow">${TRAC.map(t => xp('negotiate', 'tr', t[0], t[1], d.tr.includes(t[0]), { set: 'tog' })).join('')}</div><p class="sm muted">Інвестор бачить лише те, що ви можете показати. Чим більше доказів, тим вища оцінка.</p>`, { ic: 'star' })}
+    return `${box('Що ви вже маєте', `<div class="xrow">${TRAC.map(t => xp('negotiate', 'tr', t[0], t[1], d.tr.includes(t[0]), { set: 'tog' })).join('')}</div><p class="sm muted">Інвестор вірить лише тому, що ви можете показати. Чим більше у вас доказів, тим більше він готовий заплатити.</p>`, { ic: 'star' })}
     ${box('Ваша пропозиція', `<div class="xg c2">${xsl('negotiate', 'm', d, { min: 200000, max: 3000000, step: 50000, label: 'Скільки просите', u: ' ₴' })}${xsl('negotiate', 'e', d, { min: 3, max: 40, step: 1, label: 'Яку частку віддаєте', u: '%' })}</div>
       <p class="sm">Це означає, що ви оцінюєте компанію в <b>${money0(d.m / (d.e / 100))}</b>.</p>
       <div class="xrow">${open ? xb('negotiate', 'offer', 'Запропонувати інвестору', { cls: 'primary', ic: 'handshake' }) : ''}${cnt ? `${xb('negotiate', 'accept', `Погодитись на ${d.cnt.e}%`, { cls: 'primary', ic: 'check' })}${d.cnt.final ? '' : xb('negotiate', 'mid', `Запропонувати ${Math.round((d.e + d.cnt.e) / 2)}%`, { ic: 'handshake' })}${xb('negotiate', 'walk', 'Піти з переговорів', { ic: 'x' })}` : ''}${d.st !== 'open' ? xb('negotiate', 'reset', 'Почати заново', { cls: 'ghost', ic: 'refresh' }) : ''}</div>`, { ic: 'coins' })}`;
