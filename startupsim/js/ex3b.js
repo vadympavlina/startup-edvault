@@ -50,9 +50,8 @@ reg({
   },
   ready(S, d) {
     const c = srcCalc(d);
-    if (c.cover < .9) return { ok: false, msg: 'Набір покриває менше 90% потреби' };
+    if (c.cover < .7) return { ok: false, msg: 'Набір покриває менше 70% потреби: додайте джерело або зменште потребу' };
     if (c.kinds < 2) return { ok: false, msg: 'Оберіть хоча б два джерела' };
-    if (c.dil > .35) return { ok: false, msg: 'Ви віддаєте понад третину компанії: зменште частку' };
     if (len(d.why) < 20) return { ok: false, msg: 'Поясніть свій вибір' };
     return { ok: true, stars: 1 + (c.dil <= .2 ? 1 : 0) + (c.nonDil && c.kinds >= 3 ? 1 : 0) };
   },

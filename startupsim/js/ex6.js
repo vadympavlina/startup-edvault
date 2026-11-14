@@ -109,9 +109,8 @@ reg({
   },
   ready(S, d) {
     const best = Math.max(...JOBS.map((j, i) => propScore(j, d.txt[i]).score)), n = Object.keys(d.dlg).length, pts = sumOf(DLG.map((x, i) => (d.dlg[i] != null ? x.o[d.dlg[i]][1] : 0)));
-    if (best < 60) return { ok: false, msg: 'Відгук поки що слабкий: досягніть хоча б 60 балів у чек-листі' };
+    if (best < 40) return { ok: false, msg: 'Відгук поки що надто короткий: додайте більше деталей, поки чек-лист не покаже хоча б 40 балів' };
     if (n < DLG.length) return { ok: false, msg: `Дайте відповідь у всіх розмовах: лишилось ${DLG.length - n}` };
-    if (pts < 4) return { ok: false, msg: 'Розмови дали замало балів: перечитайте пояснення й спробуйте інші відповіді' };
     return { ok: true, stars: 1 + (best >= 80 ? 1 : 0) + (pts >= 6 ? 1 : 0) };
   },
 });

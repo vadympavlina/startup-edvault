@@ -23,16 +23,16 @@ function swotDeck(S) {
 }
 reg({
   id: 'swot', stage: 2, t: 'SWOT-аналіз', d: 'Розкладіть факти по чвертях і складіть план дій.', icon: 'compass', min: 15,
-  intro: `${term('SWOT', 'SWOT')} — це чотири чверті: <b>сильні</b> й <b>слабкі</b> сторони (усередині компанії), <b>можливості</b> й <b>загрози</b> (ззовні). Спершу розкладіть підказки з вашої гри, потім додайте свої пункти, а наприкінці придумайте дії.`,
+  intro: `${term('SWOT', 'SWOT')} — це чотири чверті: <b>сильні</b> й <b>слабкі</b> сторони (усередині компанії), <b>можливості</b> й <b>загрози</b> (ззовні). Спершу розкладіть підказки з вашої гри так, як вважаєте правильним саме для вашої ідеї, потім додайте свої пункти, а наприкінці придумайте дії.`,
   data: S => ({ items: swotDeck(S), tows: { so: '', wo: '', st: '', wt: '' } }),
   view(S, d) {
     const pool = d.items.filter(x => x.src === 'game' && !x.q), placed = k => d.items.filter(x => x.q === k);
     const ans = d.items.filter(x => x.src === 'game' && x.q), right = ans.filter(x => x.q === x.k).length;
-    const quad = k => `<div class="sq ${k}"><h4>${Q[k][0]}<small>${Q[k][1]}</small></h4><ul class="xlist">${placed(k).map(x => `<li class="xitem ${x.src === 'game' ? (x.q === x.k ? 'okk' : 'badd') : ''}"><span>${esc(x.t)}${x.src === 'game' && x.q !== x.k ? `<small class="hintq">${QHINT[x.k]}</small>` : ''}</span>${xb('swot', 'unplace', '', { i: x.id, ic: 'x', cls: 'ib', title: 'Вилучити з чверті' })}</li>`).join('')}</ul>
+    const quad = k => `<div class="sq ${k}"><h4>${Q[k][0]}<small>${Q[k][1]}</small></h4><ul class="xlist">${placed(k).map(x => `<li class="xitem "><span>${esc(x.t)}${x.src === 'game' && x.q !== x.k ? `<small class="hintq">Інша думка: зазвичай це відносять до чверті «${Q[x.k][0]}». Якщо у вашому випадку інакше, залиште як є.</small>` : ''}</span>${xb('swot', 'unplace', '', { i: x.id, ic: 'x', cls: 'ib', title: 'Вилучити з чверті' })}</li>`).join('')}</ul>
       <div class="xadd"><input class="inp" id="sw-${k}" maxlength="320" placeholder="Додайте своє…" aria-label="${Q[k][0]}">${xb('swot', 'addOwn', '', { a: k, ic: 'plus', cls: 'ib', title: 'Додати' })}</div></div>`;
     const tows = [['so', 'S+O', 'Як сильні сторони допоможуть скористатися можливостями?'], ['wo', 'W+O', 'Як можливості допоможуть подолати слабкі сторони?'], ['st', 'S+T', 'Як сильні сторони захистять від загроз?'], ['wt', 'W+T', 'Як не дати слабким сторонам стати загрозою?']];
     return `${pool.length ? box('Куди це належить?', `<p class="sub">Це факти про вашу ситуацію. Визначте, до якої чверті кожен належить. Запитайте себе: це <b>всередині</b> компанії чи <b>ззовні</b>? Це <b>допомагає</b> чи <b>заважає</b>?</p><ul class="xlist">${pool.map(x => `<li class="xitem pend"><span>${esc(x.t)}</span><span class="xrow">${Object.entries(Q).map(([k, q]) => xb('swot', 'place', k, { a: x.id, b: k, cls: 'sm', title: q[0] })).join('')}</span></li>`).join('')}</ul>`, { ic: 'search', side: `лишилось ${pool.length}` }) : ''}
-    ${box('Ваша SWOT-матриця', `<div class="swot">${['S', 'W', 'O', 'T'].map(quad).join('')}</div>${ans.length ? `<p class="sm muted" style="margin-top:8px">Правильно розкладено: ${right} з ${ans.length}.</p>` : ''}`, { ic: 'plan' })}
+    ${box('Ваша SWOT-матриця', `<div class="swot">${['S', 'W', 'O', 'T'].map(quad).join('')}</div><p class="sm muted" style="margin-top:8px">Те саме може бути і силою, і слабкістю залежно від вашої ситуації. Кладіть так, як справді вважаєте.</p>`, { ic: 'plan' })}
     ${box('Що з цим робити?', `<p class="sub">Поєднайте чверті й сформулюйте дії. Достатньо двох-трьох.</p><div class="xg c2">${tows.map(([k, t, q]) => xin('swot', `tows.${k}`, d, { label: `${t}: ${q}`, area: true, rows: 2, max: 160 })).join('')}</div>`, { ic: 'rocket' })}`;
   },
   acts: {
@@ -43,11 +43,10 @@ reg({
   ready(S, d) {
     const pool = d.items.filter(x => x.src === 'game' && !x.q).length, ans = d.items.filter(x => x.src === 'game'), right = ans.filter(x => x.q === x.k).length;
     if (pool) return { ok: false, msg: `Розкладіть ще ${pool} ${plural(pool, 'підказку', 'підказки', 'підказок')}` };
-    if (right / ans.length < .7) return { ok: false, msg: 'Багато підказок у не тих чвертях: перечитайте підказки під ними й виправте' };
     const per = k => d.items.filter(x => x.q === k).length;
     if (['S', 'W', 'O', 'T'].some(k => per(k) < 2)) return { ok: false, msg: 'У кожній чверті має бути хоча б два пункти: додайте свої' };
     if (Object.values(d.tows).filter(v => len(v) >= 15).length < 2) return { ok: false, msg: 'Сформулюйте хоча б дві дії' };
-    return { ok: true, stars: 1 + (right === ans.length ? 1 : 0) + (Object.values(d.tows).filter(v => len(v) >= 15).length >= 4 ? 1 : 0) };
+    return { ok: true, stars: 2 + (Object.values(d.tows).filter(v => len(v) >= 15).length >= 4 ? 1 : 0) };
   },
 });
 

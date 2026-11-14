@@ -106,3 +106,13 @@ test('до кожної вправи є приклади промптів для
     }
   }
 });
+
+test('SWOT: власний розклад підказок приймається, оцінка «правильно/неправильно» не блокує', () => {
+  const S = make('homework', {}), d = X(S, 'swot');
+  // усі підказки навмисно кладемо в іншу чверть, ніж «еталонна»
+  d.items.forEach(x => { if (x.src === 'game') x.q = x.k === 'S' ? 'W' : 'S'; });
+  let id = Math.max(...d.items.map(x => x.id)) + 1;
+  for (const k of SW) for (let i = 0; i < 2; i++) d.items.push({ id: id++, t: 'Свій пункт ' + k + i, q: k, k, src: 'own' });
+  d.tows = { so: long, wo: long, st: '', wt: '' };
+  assert.equal(EX.swot.ready(S, d).ok, true);
+});
