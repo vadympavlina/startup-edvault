@@ -209,6 +209,16 @@ export const exActs = {
 };
 
 /* ═════════ введення, перетягування, збереження ═════════ */
+// Чек-листи й попередній перегляд, що лежать у самій вправі (не в блоці «live»), теж оновлюються одразу під час введення.
+// Поля введення не чіпаємо: інакше курсор зникне.
+const REFRESH = '.x-checks, .news, .brandcard, .cvw, [data-r]';
+function refreshView(C, def, d, ctx) {
+  const body = document.querySelector('.ex-body'); if (!body) return;
+  const t = document.createElement('div'); t.innerHTML = def.view(C.S, d, ctx);
+  const now = [...body.querySelectorAll(REFRESH)].filter(e => !e.closest('[data-live]') && !e.querySelector('input,textarea,select')), next = [...t.querySelectorAll(REFRESH)].filter(e => !e.querySelector('input,textarea,select'));
+  if (now.length !== next.length) return;
+  now.forEach((e, i) => { if (e.outerHTML !== next[i].outerHTML) e.replaceWith(next[i]); });
+}
 function patchLive(C, def, d) {
   if (!def) return;
   const ctx = { ui: C.ui, done: C.S.s.ex.done[def.id] };
@@ -223,6 +233,7 @@ function patchLive(C, def, d) {
       if (n) { n.focus({ preventScroll: true }); try { n.setSelectionRange(keep.s, keep.e); } catch { /* поле без виділення */ } n.scrollTop = keep.top; }
     }
   }
+  refreshView(C, def, d, ctx);
   const f = document.querySelector('.ex-foot'), h2 = f ? footInner(C.S, def, d) : null;
   if (f && f._h !== h2) { fill(f, h2); f._h = h2; }
 }

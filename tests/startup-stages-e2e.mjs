@@ -284,6 +284,18 @@ await step('неймінг: завершення вправи міняє наз�
   assert.match(await p.evaluate(() => document.querySelector('.top')?.innerText || ''), new RegExp(fin));
 });
 
+await step('чек-листи в самій вправі оновлюються одразу під час введення, фокус лишається', async () => {
+  for (const id of ['pr', 'brandvoice']) {
+    await p.evaluate(id => { window.Startup.sim.s.flags.st9 = 8; window.Startup.C.go('ex-' + id); }, id);
+    await p.waitForSelector('.ex-body .x-checks');
+    const ok = () => p.locator('.ex-body .x-checks li.ok').count(), before = await ok();
+    const inp = p.locator('.ex-body input[type=text][data-exi], .ex-body textarea[data-exi]').first();
+    await inp.click(); await inp.type('Школяр із Львова запустив 3 застосунки за 2 тижні і створив допомогу', { delay: 2 });
+    assert.ok(await ok() > before, id + ': пункти чек-листа відмічаються без додаткових кліків');
+    assert.equal(await p.evaluate(() => document.activeElement?.dataset?.exi), id, 'курсор лишився в полі');
+  }
+});
+
 await step('жодної помилки в консолі', async () => { assert.deepEqual(errors, []); });
 await browser.close(); server.close();
 
