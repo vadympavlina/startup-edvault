@@ -116,3 +116,11 @@ test('SWOT: власний розклад підказок приймаєтьс�
   d.tows = { so: long, wo: long, st: '', wt: '' };
   assert.equal(EX.swot.ready(S, d).ok, true);
 });
+
+test('до кожної вправи є підказка «Простими словами» і три кроки', async () => {
+  const { HELP } = await import('../startupsim/js/ex-help.js');
+  for (const def of exAll()) {
+    const h = HELP[def.id];
+    assert.ok(h && h.plain && h.how.length === 3, `${def.id}: підказка`);
+  }
+});

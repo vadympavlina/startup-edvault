@@ -625,3 +625,10 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 
 /* розмова в вправі показується повністю, а не в прокрутці на 330 px */
 .ex .chat { max-height: none; overflow: visible; }
+
+/* підказка «Простими словами» над вправою */
+.ex-help { margin: 12px 0 4px; padding: 12px 16px; border-radius: 14px; background: var(--sky); border: 1.5px solid var(--line); }
+.ex-help .eh-p { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 8px; font-size: 14.5px; line-height: 1.5; }
+.ex-help .eh-p .ic { flex: none; margin-top: 2px; }
+.ex-help .eh-s { margin: 0; padding-left: 24px; display: grid; gap: 4px; font-size: 14px; line-height: 1.45; color: var(--tx-m); }
+.ex-help .eh-s li::marker { font-weight: 700; color: var(--ink); }

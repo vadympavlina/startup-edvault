@@ -138,12 +138,15 @@ function stepMap(main) {
   if (titles.length < 2 || titles.length > 8) return '';
   return `<nav class="ex-map" aria-label="Що зробити у вправі"><b>Що зробити</b><ol>${titles.map((t, i) => `<li><button type="button" data-act="exJump" data-i="${i}"><span>${i + 1}</span>${esc(t)}</button></li>`).join('')}</ol></nav>`;
 }
+import { HELP } from './ex-help.js';
+const helpBox = id => { const h = HELP[id]; return h ? `<aside class="ex-help" aria-label="Підказка"><p class="eh-p">${icon('bulb', 18)}<span><b>Простими словами.</b> ${esc(h.plain)}</span></p><ol class="eh-s">${h.how.map(x => `<li>${esc(x)}</li>`).join('')}</ol></aside>` : ''; };
 function page(def, S, ui) {
     const d = X(S, def.id), done = S.s.ex.done[def.id];
     const main = def.view(S, d, { ui, done });
     return `<div class="ex" data-ex-root="${def.id}">
       <button class="ex-back" data-act="exBack" data-ex="${def.id}">${icon('left', 16)} Етап ${def.stage + 1} · ${esc(STAGE_T[def.stage])}</button>
       <section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${def.intro}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
+      ${helpBox(def.id)}
       ${stepMap(main)}
       <div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${main}</div>` : main}${def.live ? `<div class="ex-live" data-live>${def.live(S, d, { ui, done })}</div>` : ''}</div>
       <footer class="ex-foot" role="group" aria-label="Завершення вправи">${footInner(S, def, d)}</footer></div>`;
