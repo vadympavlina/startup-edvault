@@ -13,30 +13,43 @@ const gamePrice = S => S.s.price[S.s.target] || 100;
 const costDefaults = S => {
   const I = S.I, hw = I.kind === 'hardware', p = gamePrice(S);
   const unit = hw ? [['Компоненти', .6], ['Складання', .2], ['Упаковка й доставка', .2]].map(([t, k]) => ({ t, v: Math.round((I.unitCost || 400) * k) })) : [['Сервери й сервіси на клієнта', .08], ['Комісія платіжної системи', .03], ['Підтримка клієнта', .06]].map(([t, k]) => ({ t, v: Math.max(1, Math.round(p * k)) }));
-  return { unit, fixed: [{ t: 'Інструменти й підписки', v: 3000 }, { t: 'Хостинг і домен', v: 1500 }, { t: 'Реклама', v: 10000 }, { t: 'Бухгалтер', v: 2500 }], price: p, vol: 100, ch: 0 };
+  return { unit, fixed: [{ t: 'Інструменти й підписки', v: 3000 }, { t: 'Хостинг і домен', v: 1500 }, { t: 'Реклама', v: 10000 }, { t: 'Бухгалтер', v: 2500 }], price: p, vol: 100, ch: 0, guess: 100, reveal: false };
 };
 const costTotals = d => { const u = sumOf(d.unit.map(x => +x.v || 0)), f = sumOf(d.fixed.map(x => +x.v || 0)), m = d.price - u; return { u, f, m, be: m > 0 ? Math.ceil(f / m) : Infinity }; };
+function costsLive(S, d, t) {
+    const max = Math.max(100, Math.min(5000, Math.ceil((t.be === Infinity ? 200 : t.be * 2) / 50) * 50)), n = 11, xs = Array.from({ length: n }, (_, i) => Math.round(max * i / (n - 1)));
+    const profit = (d.price - t.u) * d.vol - t.f;
+    const gOk = d.reveal && t.be !== Infinity && Math.abs(d.guess - t.be) <= Math.max(5, t.be * .2);
+    return `${box('Беззбитковість', `${d.guess != null ? tip(gOk ? `Влучили! Ви вгадали ${d.guess}, а точка беззбитковості — ${t.be.toLocaleString('uk-UA')}.` : t.be === Infinity ? 'За цієї ціни вийти «в нуль» неможливо.' : `Ви вгадали ${d.guess}, а точка беззбитковості — ${t.be.toLocaleString('uk-UA')}. Це нормально: після вправи ви відчуватимете цифри краще.`, gOk ? 'ok' : '') : ''}<div class="kpis3"><div><small>Прибуток із однієї ${S.I.kind === 'hardware' ? 'одиниці' : 'продажі'}</small><b class="${t.m > 0 ? 'pos' : 'neg'}">${money0(t.m)}</b></div><div><small>Беззбитковість</small><b>${t.be === Infinity ? 'недосяжна' : `${t.be.toLocaleString('uk-UA')} ${noun(S)}`}</b></div><div><small>Прибуток на місяць за ${d.vol}</small><b class="${profit >= 0 ? 'pos' : 'neg'}">${money0(profit)}</b></div></div>
+      ${wideChart([{ v: xs.map(q => d.price * q), color: '#16a34a', label: 'Виручка' }, { v: xs.map(q => t.f + t.u * q), color: '#ef4444', label: 'Витрати' }], { labels: xs.map(String), fmt: x => (x / 1000).toFixed(0) + ' тис.' })}
+      ${t.m <= 0 ? tip('Ціна не покриває змінні витрати: чим більше продаєте, тим більше втрачаєте. Підніміть ціну або зменшіть витрати.', 'bad') : tip(`Після ${t.be.toLocaleString('uk-UA')} ${noun(S)} щомісяця кожна наступна приносить ${money0(t.m)} прибутку.`, 'ok')}`, { ic: 'chart' })}`;
+  
+}
 reg({
   id: 'costs', stage: 3, t: 'Собівартість і витрати', d: 'Порахуйте витрати на одиницю й щомісяця та знайдіть точку беззбитковості.', icon: 'wallet', min: 12,
-  intro: `${term('Собівартість', 'Собівартість')} — скільки коштує зробити й доставити одну одиницю. Є <b>змінні</b> витрати (зростають із продажами) і <b>постійні</b> (платите щомісяця, навіть якщо не продали нічого). Скільки треба продати, щоб вийти «в нуль»? Це ${term('Беззбитковість', 'точка беззбитковості')}.`,
+  intro: `${term('Собівартість', 'Собівартість')} — це скільки коштує один клієнт, плюс витрати, які йдуть щомісяця, навіть якщо продажів немає. Приклади вже заповнено: перевірте цифри, <b>вгадайте</b>, скільки треба продати, щоб вийти «в нуль» (${term('Беззбитковість', 'точка беззбитковості')}), і подивіться, чи вгадали.`,
   data: costDefaults,
   onSet: (S, d, p) => { d.ch = (d.ch || 0) + 1; },
   view(S, d) {
     const row = (kind, x, i) => `<div class="xitem"><span>${xin('costs', `${kind}.${i}.t`, d, { max: 40 })}</span><span class="xnw">${xnum('costs', `${kind}.${i}.v`, d, { min: 0, max: 1e7, step: 1, u: '₴' }).replace('<span class="xf-l"></span>', '')}</span>${xb('costs', 'delRow', '', { a: kind, i, ic: 'trash', cls: 'ib', title: 'Прибрати' })}</div>`;
-    const add = kind => `<div class="xadd"><input class="inp" id="cs-n-${kind}" maxlength="160" placeholder="Нова стаття витрат"><input class="inp" id="cs-v-${kind}" type="number" min="0" placeholder="₴" style="max-width:110px">${xb('costs', 'addRow', 'Додати', { a: kind, ic: 'plus' })}</div>`;
+    const add = kind => `<div class="xrow mt">${xb('costs', 'addRow', 'Своя стаття', { a: kind, ic: 'plus', cls: 'sm' })}</div>`;
     return `<div class="xg c2"><div>${box(`Змінні витрати на ${perWord(S)}`, `<div class="xlist">${d.unit.map((x, i) => row('unit', x, i)).join('')}</div>${add('unit')}`, { ic: 'box', side: `разом ${money0(costTotals(d).u)}` })}</div>
       <div>${box('Постійні витрати на місяць', `<div class="xlist">${d.fixed.map((x, i) => row('fixed', x, i)).join('')}</div>${add('fixed')}`, { ic: 'building', side: `разом ${money0(costTotals(d).f)}` })}</div></div>
     ${box('Ціна й обсяг', `<div class="xg c2">${xsl('costs', 'price', d, { min: Math.max(10, Math.round(gamePrice(S) * .3)), max: Math.max(200, Math.round(gamePrice(S) * 3)), step: 10, label: `Ціна за ${perWord(S)}`, u: ' ₴' })}${xsl('costs', 'vol', d, { min: 10, max: 2000, step: 10, label: `Скільки ${noun(S)} на місяць`, u: '' })}</div>`, { ic: 'coins' })}`;
   },
   live(S, d) {
-    const t = costTotals(d), max = Math.max(100, Math.min(5000, Math.ceil((t.be === Infinity ? 200 : t.be * 2) / 50) * 50)), n = 11, xs = Array.from({ length: n }, (_, i) => Math.round(max * i / (n - 1)));
-    const profit = (d.price - t.u) * d.vol - t.f;
-    return `${box('Беззбитковість', `<div class="kpis3"><div><small>Прибуток із однієї ${S.I.kind === 'hardware' ? 'одиниці' : 'продажі'}</small><b class="${t.m > 0 ? 'pos' : 'neg'}">${money0(t.m)}</b></div><div><small>Беззбитковість</small><b>${t.be === Infinity ? 'недосяжна' : `${t.be.toLocaleString('uk-UA')} ${noun(S)}`}</b></div><div><small>Прибуток на місяць за ${d.vol}</small><b class="${profit >= 0 ? 'pos' : 'neg'}">${money0(profit)}</b></div></div>
-      ${wideChart([{ v: xs.map(q => d.price * q), color: '#16a34a', label: 'Виручка' }, { v: xs.map(q => t.f + t.u * q), color: '#ef4444', label: 'Витрати' }], { labels: xs.map(String), fmt: x => (x / 1000).toFixed(0) + ' тис.' })}
-      ${t.m <= 0 ? tip('Ціна не покриває змінні витрати: чим більше продаєте, тим більше втрачаєте. Підніміть ціну або зменшіть витрати.', 'bad') : tip(`Після ${t.be.toLocaleString('uk-UA')} ${noun(S)} щомісяця кожна наступна приносить ${money0(t.m)} прибутку.`, 'ok')}`, { ic: 'chart' })}`;
+    const t = costTotals(d);
+    if (d.guess == null) d.guess = 100;
+    if (!d.reveal) {
+      return `${box('Вгадайте', `<p class="sm">Скільки ${noun(S)} на місяць треба продати, щоб вийти «в нуль»? Покладіться на інтуїцію: потім побачите справжню відповідь.</p>
+        ${xsl('costs', 'guess', d, { min: 0, max: 1000, step: 10, label: 'Ваша здогадка', u: '' })}
+        <div class="xrow mt">${xb('costs', 'reveal', 'Перевірити', { cls: 'primary', ic: 'check' })}${xb('costs', 'reveal', 'Показати без здогадки', { cls: 'ghost' })}</div>`, { ic: 'bulb' })}`;
+    }
+    return costsLive(S, d, t);
   },
   acts: {
-    addRow(S, d, el) { const k = el.dataset.a, n = document.getElementById('cs-n-' + k), v = document.getElementById('cs-v-' + k); if (!n?.value.trim()) { n?.focus(); return false; } d[k].push({ t: n.value.trim(), v: Math.max(0, +v.value || 0) }); d.ch++; },
+    addRow(S, d, el) { d[el.dataset.a].push({ t: 'Нова стаття', v: 0 }); d.ch++; },
+    reveal(S, d) { d.reveal = true; },
     delRow(S, d, el) { d[el.dataset.a].splice(+el.dataset.i, 1); d.ch++; },
   },
   ready(S, d) {
@@ -44,11 +57,16 @@ reg({
     if (d.unit.filter(x => +x.v > 0).length < 3) return { ok: false, msg: 'Потрібно хоча б три змінні статті витрат' };
     if (d.fixed.filter(x => +x.v > 0).length < 2) return { ok: false, msg: 'Потрібно хоча б дві постійні статті' };
     if (t.m <= 0) return { ok: false, msg: 'Підберіть ціну, за якої є прибуток із одиниці' };
-    return { ok: true, stars: 1 + (t.be < 400 ? 1 : 0) + ((d.ch || 0) >= 6 ? 1 : 0) };
+    const hit = d.reveal && t.be !== Infinity && Math.abs(d.guess - t.be) <= Math.max(5, t.be * .2);
+    return { ok: true, stars: 1 + (t.be < 400 ? 1 : 0) + ((d.ch || 0) >= 6 || hit ? 1 : 0) };
   },
 });
 
 /* ═════════ Ціна й прибутковість ═════════ */
+// Скільки з 20 відвідувачів купили б за такою ціною: дешевше 0,6 від «еталона» купують усі, дорожче 1,5 — майже ніхто
+const demandRef = (S, d, M, u) => (M.find(m => m.k === 'value')?.p) || (M.find(m => m.k === 'comp')?.p) || Math.max(20, r10(u * 2.2));
+const buyShare = (p, ref) => clamp(1 - Math.max(0, p / ref - .6) / .9, .03, 1);
+const bestPrice = (S, d) => { const M = priceMethods(S, d), u = costTotals(X(S, 'costs')).u, ref = demandRef(S, d, M, u); let best = Math.ceil(u * 1.05 / 10) * 10, bv = -Infinity; for (let p = best; p <= ref * 1.7; p += 10) { const v = buyShare(p, ref) * (p - u); if (v > bv) { bv = v; best = p; } } return best; };
 const STANCE = { low: ['Нижче за конкурентів', -.15], mid: ['На рівні', 0], high: ['Вище за конкурентів', .2] };
 const priceMethods = (S, d) => {
   const c = X(S, 'costs'), u = costTotals(c).u, comp = S.I.competitors.filter(x => x.price > 0).map(x => x.price), wtp = S.insight(S.s.target).wtp;
@@ -60,7 +78,7 @@ const priceMethods = (S, d) => {
 };
 reg({
   id: 'price', stage: 3, t: 'Ціна й прибутковість', d: 'Порахуйте ціну трьома способами й оберіть свою.', icon: 'tag', min: 15,
-  intro: `Ціну можна рахувати від витрат, від конкурентів і від цінності для клієнта. Кожен спосіб дає свою відповідь: хороша ціна лежить десь між ними. Порахуйте всі три, оберіть ціну й перевірте, чи є прибуток.`,
+  intro: `Ціна — це баланс: не надто дешево, щоб заробляти, і не надто дорого, щоб клієнти не пішли. Порахуйте три способи, оберіть ціну повзунком і подивіться, <b>скільки з 20 відвідувачів купили б</b>.`,
   data: S => ({ markup: 80, stance: 'mid', share: 85, final: r10(gamePrice(S)), pick: '', why: '', applied: false, ch: 0 }),
   onSet: (S, d) => { d.ch = (d.ch || 0) + 1; },
   view(S, d) {
@@ -74,6 +92,7 @@ reg({
     return `${box('Ваша ціна', `${xsl('price', 'final', d, { min: Math.max(10, Math.round(u * 1.01)), max: Math.max(400, Math.round(Math.max(mx, f) * 1.6)), step: 10, label: `Ціна за ${perWord(S)}`, u: ' ₴' })}
       <div class="pline" aria-hidden="true">${M.map(x => `<i style="left:${(x.p - mn) / span * 90 + 5}%" title="${x.t}"><b>${x.k === 'cost' ? 'Витрати' : x.k === 'comp' ? 'Конкуренти' : 'Цінність'}</b></i>`).join('')}<em style="left:${(f - mn) / span * 90 + 5}%">ваша</em></div>
       <div class="kpis3"><div><small>Прибуток із одиниці</small><b class="${m > 0 ? 'pos' : 'neg'}">${money0(m)}</b></div><div><small>Націнка</small><b>${u ? pc(m / u) : '—'}</b></div><div><small>Беззбитковість</small><b>${be === Infinity ? 'недосяжна' : `${be.toLocaleString('uk-UA')} ${noun(S)}`}</b></div></div>
+      ${(() => { const ref = demandRef(S, d, priceMethods(S, d), u), n = Math.round(20 * buyShare(f, ref)), bp = bestPrice(S, d), near = Math.abs(f - bp) / bp <= .15; return `<div class="ppl-h"><b>Хто купив би за ${money0(f)}</b><span>${n} з 20 відвідувачів</span></div><div class="ppl" role="img" aria-label="${n} з 20 відвідувачів купили б">${Array.from({ length: 20 }, (_, i) => `<i class="${i < n ? 'on' : ''}">${icon('user', 18)}</i>`).join('')}</div><p class="sm muted">Прибуток на 20 відвідувачів: <b class="${n * m > 0 ? 'pos' : 'neg'}">${money0(n * m)}</b></p>${tip(near ? 'Ви в найвигіднішій зоні: ціна й кількість покупців дають максимум прибутку.' : f < bp ? 'Клієнти купили б і дорожче: на цій ціні ви лишаєте гроші на столі.' : 'Ціна надто висока: частина клієнтів іде до конкурентів, і прибуток падає.', near ? 'ok' : '')}`; })()}
       ${xin('price', 'why', d, { label: 'Чому ви обрали саме таку ціну?', area: true, rows: 2, max: 240, ph: 'Ціна така, тому що…', cls: 'mt' })}
       <div class="xrow mt">${xb('price', 'apply', d.applied && S.s.price[S.s.target] === d.final ? 'Ціну застосовано в грі' : 'Застосувати ціну в грі', { cls: 'primary', ic: 'check', dis: S.s.price[S.s.target] === d.final })}<small class="muted">Змінить ціну для сегмента «${esc(S.seg().short)}» у розділі «Ціна».</small></div>`, { ic: 'coins' })}`;
   },
@@ -84,7 +103,8 @@ reg({
     if (!priceMethods(S, d).find(m => m.k === d.pick)?.p) return { ok: false, msg: 'За цим способом ще немає даних: оберіть інший або проведіть інтерв’ю' };
     if (d.final <= u) return { ok: false, msg: 'Ціна нижча за собівартість: прибутку не буде' };
     if (len(d.why) < 20) return { ok: false, msg: 'Поясніть свій вибір ціни' };
-    return { ok: true, stars: 1 + ((d.final - u) / d.final >= .3 ? 1 : 0) + (d.applied ? 1 : 0) };
+    const bp = bestPrice(S, d), near = Math.abs(d.final - bp) / bp <= .15;
+    return { ok: true, stars: 1 + ((d.final - u) / d.final >= .3 ? 1 : 0) + (d.applied || near ? 1 : 0) };
   },
 });
 
@@ -101,11 +121,11 @@ function plan(d, k) {
 }
 reg({
   id: 'finplan', stage: 3, t: 'Фінансовий план', d: 'Складіть план грошей на 12 місяців у трьох сценаріях.', icon: 'chart', min: 15,
-  intro: `${term('Фінансовий план', 'Фінансовий план')} показує, скільки грошей буде на рахунку щомісяця. Задайте припущення, і побачите три сценарії: песимістичний, реалістичний і оптимістичний. Добрий план готовий до гіршого й не залежить від чуда.`,
+  intro: `${term('Фінансовий план', 'Фінансовий план')} відповідає на одне питання: чи вистачить грошей на рік? Задайте три головні числа: скільки нових клієнтів, як швидко їх більшає й скільки йде. Побачите три сценарії: поганий, звичайний і гарний. Решту налаштувань можна не чіпати.`,
   data: S => { const c = X(S, 'costs'), t = costTotals(c); return { start: Math.round(S.paidUsers()), newm: 15, growth: 8, churn: 6, price: c.price, unit: t.u, fixed: t.f, cash0: Math.round(S.s.cash), scen: 'real', action: '', ch: 0 }; },
   onSet: (S, d) => { d.ch = (d.ch || 0) + 1; },
   view(S, d) {
-    return `${box('Припущення', `<div class="xg c2">${xsl('finplan', 'newm', d, { min: 0, max: 300, step: 5, label: `Нових ${noun(S)} за перший місяць`, u: '' })}${xsl('finplan', 'growth', d, { min: 0, max: 30, step: 1, label: 'Зростання нових клієнтів щомісяця', u: '%' })}${xsl('finplan', 'churn', d, { min: 0, max: 30, step: 1, label: 'Скільки клієнтів іде щомісяця', u: '%' })}${xsl('finplan', 'price', d, { min: 10, max: Math.max(500, Math.round(d.price * 3)), step: 10, label: `Ціна за ${perWord(S)}`, u: ' ₴' })}${xnum('finplan', 'unit', d, { min: 0, label: `Змінні витрати на ${perWord(S)}`, u: '₴' })}${xnum('finplan', 'fixed', d, { min: 0, label: 'Постійні витрати на місяць', u: '₴' })}${xnum('finplan', 'cash0', d, { min: 0, label: 'Гроші на старті', u: '₴' })}${xnum('finplan', 'start', d, { min: 0, label: 'Клієнтів на старті', u: '' })}</div><p class="sm muted">Витрати й ціну можна підтягнути з вправи про собівартість. Сценарії відрізняються темпом зростання й рівнем витрат.</p>`, { ic: 'wrench' })}`;
+    return `${box('Припущення', `<div class="xg c2">${xsl('finplan', 'newm', d, { min: 0, max: 300, step: 5, label: `Нових ${noun(S)} за перший місяць`, u: '' })}${xsl('finplan', 'growth', d, { min: 0, max: 30, step: 1, label: 'Зростання нових клієнтів щомісяця', u: '%' })}${xsl('finplan', 'churn', d, { min: 0, max: 30, step: 1, label: 'Скільки клієнтів іде щомісяця', u: '%' })}</div><details class="nadj mt"><summary>${icon('wrench', 14)} Додатково: ціна, витрати, стартові гроші</summary><div class="xg c2 mt">${xsl('finplan', 'price', d, { min: 10, max: Math.max(500, Math.round(d.price * 3)), step: 10, label: `Ціна за ${perWord(S)}`, u: ' ₴' })}${xnum('finplan', 'unit', d, { min: 0, label: `Змінні витрати на ${perWord(S)}`, u: '₴' })}${xnum('finplan', 'fixed', d, { min: 0, label: 'Постійні витрати на місяць', u: '₴' })}${xnum('finplan', 'cash0', d, { min: 0, label: 'Гроші на старті', u: '₴' })}${xnum('finplan', 'start', d, { min: 0, label: 'Клієнтів на старті', u: '' })}</div></details><p class="sm muted">Витрати й ціну можна підтягнути з вправи про собівартість. Сценарії відрізняються темпом зростання й рівнем витрат.</p>`, { ic: 'wrench' })}`;
   },
   live(S, d) {
     const P = Object.fromEntries(Object.keys(SCEN).map(k => [k, plan(d, k)])), cur = P[d.scen], labels = Array.from({ length: 12 }, (_, i) => String(i + 1));
@@ -130,11 +150,11 @@ const assortDefaults = S => { const p = gamePrice(S), u = costTotals(X(S, 'costs
 const assortCalc = d => { const tot = sumOf(d.items.map(x => +x.share || 0)) || 1, rows = d.items.map(x => ({ ...x, w: (+x.share || 0) / tot, margin: x.price - x.cost, mp: x.price ? (x.price - x.cost) / x.price : 0 })); return { rows, avgP: sumOf(rows.map(x => x.w * x.price)), avgM: sumOf(rows.map(x => x.w * x.margin)), tot }; };
 reg({
   id: 'assort', stage: 3, t: 'Асортимент', d: 'Складіть лінійку з трьох і більше варіантів і перевірте прибуток.', icon: 'cube', min: 12,
-  intro: `${term('Асортимент', 'Асортимент')} — це набір ваших пропозицій. Правило «добре — краще — найкраще»: простий варіант привертає, середній продається найчастіше, дорогий робить середній вигідним на вигляд. Складіть свою лінійку й подивіться, що вона дає в середньому.`,
+  intro: `${term('Асортимент', 'Асортимент')} — це вибір для клієнта. Правило «добре — краще — найкраще»: простий варіант привертає, середній продається найчастіше, преміум робить середній вигіднішим. Підберіть ціни й частки, а собівартість порахується сама.`,
   data: assortDefaults,
   view(S, d) {
     const C = assortCalc(d);
-    return `${box('Ваші варіанти', `<div class="xlist">${d.items.map((x, i) => `<div class="xitem asr"><div class="xg c4">${xin('assort', `items.${i}.t`, d, { label: 'Назва', max: 30 })}${xnum('assort', `items.${i}.price`, d, { min: 0, label: 'Ціна', u: '₴' })}${xnum('assort', `items.${i}.cost`, d, { min: 0, label: 'Собівартість', u: '₴' })}${xsl('assort', `items.${i}.share`, d, { min: 0, max: 100, step: 5, label: 'Частка продажів', u: '%' })}</div>${d.items.length > 2 ? xb('assort', 'del', '', { p: 'items', i, ic: 'trash', cls: 'ib', title: 'Прибрати' }) : ''}</div>`).join('')}</div>
+    return `${box('Ваші варіанти', `<div class="xlist">${d.items.map((x, i) => `<div class="xitem asr"><div class="xg c4">${xin('assort', `items.${i}.t`, d, { label: 'Назва', max: 30 })}${xnum('assort', `items.${i}.price`, d, { min: 0, label: 'Ціна', u: '₴' })}<div class="xf"><span class="xf-l">Собівартість</span><b class="xro">${money0(+x.cost || 0)}</b></div>${xsl('assort', `items.${i}.share`, d, { min: 0, max: 100, step: 5, label: 'Частка продажів', u: '%' })}</div>${d.items.length > 2 ? xb('assort', 'del', '', { p: 'items', i, ic: 'trash', cls: 'ib', title: 'Прибрати' }) : ''}</div>`).join('')}</div>
       ${d.items.length < 6 ? xb('assort', 'addItem', 'Додати варіант', { ic: 'plus', cls: 'mt' }) : ''}`, { ic: 'box' })}`;
   },
   live(S, d) {

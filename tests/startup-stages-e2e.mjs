@@ -222,6 +222,26 @@ await step('інтерв’ю з клієнтом у грі: ім’я того 
   await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 1; window.Startup.C.go('dash'); });
 });
 
+await step('етап 4 простіше й цікавіше: гра «вгадайте беззбитковість», 20 відвідувачів у ціні, головні повзунки фінплану, собівартість в асортименті сама', async () => {
+  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; });
+  await go('ex-costs'); await p.waitForSelector('[data-live] [data-act="ex"][data-do="reveal"]');
+  assert.equal(await p.locator('.xadd').count(), 0, 'форми додавання статті прибрано');
+  assert.match(await p.locator('[data-live]').innerText(), /Вгадайте/);
+  await p.click('[data-live] [data-do="reveal"] >> nth=0'); await p.waitForTimeout(200);
+  assert.match(await p.locator('[data-live]').innerText(), /Ви вгадали|Влучили/, 'після перевірки видно відповідь');
+  await go('ex-price'); await p.waitForSelector('.ppl');
+  assert.equal(await p.locator('.ppl i').count(), 20, 'двадцять відвідувачів');
+  const on0 = await p.locator('.ppl i.on').count();
+  await range('[data-exi="price"][data-p="final"]', 3000); await p.waitForTimeout(200);
+  assert.ok(await p.locator('.ppl i.on').count() < on0, 'дорожча ціна: покупців менше');
+  await go('ex-finplan'); await p.waitForSelector('.nadj');
+  assert.equal(await p.locator('.ex-body .xbox >> nth=0').locator('input[type=range]:visible').count(), 3, 'три головні повзунки');
+  assert.equal(await p.locator('.nadj[open]').count(), 0, 'решта налаштувань згорнута');
+  await go('ex-assort'); await p.waitForSelector('.xro');
+  assert.equal(await p.locator('.xro').count(), 3, 'собівартість лише для читання');
+  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 1; window.Startup.C.go('dash'); });
+});
+
 await step('підсумковий звіт показує виконані вправи', async () => {
   await go('report');
   assert.match(await p.locator('.report').innerText(), /Вправи етапів/);

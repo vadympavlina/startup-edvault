@@ -604,3 +604,11 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 @keyframes exflash { 0% { box-shadow: 0 0 0 4px var(--acc); } 100% { box-shadow: 0 0 0 4px transparent; } }
 @media (prefers-reduced-motion: reduce) { .ex-flash { animation: none; outline: 3px solid var(--acc); } }
 @media (max-width: 760px) { .ex-map { display: block; } .ex-map > b { display: block; margin-bottom: 6px; } }
+
+/* ціна: двадцять відвідувачів, купили б — зафарбовані */
+.ppl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 12px; } .ppl-h b { font: 700 14px Rubik, sans-serif; } .ppl-h span { color: var(--tx-m); font-size: 13px; }
+.ppl { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 6px; }
+.ppl i { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--line); color: #b4bccb; background: #f6f7f9; transition: background .2s, color .2s, transform .2s; }
+.ppl i.on { background: var(--acc); color: var(--white); border-color: var(--ink); transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) { .ppl i { transition: none; } }
+.xro { display: block; padding: 9px 12px; border-radius: 10px; background: #f3f4f7; font: 600 14px Rubik, sans-serif; }
