@@ -231,9 +231,10 @@ await step('етап 4 простіше й цікавіше: гра «вгада
   assert.match(await p.locator('[data-live]').innerText(), /Ви вгадали|Влучили/, 'після перевірки видно відповідь');
   await go('ex-price'); await p.waitForSelector('.ppl');
   assert.equal(await p.locator('.ppl i').count(), 20, 'двадцять відвідувачів');
-  const on0 = await p.locator('.ppl i.on').count();
-  await range('[data-exi="price"][data-p="final"]', 3000); await p.waitForTimeout(200);
-  assert.ok(await p.locator('.ppl i.on').count() < on0, 'дорожча ціна: покупців менше');
+  const setFinal = v => p.evaluate(async v => { const { X } = await import('/startupsim/js/ex-core.js'); X(window.Startup.sim, 'price').final = v; window.Startup.C.render(); }, v);
+  await setFinal(40); const cheap = await p.locator('.ppl i.on').count();
+  await setFinal(1000000); const dear = await p.locator('.ppl i.on').count();
+  assert.ok(cheap > dear, `дорожча ціна: покупців менше (${cheap} → ${dear})`);
   await go('ex-finplan'); await p.waitForSelector('.nadj');
   assert.equal(await p.locator('.ex-body .xbox >> nth=0').locator('input[type=range]:visible').count(), 3, 'три головні повзунки');
   assert.equal(await p.locator('.nadj[open]').count(), 0, 'решта налаштувань згорнута');
