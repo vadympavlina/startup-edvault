@@ -169,7 +169,8 @@ const M = {
     return true;
   },
   seePay(id) { const s = this.s.pay.seen; if (!s.includes(id)) s.push(id); },
-  payOf(k) { const b2b = this.seg(k).b2b; return PAYMENTS[(b2b && this.s.pay.b2b) || this.s.pay.main || 'agg']; },
+  // пошкоджене збереження (наприклад, масив замість назви способу оплати) не має ламати розділ: беремо еквайринг за замовчуванням
+  payOf(k) { const b2b = this.seg(k).b2b, id = (b2b && this.s.pay.b2b) || this.s.pay.main; return PAYMENTS[typeof id === 'string' ? id : 'agg'] || PAYMENTS.agg; },
   payOk(k) { return this.payOf(k).ok; },
   payFee(k) { return this.payOf(k).fee; },
 
