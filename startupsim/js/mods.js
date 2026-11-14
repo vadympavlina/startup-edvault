@@ -116,7 +116,7 @@ const M = {
     s.promos ||= []; s.promoLog ||= []; s.loyalty ??= false;
     s.pay ||= { main: null, b2b: null, seen: [] };
     s.orders ||= []; s.offersFl ||= {}; s.gigs ||= []; s.gigsDone ??= 0; s.gigIncome ??= 0; s.rating ??= 0; s.myGigs ||= [];
-    s.port ||= {}; s.loan ??= null; s.crowd ??= null; s.plan ??= null; s.canvas ||= {};
+    s.port ||= {}; s.loan ??= null; s.crowd ??= null; s.plan ??= null; if (s.plan && !Array.isArray(s.plan.months)) s.plan = null; s.canvas ||= {};
     s.sprint ??= null; s.sprints ||= []; s.retroBuff ??= null; s.journal ||= [];
     s.hours.freelance ??= 0;
     s.fl ||= { landing: 0, copy: 0, video: 0, illus: 0, smmUntil: -1 };
@@ -298,7 +298,7 @@ const M = {
   /* ── фінплан ── */
   setPlan(months) { this.log(`Складено фінплан на 3 місяці: виручка ${months.map(m => fmt(m.rev)).join(' / ')}.`); this.s.plan = { week: this.s.week, months: months.map(m => ({ rev: Math.max(0, Math.round(m.rev)), cost: Math.max(0, Math.round(m.cost)) })) }; },
   planFact() {
-    const p = this.s.plan; if (!p) return [];
+    const p = this.s.plan; if (!p || !Array.isArray(p.months)) return [];
     return p.months.map((m, i) => {
       const from = p.week + Math.round(i * W2M), to = p.week + Math.round((i + 1) * W2M);
       const h = this.s.history.filter(x => x.week >= from && x.week < to);

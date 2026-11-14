@@ -61,7 +61,7 @@ export const xnum = (id, p, d, { min = 0, max = 1e9, step = 1, label = '', u = '
 export const xsel = (id, p, d, list, { label = '', cls = '' } = {}) => `<label class="xf ${cls}">${label ? `<span class="xf-l">${label}</span>` : ''}<select class="inp" data-exi="${id}" data-p="${esc(p)}">${list.map(([v, t]) => `<option value="${esc(v)}" ${String(get(d, p)) === String(v) ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
 export const xcol = (id, p, d, { label = '' } = {}) => `<label class="xf xcol"><span class="xf-l">${label}</span><input type="color" data-exi="${id}" data-p="${esc(p)}" value="${esc(get(d, p) || '#6366f1')}"></label>`;
 export const tip = (html, kind = '') => `<p class="x-tip ${kind}">${icon(kind === 'bad' ? 'alert' : kind === 'ok' ? 'check' : 'bulb', 16)}<span>${html}</span></p>`;
-export const box = (title, body, { cls = '', ic, side = '' } = {}) => `<section class="xbox ${cls}"><header>${ic ? icon(ic, 18) : ''}<h2>${title}</h2>${side ? `<span class="xs">${side}</span>` : ''}</header>${body}</section>`;
+export const box = (title, body, { cls = '', ic, side = '' } = {}) => { const hp = boxHint(title); return `<section class="xbox ${cls}"><header>${ic ? icon(ic, 18) : ''}<h2>${title}</h2>${side ? `<span class="xs">${side}</span>` : ''}</header>${hp ? `<p class="bx-h">${hp}</p>` : ''}${body}</section>`; };
 export const checks = list => `<ul class="x-checks">${list.map(([ok, t, hint]) => `<li class="${ok ? 'ok' : ''}">${icon(ok ? 'check' : 'minus', 14)}<span>${t}${hint && !ok ? `<small>${hint}</small>` : ''}</span></li>`).join('')}</ul>`;
 export const bar = (v, { color = 'var(--acc)', label = '' } = {}) => `<div class="x-bar" ${label ? `role="meter" aria-valuenow="${Math.round(v * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="${esc(label)}"` : 'aria-hidden="true"'}><i style="width:${Math.max(0, Math.min(1, v)) * 100}%;background:${color}"></i></div>`;
 export const money0 = n => Math.round(n).toLocaleString('uk-UA').replace(/\s/g, ' ') + ' ₴';
@@ -138,14 +138,19 @@ function stepMap(main) {
   if (titles.length < 2 || titles.length > 8) return '';
   return `<nav class="ex-map" aria-label="Що зробити у вправі"><b>Що зробити</b><ol>${titles.map((t, i) => `<li><button type="button" data-act="exJump" data-i="${i}"><span>${i + 1}</span>${esc(t)}</button></li>`).join('')}</ol></nav>`;
 }
-import { HELP } from './ex-help.js';
-const helpBox = id => { const h = HELP[id]; return h ? `<aside class="ex-help" aria-label="Підказка"><p class="eh-p">${icon('bulb', 18)}<span><b>Простими словами.</b> ${esc(h.plain)}</span></p><ol class="eh-s">${h.how.map(x => `<li>${esc(x)}</li>`).join('')}</ol></aside>` : ''; };
+import { HELP, BOXHELP } from './ex-help.js';
+const rich = t => esc(t).replace(/\[\[(.+?)\|(.+?)\]\]/g, (m, k, l) => term(k, l));
+const introOf = def => HELP[def.id] ? rich(HELP[def.id].plain) : def.intro;
+const helpBox = id => { const h = HELP[id]; return h ? `<aside class="ex-help" aria-label="Що робити"><p class="eh-p">${icon('bulb', 18)}<b>Що робити</b></p><ol class="eh-s">${h.how.map(x => `<li>${esc(x)}</li>`).join('')}</ol></aside>` : ''; };
+let CUR = ''; // вправа, яку зараз малюємо: для підказок під заголовками блоків
+const boxHint = title => { for (const m of [BOXHELP[CUR], BOXHELP._]) { if (!m) continue; if (m[title]) return m[title]; const k = Object.keys(m).find(x => x.endsWith('*') && title.startsWith(x.slice(0, -1))); if (k) return m[k]; } return ''; };
 function page(def, S, ui) {
+    CUR = def.id;
     const d = X(S, def.id), done = S.s.ex.done[def.id];
     const main = def.view(S, d, { ui, done });
     return `<div class="ex" data-ex-root="${def.id}">
       <button class="ex-back" data-act="exBack" data-ex="${def.id}">${icon('left', 16)} Етап ${def.stage + 1} · ${esc(STAGE_T[def.stage])}</button>
-      <section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${def.intro}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
+      <section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${introOf(def)}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
       ${helpBox(def.id)}
       ${stepMap(main)}
       <div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${main}</div>` : main}${def.live ? `<div class="ex-live" data-live>${def.live(S, d, { ui, done })}</div>` : ''}</div>
@@ -224,6 +229,7 @@ function refreshView(C, def, d, ctx) {
 }
 function patchLive(C, def, d) {
   if (!def) return;
+  CUR = def.id;
   const ctx = { ui: C.ui, done: C.S.s.ex.done[def.id] };
   // змінюємо лише те, що справді змінилося: інакше кнопка під курсором зникне між натисканням і відпусканням
   const box = document.querySelector('[data-live]'), h1 = box && def.live ? def.live(C.S, d, ctx) : null;

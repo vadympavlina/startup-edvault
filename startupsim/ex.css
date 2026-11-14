@@ -632,3 +632,4 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 .ex-help .eh-p .ic { flex: none; margin-top: 2px; }
 .ex-help .eh-s { margin: 0; padding-left: 24px; display: grid; gap: 4px; font-size: 14px; line-height: 1.45; color: var(--tx-m); }
 .ex-help .eh-s li::marker { font-weight: 700; color: var(--ink); }
+.bx-h { margin: -2px 0 10px; font-size: 14px; line-height: 1.45; color: var(--tx-m); }
