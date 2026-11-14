@@ -212,7 +212,15 @@ function patchLive(C, def, d) {
   const ctx = { ui: C.ui, done: C.S.s.ex.done[def.id] };
   // змінюємо лише те, що справді змінилося: інакше кнопка під курсором зникне між натисканням і відпусканням
   const box = document.querySelector('[data-live]'), h1 = box && def.live ? def.live(C.S, d, ctx) : null;
-  if (box && h1 != null && box._h !== h1) { fill(box, h1); box._h = h1; }
+  if (box && h1 != null && box._h !== h1) {
+    // поле, у якому людина друкує, може бути всередині цього блоку: після заміни повертаємо в нього курсор
+    const act = document.activeElement, keep = act && box.contains(act) && act.dataset?.exi ? { exi: act.dataset.exi, p: act.dataset.p, s: act.selectionStart, e: act.selectionEnd, top: act.scrollTop } : null;
+    fill(box, h1); box._h = h1;
+    if (keep) {
+      const n = [...box.querySelectorAll('[data-exi]')].find(x => x.dataset.exi === keep.exi && x.dataset.p === keep.p);
+      if (n) { n.focus({ preventScroll: true }); try { n.setSelectionRange(keep.s, keep.e); } catch { /* поле без виділення */ } n.scrollTop = keep.top; }
+    }
+  }
   const f = document.querySelector('.ex-foot'), h2 = f ? footInner(C.S, def, d) : null;
   if (f && f._h !== h2) { fill(f, h2); f._h = h2; }
 }
