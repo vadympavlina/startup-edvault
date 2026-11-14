@@ -2,7 +2,7 @@
 import { icon } from './icons.js';
 import { esc } from './ui.js';
 import { STAGES } from './stages.js';
-import { stars, exStars, goalNow, exAll, exDone, X, STAGE_T, exCount } from './ex-core.js';
+import { mastery, exStars, goalNow, exAll, exDone, X, STAGE_T, exCount } from './ex-core.js';
 
 const plural = (n, a, b, c) => { const m = n % 100, k = m % 10; return m > 10 && m < 20 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c; };
 
@@ -30,7 +30,7 @@ export function stageSheet(S, ui, info) {
   const first = st.req.find(x => !x.ok);
   const btn = (x, primary) => x.go === 'file' ? '' : `<button class="btn sm ${primary ? 'primary' : ''}" data-act="go" data-to="${x.go}" ${x.hl ? `data-hl="${esc(x.hl)}"` : ''}>${esc(x.btn)}</button>`;
   const step = (x, k, o) => `<li class="step ${x.ok ? 'ok' : x === first && !o ? 'now' : ''}"><span class="sn">${x.ok ? icon('check', 18) : x.ic ? icon(x.ic, 18) : k + 1}</span>
-    <div><b>${esc(x.t)}</b><small>${esc(x.d)}</small>${x.ex && x.ok ? `<span class="sx">${stars(exStars(S, x.ex))}</span>` : ''}</div>${x.ok && !x.ex ? `<span class="chip ok">${icon('check', 14)} Готово</span>` : btn(x, x === first && !o)}</li>`;
+    <div><b>${esc(x.t)}</b><small>${esc(x.d)}</small>${x.ex && x.ok ? `<span class="sx">${mastery(exStars(S, x.ex))}</span>` : ''}</div>${x.ok && !x.ex ? `<span class="chip ok">${icon('check', 14)} Готово</span>` : btn(x, x === first && !o)}</li>`;
   const head = info.allDone && i === info.cur && !back
     ? `<p class="k">Усі етапи пройдено</p><h1>Ви пройшли весь шлях стартапу</h1><p class="lead">Усі розділи відкриті. Далі можна вдосконалювати вправи, розвивати компанію й готувати підсумковий звіт.</p>`
     : `<p class="k">Етап ${i + 1} з ${STAGES.length}${st.done ? ' · пройдено' : ''}${back ? ' · ви переглядаєте попередній етап' : ''}</p><h1>${esc(st.long)}</h1><p class="lead">${esc(st.why)}</p>`;
@@ -75,6 +75,6 @@ export const SUMM = {
 };
 export function exSummary(S) {
   const n = exCount(S); if (!n) return '';
-  const rows = STAGE_T.map((t, i) => { const ex = exAll().filter(e => e.stage === i && exDone(S, e.id)); return ex.length ? `<tr><th scope="row">${i + 1}. ${esc(t)}</th><td>${ex.map(e => { const r = SUMM[e.id]?.(S, X(S, e.id)); return `<div class="xsr"><b>${esc(e.t)}</b>${r ? ` <span class="muted">· ${esc(r)}</span>` : ''} ${stars(exStars(S, e.id))}</div>`; }).join('')}</td></tr>` : ''; }).join('');
+  const rows = STAGE_T.map((t, i) => { const ex = exAll().filter(e => e.stage === i && exDone(S, e.id)); return ex.length ? `<tr><th scope="row">${i + 1}. ${esc(t)}</th><td>${ex.map(e => { const r = SUMM[e.id]?.(S, X(S, e.id)); return `<div class="xsr"><b>${esc(e.t)}</b>${r ? ` <span class="muted">· ${esc(r)}</span>` : ''} ${mastery(exStars(S, e.id))}</div>`; }).join('')}</td></tr>` : ''; }).join('');
   return `<section class="card"><header class="card-h"><h2>${icon('award')} Вправи етапів</h2><span class="chip ok">${n} з ${exAll().length}</span></header><table class="tbl xrep"><tbody>${rows}</tbody></table></section>`;
 }

@@ -234,7 +234,7 @@ function celebrate(info) {
   f.stCel = passed; celebrating = true;
   const opened = nx ? nx.open.filter(v => VIEWS[v] && !STAGES[i].open.includes(v)).map(v => VIEWS[v].t) : [];
   modal({ title: `Етап ${i + 1} «${STAGES[i].t}» пройдено`, cls: 'stage-done', onClose: () => { celebrating = false; render(); },
-    html: `<p class="sd-big">${icon('check', 28)}</p><p>Вправ виконано: <b>${got.length} з ${exOf(i).length}</b>. Зірок: <b>${star}</b>.</p>
+    html: `<p class="sd-big">${icon('check', 28)}</p><p>Вправ виконано: <b>${got.length} з ${exOf(i).length}</b>.${star >= got.length * 3 && got.length ? ' Усі — майстерно.' : ''}</p>
       ${nx ? `<p><b>Далі: етап ${passed + 1} «${esc(nx.t)}».</b> ${esc(nx.why)}</p>${opened.length ? `<p class="sm muted">Відкрилися розділи: ${esc(opened.join(', '))}.</p>` : ''}` : `<p><b>Усі дев’ять етапів пройдено.</b> Тепер просто грайте далі, а підсумки дивіться у звіті.</p>`}
       <div class="row end gap"><button class="btn primary" data-md-close>${nx ? 'До наступного етапу' : 'Чудово'}</button></div>` });
 }

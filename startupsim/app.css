@@ -781,3 +781,4 @@ body.simple .adv { display: none; }
 .chat .ivtag { align-self: flex-start; max-width: 85%; margin: -4px 0 4px 10px; padding: 5px 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.4; border-left: 3px solid var(--ok); background: #eef8f2; color: #26563a; }
 .chat .ivtag.fog { border-left-color: var(--warn, #d97706); background: #fff4e0; color: #7a4a06; }
 .chat .ivtag b { font-weight: 700; }
+.chip.gold { background: #fff3c4; color: #7a5a00; }

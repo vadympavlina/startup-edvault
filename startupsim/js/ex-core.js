@@ -37,6 +37,8 @@ const parse = (v, t) => t === 'n' ? +v : t === 'b' ? v === '1' || v === 'true' :
 
 /* ═════════ дрібні елементи розмітки ═════════ */
 const attrs = o => Object.entries(o || {}).map(([k, v]) => ` data-${k}="${esc(v)}"`).join('');
+/* Для учня: лише позитивна відзнака, без порожніх зірок (оцінку 1–3 бачить викладач). */
+export const mastery = n => n >= 3 ? `<span class="chip gold">${icon('star', 14)} Майстерно</span>` : '';
 export const stars = (n, max = 3) => `<span class="stars" aria-label="${n} з ${max}">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
 // кнопка-дія вправи: data-do — назва дії, a/b/c — довільні параметри
 export const xb = (id, act, label, { a, b, c, i, p, v, from, max, cls = '', ic, title = '', dis = false } = {}) => `<button type="button" class="btn ${cls}" data-act="ex" data-ex="${id}" data-do="${act}"${attrs({ a, b, c, i, p, v, from, max })}${title ? ` title="${esc(title)}" aria-label="${esc(title)}"` : ''}${dis ? ' disabled' : ''}>${ic ? icon(ic, 16) : ''}${label}</button>`;
@@ -118,7 +120,7 @@ export const quizDone = (d, p, list) => { const cur = get(d, p) || {}; return li
 const nextEx = (S, def) => { const l = exOf(def.stage), i = l.indexOf(def); return [...l.slice(i + 1), ...l.slice(0, i)].find(e => !exDone(S, e.id) && !e.opt) || null; };
 function footInner(S, def, d) {
   const r = def.ready(S, d), done = S.s.ex.done[def.id];
-  return `<div class="ex-st">${done ? `<span class="chip ok">${icon('check', 14)} Виконано · ${stars(done.s)}</span>` : r.ok ? `<span class="chip ok">${icon('check', 14)} Можна завершувати</span>` : `<span class="chip">${icon('info', 14)} Можна завершити й так. Для повної вправи: ${esc((r.msg || 'заповніть решту').replace(/^./, c => c.toLowerCase()))}</span>`}</div>
+  return `<div class="ex-st">${done ? `<span class="chip ok">${icon('check', 14)} Виконано</span>${mastery(done.s)}` : r.ok ? `<span class="chip ok">${icon('check', 14)} Можна завершувати</span>` : `<span class="chip">${icon('info', 14)} Можна завершити й так. Для повної вправи: ${esc((r.msg || 'заповніть решту').replace(/^./, c => c.toLowerCase()))}</span>`}</div>
     <div class="ex-btns"><button class="btn ghost" data-act="exBack" data-ex="${def.id}">До етапу</button>${nextEx(S, def) && (done || r.ok) ? `<button class="btn" data-act="go" data-to="ex-${nextEx(S, def).id}">Далі: ${esc(nextEx(S, def).t)}</button>` : ''}<button class="btn primary" data-act="exDone" data-ex="${def.id}">${done ? 'Зберегти зміни' : r.ok ? 'Завершити вправу' : 'Завершити як є'}</button></div>`;
 }
 export function exPage(def) {
