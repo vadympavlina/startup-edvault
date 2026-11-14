@@ -238,8 +238,10 @@ await step('етап 4 простіше й цікавіше: гра «вгада
   await go('ex-finplan'); await p.waitForSelector('.nadj');
   assert.equal(await p.locator('.ex-body .xbox >> nth=0').locator('input[type=range]:visible').count(), 3, 'три головні повзунки');
   assert.equal(await p.locator('.nadj[open]').count(), 0, 'решта налаштувань згорнута');
-  await go('ex-assort'); await p.waitForSelector('.xro');
-  assert.equal(await p.locator('.xro').count(), 3, 'собівартість лише для читання');
+  await go('ex-assort'); await p.waitForSelector('.asr');
+  assert.equal(await p.locator('.asr input[data-p$=".cost"]').count(), 3, 'собівартість можна змінювати');
+  await p.locator('.asr input[data-p$=".cost"]').nth(2).fill('777'); await p.waitForTimeout(150);
+  assert.equal(await p.evaluate(() => window.Startup.sim.s.ex.d.assort.items[2].cost), 777);
   await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 1; window.Startup.C.go('dash'); });
 });
 
