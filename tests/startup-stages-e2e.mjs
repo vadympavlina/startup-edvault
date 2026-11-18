@@ -99,7 +99,7 @@ await step('що болить клієнтам: болі з оцінками, с
 await step('канали: клітинки календаря перемикаються, підсумок рахується', async () => {
   await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; window.Startup.C.render(); });
   await go('ex-channels');
-  await p.click('.xp[data-v="social"]'); await p.click('.xp[data-v="ads"]'); await p.click('.xp[data-v="flyers"]');
+  await p.click('.sbtn[data-v="social"]'); await p.click('.sbtn[data-v="ads"]'); await p.click('.sbtn[data-v="flyers"]');
   assert.equal(await p.locator('.cal tbody tr').count(), 3);
   const before = await p.locator('.cel.on').count();
   await p.click('.cel:not(.on) >> nth=0');

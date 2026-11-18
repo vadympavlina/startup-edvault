@@ -3,7 +3,7 @@ import { FONTS, SYMBOLS } from './mods.js';
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
 import { logo } from './ui.js';
-import { reg, xb, xp, xin, xsl, xnum, xcol, tip, box, checks, bar, X, clamp, sumOf, pc, money0 } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xnum, xcol, tip, box, checks, bar, X, clamp, sumOf, pc, money0, qbtn, qbody, lrow, tg5 } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 const price0 = S => S.s.price[S.s.target] || 100;
@@ -35,23 +35,43 @@ function chCalc(S, d) {
   return { perWeek, cost, reach, vis, signups, payers, cac: payers > .5 ? cost / payers : null, cells: sumOf(d.sel.map(k => (d.grid[k] || []).filter(Boolean).length)) };
 }
 const fitLabel = (S, c) => { const f = S.seg().fit?.[c.fit]; return f == null ? ['—', ''] : f >= 1.05 ? ['добре', 'ok'] : f >= .6 ? ['так собі', 'warn'] : ['слабко', 'bad']; };
+const CH_TXT = {
+  flyers: 'Це паперові оголошення, які розклеюють або роздають. Підходять, якщо ваші клієнти живуть чи вчаться поруч.',
+  events: 'Виступи в школі, на ярмарку чи зустрічі. Охоплюєте мало людей, зате розмовляєте з ними наживо.',
+  partners: 'Школа, гурток чи магазин розповідає про вас своїм людям. Їм довіряють більше, ніж рекламі.',
+  press: 'Стаття в місцевій газеті чи ефір на радіо. Бачать багато людей, але важко порахувати, скільки з них стали клієнтами.',
+  word: 'Задоволені клієнти радять вас друзям. Безкоштовно й з найбільшою довірою, але працює, лише якщо продукт справді хороший.',
+  social: 'Ваші сторінки в соцмережах. Нічого не платите, але витрачаєте час на дописи.',
+  ads: 'Оплачені оголошення, які бачать саме потрібні вам люди. Швидко, але платите за кожен показ.',
+  blog: 'Блогер розповідає про вас своїй аудиторії. Добре, якщо його підписники — ваші майбутні клієнти.',
+  email: 'Листи тим, хто вже залишив пошту. Дешево й добре нагадує про вас.',
+  seo: 'SEO — це коли ви пишете статті, щоб вас знаходили в пошуку. Результат з’являється не одразу, зате накопичується.',
+  video: 'Короткі відео для соцмереж. Іноді одне вдале відео приводить дуже багато людей.',
+};
 reg({
   id: 'channels', stage: 5, t: 'План просування', d: 'Оберіть канали й розплануйте шість тижнів.', icon: 'megaphone', min: 18,
-  intro: `${term('Канал', 'Канали')} просування бувають <b>офлайн</b> (флаєри, заходи, партнери) й <b>онлайн</b> (соцмережі, реклама, блогери). Кожен має ціну, охоплення й підходить вашій аудиторії по-різному. Оберіть набір, розставте його по тижнях і подивіться, скільки коштуватиме клієнт.`,
+  neo: {
+    about: 'Канали — це місця, де ви розповідаєте людям про себе: від флаєрів до реклами в блогерів. Оберіть кілька, розставте їх по тижнях і подивіться, скільки коштуватиме один клієнт.',
+    steps: (S, d) => { const c = chCalc(S, d), on = d.sel.filter(k => CHN.find(x => x.k === k).on).length; return [['Оберіть канали', d.sel.length >= 3 && on >= 1 && on < d.sel.length, 0], ['Розплануйте шість тижнів', c.cells >= 6, 1], ['Бюджет і пояснення', c.cost > 0 && c.cost <= d.budget && len(d.why) >= 20, 2]]; },
+  },
   data: () => ({ sel: [], grid: {}, budget: 25000, why: '' }),
   view(S, d) {
-    const card = c => { const on = d.sel.includes(c.k), [fw, fc] = fitLabel(S, c); return `<div class="chcard ${on ? 'on' : ''}">${xp('channels', 'sel', c.k, esc(c.t), on, { set: 'chn', cls: 'card' })}<small>${c.on ? 'онлайн' : 'офлайн'} · ${c.cost ? `${money0(c.cost)} / тиждень` : 'безкоштовно'} · охоплення ≈ ${c.reach.toLocaleString('uk-UA')}</small><small>Для вашої аудиторії: <span class="xtag ${fc}">${fw}</span></small><p>${esc(c.note)}</p></div>`; };
-    return `${box('1. Оберіть канали', `<div class="xg c2">${CHN.map(card).join('')}</div>`, { ic: 'compass', side: `обрано ${d.sel.length}` })}
-    ${box('2. Розплануйте шість тижнів', d.sel.length ? `<div class="xscroll"><table class="cal"><thead><tr><th>Канал</th>${Array.from({ length: WEEKS6 }, (_, i) => `<th>Тиж. ${i + 1}</th>`).join('')}</tr></thead><tbody>${d.sel.map(k => { const c = CHN.find(x => x.k === k); return `<tr><th scope="row">${esc(c.t)}</th>${Array.from({ length: WEEKS6 }, (_, i) => `<td><button type="button" class="cel ${d.grid[k]?.[i] ? 'on' : ''}" aria-pressed="${!!d.grid[k]?.[i]}" aria-label="${esc(c.t)}, тиждень ${i + 1}" data-act="ex" data-ex="channels" data-do="flip" data-a="${k}" data-i="${i}">${d.grid[k]?.[i] ? icon('check', 14) : ''}</button></td>`).join('')}</tr>`; }).join('')}</tbody></table></div><p class="sm muted">Натискайте клітинки, щоб увімкнути канал на тиждень.</p>` : '<p class="sm muted">Спершу оберіть канали вище.</p>', { ic: 'calendar' })}
-    ${box('3. Бюджет', xsl('channels', 'budget', d, { min: 5000, max: 150000, step: 5000, label: 'Скільки готові витратити за шість тижнів', u: ' ₴' }), { ic: 'wallet' })}`;
+    const row = c => { const on = d.sel.includes(c.k), [fw, fc] = fitLabel(S, c);
+      return lrow({ id: 'channels', doo: 'chn', p: 'sel', v: c.k, t: 's', on, key: c.k, title: esc(c.t), sub: esc(c.note),
+        tags: tg5(c.on ? 'онлайн' : 'офлайн', 'b') + tg5(c.cost ? `${money0(c.cost)} на тиждень` : 'безкоштовно', c.cost === 0 ? 'g' : c.cost <= 1000 ? 'y' : 'r') + (fw !== '—' ? tg5('для вас: ' + fw, fc === 'ok' ? 'g' : fc === 'warn' ? 'y' : 'r') : ''),
+        hint: `${esc(CH_TXT[c.k])} Охоплення: приблизно ${c.reach.toLocaleString('uk-UA')} людей на тиждень.` }); };
+    return `${box('1. Оберіть канали', `<p class="hl5">Поставте галочку біля трьох-шести каналів: і онлайн, і офлайн. Біля кожного є «?» з поясненням.</p><div class="slist">${CHN.map(row).join('')}</div>`, { ic: 'compass', side: `обрано ${d.sel.length} з 6` })}
+    ${box('2. Розплануйте шість тижнів', d.sel.length ? `<p class="hl5">Натискайте клітинки, щоб увімкнути канал на потрібний тиждень.</p><div class="xscroll"><table class="cal"><thead><tr><th>Канал</th>${Array.from({ length: WEEKS6 }, (_, i) => `<th>Тиж. ${i + 1}</th>`).join('')}</tr></thead><tbody>${d.sel.map(k => { const c = CHN.find(x => x.k === k); return `<tr><th scope="row">${esc(c.t)}</th>${Array.from({ length: WEEKS6 }, (_, i) => `<td><button type="button" class="cel ${d.grid[k]?.[i] ? 'on' : ''}" aria-pressed="${!!d.grid[k]?.[i]}" aria-label="${esc(c.t)}, тиждень ${i + 1}" data-act="ex" data-ex="channels" data-do="flip" data-a="${k}" data-i="${i}">${d.grid[k]?.[i] ? icon('check', 14) : ''}</button></td>`).join('')}</tr>`; }).join('')}</tbody></table></div>` : '<p class="sm muted">Спершу оберіть канали вище: вони з’являться тут.</p>', { ic: 'calendar' })}
+    ${box('3. Бюджет', `${xsl('channels', 'budget', d, { min: 5000, max: 150000, step: 5000, label: 'Скільки готові витратити за шість тижнів', u: ' ₴' })}<p class="hl5 mt">Що це означає ${qbtn('budget')}</p>${qbody('budget', 'Бюджет — це гроші, які ви готові віддати на просування за шість тижнів. Витрати з таблиці вище не мають його перевищувати.')}`, { ic: 'wallet' })}`;
   },
   live(S, d) {
-    const c = chCalc(S, d), on = d.sel.filter(k => CHN.find(x => x.k === k).on).length, off = d.sel.length - on;
-    return `${box('Що це дасть', `<div class="kpis3"><div><small>Витрати за 6 тижнів</small><b class="${c.cost > d.budget ? 'neg' : ''}">${money0(c.cost)}</b></div><div><small>Охоплення (людей)</small><b>${Math.round(c.reach).toLocaleString('uk-UA')}</b></div><div><small>Вартість платного клієнта (CAC)</small><b>${c.cac ? money0(c.cac) : '—'}</b></div></div>
+    const c = chCalc(S, d);
+    return `${box('4. Що це дасть', `<div class="kpis3"><div><small>Витрати за 6 тижнів</small><b class="${c.cost > d.budget ? 'neg' : ''}">${money0(c.cost)}</b></div><div><small>Охоплення (людей)</small><b>${Math.round(c.reach).toLocaleString('uk-UA')}</b></div><div><small>Один платний клієнт коштує</small><b>${c.cac ? money0(c.cac) : '—'}</b></div></div>
+      <p class="hl5 mt">Що таке «один клієнт коштує» ${qbtn('cac')}</p>${qbody('cac', 'Це скільки грошей ви витрачаєте, щоб привести одного платного клієнта: усі витрати діляться на кількість клієнтів. Фахівці називають це CAC. Чим менше, тим краще.')}
       ${wideChart([{ v: c.perWeek.map(w => Math.round(w.reach)), color: '#6366f1', label: 'Охоплення за тиждень', area: true }, { v: c.perWeek.map(w => Math.round(w.cost)), color: '#ef4444', label: 'Витрати за тиждень' }], { labels: c.perWeek.map((_, i) => String(i + 1)), fmt: x => Math.round(x).toLocaleString('uk-UA') })}
-      <p class="sm muted">Очікувані переходи на сайт: ≈ ${Math.round(c.vis)} · реєстрації ≈ ${Math.round(c.signups)} · платні клієнти ≈ ${Math.round(c.payers)}. Це оцінка: у грі результат залежить ще й від продукту. Канали одночасно частково «перетинаються» в аудиторії, тому охоплення не складається просто.</p>
-      ${checks([[on >= 1 && off >= 1, 'Є і онлайн-, і офлайн-канали', 'Змішайте: різні канали бачать різні люди'], [d.sel.length >= 3, 'Обрано хоча б три канали'], [c.cells >= 6, 'Заплановано хоча б шість «клітинок»', 'Розставте канали по тижнях'], [c.cost > 0 && c.cost <= d.budget, 'Витрати вкладаються в бюджет', 'Зменште кількість тижнів чи приберіть дорогий канал']])}
-      ${xin('channels', 'why', d, { label: 'Чому саме такий набір каналів?', area: true, rows: 2, max: 240, ph: 'Ми обрали ці канали, бо наша аудиторія…', cls: 'mt' })}`, { ic: 'chart' })}`;
+      <p class="sm muted">Очікуємо приблизно: ${Math.round(c.vis)} переходів на сайт, ${Math.round(c.signups)} реєстрацій, ${Math.round(c.payers)} платних клієнтів. Це лише оцінка: у грі результат залежить ще й від продукту.</p>
+      ${checks([[d.sel.filter(k => CHN.find(x => x.k === k).on).length >= 1 && d.sel.filter(k => !CHN.find(x => x.k === k).on).length >= 1, 'Є і онлайн-, і офлайн-канали', 'Змішайте: різні канали бачать різні люди'], [d.sel.length >= 3, 'Обрано хоча б три канали'], [c.cells >= 6, 'Заплановано хоча б шість «клітинок»', 'Розставте канали по тижнях'], [c.cost > 0 && c.cost <= d.budget, 'Витрати вкладаються в бюджет', 'Зменште кількість тижнів чи приберіть дорогий канал']])}
+      ${xin('channels', 'why', d, { label: 'Чому саме такий набір каналів?', area: true, rows: 2, max: 240, ph: 'Ми обрали ці канали, бо наша аудиторія…', cls: 'mt', hint: 'Одне-два речення: де ваші клієнти й чому ви обрали саме це.' })}`, { ic: 'chart' })}`;
   },
   acts: {
     flip(S, d, el) { const k = el.dataset.a, i = +el.dataset.i; (d.grid[k] ||= Array(WEEKS6).fill(false))[i] = !d.grid[k][i]; },
@@ -84,24 +104,38 @@ function fCalc(S, d, picks = []) {
   return { n, rates, payers, cost, cac, ltv, ratio: cac ? ltv / cac : 0, rev };
 }
 const bottle = d => { const r = d.rates.map((x, i) => (FS[i + 1][1] ? x / ((FS[i + 1][1][0] + FS[i + 1][1][1]) / 2) : 1)); return r.indexOf(Math.min(...r)); };
+const IMP_TXT = {
+  creative: 'Яскравіша й зрозуміліша реклама, на яку люди натискають частіше.', more: 'Ще один канал просування: вас побачить більше людей.',
+  site: 'Сайт відкривається швидко, а заголовок одразу пояснює, що ви пропонуєте.', proof: 'Відгуки й приклади показують, що вам можна вірити.',
+  reg: 'Людина реєструється одним натисканням, без довгої анкети.', demo: 'Ви показуєте продукт ще до реєстрації: людина одразу бачить, що отримає.',
+  onb: 'Короткі підказки під час першого запуску, щоб людина не загубилась.', trial: 'Пробний період і нагадування, щоб людина встигла оцінити продукт.',
+  pay: 'Більше способів заплатити: картка, телефон, частинами.', offer: 'Після пробного періоду ви пропонуєте вигідні умови саме цій людині.',
+};
 reg({
   id: 'funnel', stage: 5, t: 'Воронка продажів', d: 'Знайдіть вузьке місце воронки й оберіть, що покращити.', icon: 'chart', min: 15,
-  intro: `${term('Воронка', 'Воронка')} показує, як люди «відсіюються» на шляху до оплати: побачили → зайшли → зареєструвались → спробували → заплатили. Знайдіть найслабший крок і покращуйте його: це дає більше, ніж просто більше реклами. Порахуйте також, чи окупається клієнт (${term('LTV', 'LTV')} проти ${term('CAC', 'CAC')}).`,
+  neo: {
+    about: 'Воронка показує, як люди «відсіюються» на шляху до оплати: побачили → зайшли → зареєструвались → спробували → заплатили. Знайдіть найслабший крок і покращте його: це дає більше, ніж просто більше реклами.',
+    steps: (S, d) => [['Введіть свої цифри', (d.ch || 0) >= 1, 0], ['Знайдіть слабкий крок', (d.ch || 0) >= 1, 1], ['Оберіть, що покращити', d.picks.length >= 2 && len(d.why) >= 20, 2]],
+  },
   data: S => ({ reach: 20000, rates: [3, 25, 40, 12], adcost: 30000, churn: 8, picks: [], why: '', ch: 0 }),
   onSet: (S, d, p) => { if (p !== 'picks') d.ch = (d.ch || 0) + 1; },
   view(S, d) {
-    return `${box('Ваша воронка зараз', `<div class="xg c2">${xsl('funnel', 'reach', d, { min: 1000, max: 200000, step: 1000, label: 'Скільки людей побачили вас', u: '' })}${xsl('funnel', 'adcost', d, { min: 0, max: 300000, step: 5000, label: 'Витрати на просування', u: ' ₴' })}${xsl('funnel', 'churn', d, { min: 2, max: 30, step: 1, label: 'Скільки платних клієнтів іде щомісяця', u: '%' })}</div>
+    return `${box('1. Ваша воронка зараз', `<p class="hl5">Рухайте повзунки: впишіть свої цифри або погляньте на приклад. Що таке воронка ${qbtn('fun')}</p>${qbody('fun', 'Воронка — це шлях людини до оплати. Спочатку вас бачить багато людей, а платить найменше: на кожному кроці хтось відпадає. Тому схема й схожа на лійку.')}
+      <div class="xg c2">${xsl('funnel', 'reach', d, { min: 1000, max: 200000, step: 1000, label: 'Скільки людей побачили вас', u: '' })}${xsl('funnel', 'adcost', d, { min: 0, max: 300000, step: 5000, label: 'Витрати на просування', u: ' ₴' })}${xsl('funnel', 'churn', d, { min: 2, max: 30, step: 1, label: 'Скільки платних клієнтів іде щомісяця', u: '%' })}</div>
+      <p class="hl5 mt">Відсотки між кроками ${qbtn('rates')}</p>${qbody('rates', 'Відсоток — це скільки людей зі ста переходять на наступний крок. Наприклад, 25% означає, що зі ста гостей сайту реєструються двадцять п’ять. Поруч у воронці напишемо «норму»: з нею порівнюйте себе.')}
       <div class="xg c2 mt">${d.rates.map((r, i) => xsl('funnel', `rates.${i}`, d, { min: 0, max: 100, step: 1, label: `${FS[i][0]} → ${FS[i + 1][0].toLowerCase()}`, u: '%', v: r })).join('')}</div>`, { ic: 'wrench' })}`;
   },
   live(S, d) {
     const A = fCalc(S, d), B = fCalc(S, d, d.picks), b = bottle(d), max = A.n[0];
-    return `${box('Воронка', `<div class="fun">${FS.map(([t], i) => `<div class="fst ${i - 1 === b ? 'weak' : ''}"><span>${t}</span><div class="fb"><i style="width:${Math.max(2, A.n[i] / max * 100)}%"></i><b>${Math.round(A.n[i]).toLocaleString('uk-UA')}</b></div>${i ? `<small>${(A.rates[i - 1]).toFixed(0)}% ${FS[i][1] ? `· норма ${FS[i][1][0]}–${FS[i][1][1]}%` : ''}</small>` : '<small></small>'}</div>`).join('')}</div>
-      <div class="kpis3 mt"><div><small>Платних клієнтів</small><b>${A.payers.toFixed(1).replace('.', ',')}</b></div><div><small>CAC: вартість клієнта</small><b>${A.cac ? money0(A.cac) : '—'}</b></div><div><small>LTV: скільки клієнт принесе за весь час</small><b>${money0(A.ltv)}</b></div></div>
-      ${A.cac ? (A.ratio >= 3 ? tip(`LTV / CAC = ${A.ratio.toFixed(1).replace('.', ',')}. Клієнт окупається з запасом (орієнтир — від 3).`, 'ok') : A.ratio >= 1 ? tip(`LTV / CAC = ${A.ratio.toFixed(1).replace('.', ',')}. Клієнт ледве окупається. Орієнтир — від 3.`, 'warn') : tip(`LTV / CAC = ${A.ratio.toFixed(1).replace('.', ',')}. Клієнт коштує більше, ніж приносить: так компанія втрачає гроші.`, 'bad')) : ''}
-      <p class="sm muted">Найслабший крок порівняно з нормою: <b>«${FS[b][0]} → ${FS[b + 1][0].toLowerCase()}»</b>.</p>`, { ic: 'chart' })}
-    ${box('Що покращимо? Оберіть до трьох змін', `<div class="xg c2">${IMP.map(m => `<div class="chcard ${d.picks.includes(m.k) ? 'on' : ''}">${xp('funnel', 'picks', m.k, esc(m.t), d.picks.includes(m.k), { set: 'tog', max: 3, cls: 'card' })}<small>Крок: ${FS[m.st][0]}${m.st < 4 ? ' → ' + FS[m.st + 1][0].toLowerCase() : ''} · ${m.reach ? 'охоплення +' : 'ефект +'}${Math.round(m.up * 100)}% · ${money0(m.cost)}</small></div>`).join('')}</div>
-      ${d.picks.length ? `<div class="kpis3 mt"><div><small>Платних клієнтів: було → стало</small><b>${A.payers.toFixed(1).replace('.', ',')} → ${B.payers.toFixed(1).replace('.', ',')}</b></div><div><small>CAC: було → стало</small><b>${A.cac ? money0(A.cac) : '—'} → ${B.cac ? money0(B.cac) : '—'}</b></div><div><small>LTV / CAC</small><b class="${B.ratio >= 3 ? 'pos' : ''}">${B.ratio.toFixed(1).replace('.', ',')}</b></div></div>` : ''}
-      ${xin('funnel', 'why', d, { label: 'Чому ви обрали саме ці зміни?', area: true, rows: 2, max: 240, ph: 'Найслабший крок — …, тому я покращую…', cls: 'mt' })}`, { ic: 'rocket', side: `обрано ${d.picks.length} з 3` })}`;
+    const row = m => lrow({ id: 'funnel', doo: 'tog', p: 'picks', v: m.k, t: 's', max: 3, on: d.picks.includes(m.k), key: 'm_' + m.k, title: esc(m.t), sub: `Крок: ${esc(FS[m.st][0])}${m.st < 4 ? ' → ' + esc(FS[m.st + 1][0].toLowerCase()) : ''}`, tags: tg5(`${m.reach ? 'охоплення' : 'ефект'} +${Math.round(m.up * 100)}%`, 'g') + tg5(money0(m.cost), 'y'), hint: esc(IMP_TXT[m.k]) });
+    return `${box('2. Воронка', `<div class="fun">${FS.map(([t], i) => `<div class="fst ${i - 1 === b ? 'weak' : ''}"><span>${t}</span><div class="fb"><i style="width:${Math.max(2, A.n[i] / max * 100)}%"></i><b>${Math.round(A.n[i]).toLocaleString('uk-UA')}</b></div>${i ? `<small>${(A.rates[i - 1]).toFixed(0)}% ${FS[i][1] ? `· норма ${FS[i][1][0]}–${FS[i][1][1]}%` : ''}</small>` : '<small></small>'}</div>`).join('')}</div>
+      <p class="sm">Найслабший крок порівняно з нормою: <b>«${FS[b][0]} → ${FS[b + 1][0].toLowerCase()}»</b>. Саме його варто покращувати першим.</p>
+      <div class="kpis3 mt"><div><small>Платних клієнтів</small><b>${A.payers.toFixed(1).replace('.', ',')}</b></div><div><small>Один клієнт коштує (CAC)</small><b>${A.cac ? money0(A.cac) : '—'}</b></div><div><small>Клієнт приносить за весь час (LTV)</small><b>${money0(A.ltv)}</b></div></div>
+      <p class="hl5 mt">CAC і LTV: що це ${qbtn('ltv')}</p>${qbody('ltv', 'CAC — скільки коштує привести одного платного клієнта. LTV — скільки грошей він принесе вам, поки не піде. Якщо LTV більший за CAC хоча б утричі, реклама окупається.')}
+      ${A.cac ? (A.ratio >= 3 ? tip(`LTV / CAC = ${A.ratio.toFixed(1).replace('.', ',')}. Клієнт окупається з запасом (орієнтир — від 3).`, 'ok') : A.ratio >= 1 ? tip(`LTV / CAC = ${A.ratio.toFixed(1).replace('.', ',')}. Клієнт ледве окупається. Орієнтир — від 3.`, 'warn') : tip(`LTV / CAC = ${A.ratio.toFixed(1).replace('.', ',')}. Клієнт коштує більше, ніж приносить: так компанія втрачає гроші.`, 'bad')) : ''}`, { ic: 'chart' })}
+    ${box('3. Що покращимо? Оберіть до трьох змін', `<p class="hl5">Поставте галочки біля змін, які виправлять найслабший крок. Біля кожної є «?».</p><div class="slist">${IMP.map(row).join('')}</div>
+      ${d.picks.length ? `<div class="kpis3 mt"><div><small>Платних клієнтів: було → стало</small><b>${A.payers.toFixed(1).replace('.', ',')} → ${B.payers.toFixed(1).replace('.', ',')}</b></div><div><small>Один клієнт коштує: було → стало</small><b>${A.cac ? money0(A.cac) : '—'} → ${B.cac ? money0(B.cac) : '—'}</b></div><div><small>LTV / CAC</small><b class="${B.ratio >= 3 ? 'pos' : ''}">${B.ratio.toFixed(1).replace('.', ',')}</b></div></div>` : ''}
+      ${xin('funnel', 'why', d, { label: 'Чому ви обрали саме ці зміни?', area: true, rows: 2, max: 240, ph: 'Найслабший крок — …, тому я покращую…', cls: 'mt', hint: 'Назвіть найслабший крок і те, як зміни йому допоможуть.' })}`, { ic: 'rocket', side: `обрано ${d.picks.length} з 3` })}`;
   },
   ready(S, d) {
     const b = bottle(d), A = fCalc(S, d), B = fCalc(S, d, d.picks);
@@ -130,16 +164,21 @@ const pmx = (S, d, s) => {
 };
 reg({
   id: 'promomix', stage: 5, t: 'Стимулювання збуту', d: 'Сконструюйте до трьох акцій і порівняйте їхній прибуток.', icon: 'tag', min: 15,
+  neo: {
+    about: 'Акція — це тимчасовий стимул купити саме зараз: знижка, подарунок чи конкурс. Вона завжди коштує грошей, тому вигідна, лише якщо продажів стане набагато більше. Складіть кілька акцій і подивіться, яка приносить більше прибутку.',
+    steps: (S, d) => { const n = d.s.filter(x => x.mech).length; return [['Складіть дві акції', n >= 2, 1], ['Порівняйте прибуток', n >= 2, 4], ['Оберіть найкращу', d.pick >= 0 && !!pmx(S, d, d.s[d.pick] || {}) && len(d.why) >= 20, 4]]; },
+  },
   intro: `${term('Стимулювання збуту', 'Стимулювання збуту')} — це тимчасові стимули купити зараз. Акція завжди коштує: ви віддаєте частину прибутку або платите за подарунок. Вона вигідна, лише якщо продажі зростуть сильніше, ніж упаде прибуток із кожного. Сконструюйте кілька акцій і порівняйте.`,
   data: S => { const c = X(S, 'costs'), u = c.unit.reduce((a, x) => a + (+x.v || 0), 0); return { base: 40, price: price0(S), unit: Math.round(u), s: [{ mech: 'disc', par: 20, weeks: 2 }, { mech: null, weeks: 2 }, { mech: null, weeks: 2 }], pick: -1, why: '' }; },
   view(S, d) {
-    return `${box('Умови', `<div class="xg c3">${xnum('promomix', 'base', d, { min: 1, max: 100000, label: 'Скільки продажів на тиждень без акцій', u: '' })}${xnum('promomix', 'price', d, { min: 1, label: 'Ціна', u: '₴' })}${xnum('promomix', 'unit', d, { min: 0, label: 'Собівартість', u: '₴' })}</div>`, { ic: 'wrench' })}
-    <div class="xg c3">${d.s.map((s, i) => { const M = MECH[s.mech]; return `<article class="xbox promo ${d.pick === i ? 'pk' : ''}"><header><h3>Акція ${'ABC'[i]}</h3></header><div class="xcol1">${Object.entries(MECH).map(([k, m]) => xp('promomix', `s.${i}.mech`, k, m.t, s.mech === k)).join('')}</div>
+    return `${box('1. Умови', `<p class="hl5">Скільки ви продаєте й за яку ціну ${qbtn('cond')}</p>${qbody('cond', 'Це дані для розрахунку. Собівартість — скільки коштує вам виготовити чи привезти одну одиницю: матеріали, час, доставка. Ціна мінус собівартість — це ваш прибуток з одного продажу.')}<div class="xg c3">${xnum('promomix', 'base', d, { min: 1, max: 100000, label: 'Скільки продажів на тиждень без акцій', u: '' })}${xnum('promomix', 'price', d, { min: 1, label: 'Ціна', u: '₴' })}${xnum('promomix', 'unit', d, { min: 0, label: 'Собівартість', u: '₴' })}</div>`, { ic: 'wrench' })}
+    <p class="hl5">Складіть хоча б дві акції: оберіть, що саме пропонуєте, розмір і тривалість. Поруч побачите, скільки приносить кожна.</p>
+    <div class="xg c3">${d.s.map((s, i) => { const M = MECH[s.mech]; return `<article class="xbox promo ${d.pick === i ? 'pk' : ''}"><header><h2>Акція ${'ABC'[i]}</h2></header><div class="xcol1">${Object.entries(MECH).map(([k, m]) => xp('promomix', `s.${i}.mech`, k, m.t, s.mech === k)).join('')}</div>
       ${M ? `<p class="sm muted">${esc(M.note)}</p>${M.p ? xsl('promomix', `s.${i}.par`, d, { min: M.min, max: M.max, step: 1, label: M.p, u: '%', v: s.par ?? M.def }) : ''}${xsl('promomix', `s.${i}.weeks`, d, { min: 1, max: 8, step: 1, label: 'Тривалість', u: ' тиж.' })}` : '<p class="sm muted">Оберіть механіку акції.</p>'}</article>`; }).join('')}</div>`;
   },
   live(S, d) {
     const R = d.s.map(s => pmx(S, d, s)), ok = R.filter(Boolean), best = ok.length ? Math.max(...ok.map(r => r.delta)) : 0;
-    return `${box('Порівняння', ok.length ? `<div class="xlist">${R.map((r, i) => r ? `<div class="nrow ${r.delta === best && r.delta > 0 ? 'best' : ''}"><div class="nh"><b>Акція ${'ABC'[i]}: ${esc(r.M.t)}</b><span class="ns ${r.delta >= 0 ? 'pos' : 'neg'}">${r.delta >= 0 ? '+' : '−'}${money0(Math.abs(r.delta))}</span></div>${bar(Math.max(0, r.delta) / Math.max(1, best), { color: r.delta > 0 ? 'var(--ok)' : '#d33', label: 'Прибуток' })}<p class="sm muted">Продажі зростуть у ×${r.up.toFixed(2).replace('.', ',')}; щоб акція окупилась, потрібно хоча б ×${r.need === Infinity ? '∞' : r.need.toFixed(2).replace('.', ',')}. ${r.M.dip ? 'Після акції буде короткий спад (люди вже купили наперед).' : ''}</p>${xp('promomix', 'pick', i, d.pick === i ? 'Це моя найкраща акція' : 'Обрати як найкращу', d.pick === i, { t: 'n', cls: 'card' })}</div>` : '').join('')}</div><p class="sm muted">Число справа — зміна прибутку порівняно з тижнями без акції (з урахуванням витрат на запуск і спаду після).</p>` : '<p class="sm muted">Сконструюйте хоча б дві акції.</p>', { ic: 'chart' })}
+    return `${box('4. Порівняння', ok.length ? `<p class="hl5">Що показує число справа ${qbtn('cmp')}</p>${qbody('cmp', 'Це зміна вашого прибутку за час акції порівняно зі звичайними тижнями, з урахуванням витрат на запуск і спаду після акції. Плюс — акція вигідна, мінус — ви втрачаєте гроші.')}`+ `<div class="xlist">${R.map((r, i) => r ? `<div class="nrow ${r.delta === best && r.delta > 0 ? 'best' : ''}"><div class="nh"><b>Акція ${'ABC'[i]}: ${esc(r.M.t)}</b><span class="ns ${r.delta >= 0 ? 'pos' : 'neg'}">${r.delta >= 0 ? '+' : '−'}${money0(Math.abs(r.delta))}</span></div>${bar(Math.max(0, r.delta) / Math.max(1, best), { color: r.delta > 0 ? 'var(--ok)' : '#d33', label: 'Прибуток' })}<p class="sm muted">Продажів стане в ${r.up.toFixed(2).replace('.', ',')} раза більше. Щоб акція окупилась, їх має стати хоча б у ${r.need === Infinity ? 'безліч' : r.need.toFixed(2).replace('.', ',')} раза більше. ${r.M.dip ? 'Після акції буде короткий спад (люди вже купили наперед).' : ''}</p>${xp('promomix', 'pick', i, d.pick === i ? 'Це моя найкраща акція' : 'Обрати як найкращу', d.pick === i, { t: 'n', cls: 'card' })}</div>` : '').join('')}</div>` : '<p class="sm muted">Сконструюйте хоча б дві акції.</p>', { ic: 'chart' })}
     ${xin('promomix', 'why', d, { label: 'Чому ця акція найкраща? Коли її краще запускати?', area: true, rows: 2, max: 240, ph: 'Ця акція вигідніша, бо…', cls: 'mt' })}
     <div class="xrow mt">${xb('promomix', 'sync', 'Взяти ціну й собівартість з гри', { ic: 'refresh' })}${xb('promomix', 'toGame', 'Відкрити розділ «Акції» в грі', { ic: 'right' })}</div>`;
   },
@@ -161,6 +200,13 @@ const LAY = { big: 'Великий заголовок', offer: 'Акційна �
 const DECO = { none: 'Без прикрас', circ: 'Кола', stripe: 'Смуги', dots: 'Крапки' };
 const lumA = h => { const n = parseInt(String(h).replace('#', '').padEnd(6, '0').slice(0, 6), 16), f = v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }; return .2126 * f(n >> 16) + .7152 * f((n >> 8) & 255) + .0722 * f(n & 255); };
 const ctr = (a, b) => { const x = lumA(a), y = lumA(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+// колір компанії трохи темнішаємо, якщо білий текст на ньому читається гірше за 4,5 : 1 (так креатив із першого разу проходить перевірку)
+const readableBg = c => {
+  let n = parseInt(String(c || '#6366f1').replace('#', '').padEnd(6, '0').slice(0, 6), 16) || 0x6366f1, r = n >> 16, g = (n >> 8) & 255, bl = n & 255;
+  const hex = () => '#' + [r, g, bl].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  for (let i = 0; i < 14 && lumA(hex()) <= .45 && ctr(hex(), '#ffffff') < 4.6; i++) { r *= .94; g *= .94; bl *= .94; }
+  return hex();
+};
 const CTAV = /^(спробу|завантаж|замов|купу|дізна|зареєс|приєдн|отрима|почн|скористай|переглян|запиши|забер|встанови|вибер|перевір)/i;
 const adCheck = d => {
   const hw = d.head.trim().split(/\s+/).filter(Boolean).length, txt = d.head + ' ' + d.sub, tc = ctr(d.tx, d.bg);
@@ -168,8 +214,12 @@ const adCheck = d => {
 };
 reg({
   id: 'ad', stage: 5, cols: true, t: 'Рекламний креатив', d: 'Створіть оголошення в потрібному форматі й перевірте його.', icon: 'palette', min: 15,
+  neo: {
+    about: 'Креатив — це готове оголошення: заголовок, картинка й заклик до дії. Хороше оголошення зрозуміле за три секунди: що пропонують, кому й що робити далі. Оформіть його, напишіть текст і пройдіть чек-лист.',
+    steps: (S, d) => { const tx = d.bg && lumA(d.bg) > .45 ? '#1d2433' : '#ffffff', n = adCheck({ ...d, tx }).filter(x => x[0]).length, txt = len(d.head) >= 8 && len(d.cta) >= 3; return [['Оформіть вигляд', (d.t || 0) >= 1, 0], ['Напишіть текст', txt, 1], ['Пройдіть чек-лист', txt && n >= 4, 3]]; },
+  },
   intro: `${term('Креатив', 'Креатив')} — це готове оголошення: заголовок, картинка, заклик до дії. Хороший креатив зрозумілий за три секунди: що пропонують, кому й що робити далі. Оберіть формат, оформте й пройдіться чек-листом.`,
-  data: S => ({ fmt: 'sq', lay: 'big', head: '', sub: '', cta: '', badge: '', bg: S.s.company.color, ac: '#ffd43b', deco: 'circ', sym: S.s.company.sym || 'spark', font: 'modern', logo: true, t: 0 }),
+  data: S => ({ fmt: 'sq', lay: 'big', head: '', sub: '', cta: '', badge: '', bg: readableBg(S.s.company.color), ac: '#ffd43b', deco: 'circ', sym: S.s.company.sym || 'spark', font: 'modern', logo: true, t: 0 }),
   onSet: (S, d, p) => { d.t = (d.t || 0) + 1; },
   ctx(S, d) {
     const tx = d.bg && lumA(d.bg) > .45 ? '#1d2433' : '#ffffff', c = { ...d, tx }, F = FONTS[d.font], ck = adCheck(c), score = Math.round(ck.filter(x => x[0]).length / ck.length * 100);
@@ -178,14 +228,14 @@ reg({
     return { poster, score, ck };
   },
   view(S, d) {
-    return `      ${box('Формат і вигляд', `<div class="xrow">${Object.entries(FMT).map(([k, f]) => xp('ad', 'fmt', k, f[0], d.fmt === k)).join('')}</div><div class="xrow mt">${Object.entries(LAY).map(([k, t]) => xp('ad', 'lay', k, t, d.lay === k)).join('')}</div><div class="xrow mt">${Object.entries(DECO).map(([k, t]) => xp('ad', 'deco', k, t, d.deco === k)).join('')}</div>
+    return `      ${box('1. Формат і вигляд', `<p class="hl5">Оберіть форму оголошення, кольори й символ. Що таке формат ${qbtn('fmt')}</p>${qbody('fmt', 'Формат — це розмір картинки. Пост — для стрічки соцмереж, сторіс — для телефону на весь екран, афіша — для друку, банер — для сайтів.')}<div class="xrow">${Object.entries(FMT).map(([k, f]) => xp('ad', 'fmt', k, f[0], d.fmt === k)).join('')}</div><div class="xrow mt">${Object.entries(LAY).map(([k, t]) => xp('ad', 'lay', k, t, d.lay === k)).join('')}</div><div class="xrow mt">${Object.entries(DECO).map(([k, t]) => xp('ad', 'deco', k, t, d.deco === k)).join('')}</div>
         <div class="xrow mt">${xcol('ad', 'bg', d, { label: 'Тло' })}${xcol('ad', 'ac', d, { label: 'Акцент' })}${Object.entries(FONTS).map(([k, f]) => `<button type="button" class="xp ${d.font === k ? 'on' : ''}" data-act="ex" data-ex="ad" data-do="set" data-p="font" data-v="${k}" data-t="s" style="font-family:${f.css};font-weight:${f.w}">${f.t}</button>`).join('')}</div>
         <div class="syms">${SYMBOLS.map(sy => `<button type="button" class="sym ${d.sym === sy ? 'on' : ''}" data-act="ex" data-ex="ad" data-do="set" data-p="sym" data-v="${sy}" data-t="s" aria-label="Символ ${sy}">${icon(sy, 20)}</button>`).join('')}</div>`, { ic: 'palette' })}
-      ${box('Текст', `${xin('ad', 'head', d, { label: 'Заголовок', max: 60, ph: 'Домашка за 5 хвилин, а не за 2 години' })}${xin('ad', 'sub', d, { label: 'Другий рядок', max: 90, ph: 'Пояснення кожного кроку — на кожен предмет', cls: 'mt' })}<div class="xg c2 mt">${xin('ad', 'cta', d, { label: 'Заклик до дії', max: 24, ph: 'Спробуй безкоштовно' })}${xin('ad', 'badge', d, { label: 'Позначка (необов’язково)', max: 14, ph: '−20%' })}</div><label class="switch mt"><input type="checkbox" data-exi="ad" data-p="logo" ${d.logo ? 'checked' : ''}><span></span>Показати логотип</label>`, { ic: 'pen' })}`;
+      ${box('2. Текст', `<p class="hl5">Заклик до дії — слова, що кажуть людині, що робити далі ${qbtn('cta')}</p>${qbody('cta', 'Це напис на кнопці чи в кінці оголошення: «Спробуй безкоштовно», «Замов». Починайте з дієслова, тоді людина розуміє, що від неї хочуть. Позначка — маленький кружечок зі знижкою чи цифрою, її можна не додавати.')}${xin('ad', 'head', d, { label: 'Заголовок', max: 60, ph: 'Домашка за 5 хвилин, а не за 2 години' })}${xin('ad', 'sub', d, { label: 'Другий рядок', max: 90, ph: 'Пояснення кожного кроку — на кожен предмет', cls: 'mt' })}<div class="xg c2 mt">${xin('ad', 'cta', d, { label: 'Заклик до дії', max: 24, ph: 'Спробуй безкоштовно' })}${xin('ad', 'badge', d, { label: 'Позначка (необов’язково)', max: 14, ph: '−20%' })}</div><label class="switch mt"><input type="checkbox" data-exi="ad" data-p="logo" ${d.logo ? 'checked' : ''}><span></span>Показати логотип</label>`, { ic: 'pen' })}`;
   },
   live(S, d) {
     const { poster, score, ck } = this.ctx(S, d);
-    return `${box('Ваш креатив', poster, { ic: 'eye' })}${box('Чек-лист', `<div class="uscore"><b>${score}</b><span>з 100</span></div>${checks(ck.map(x => [x[0], x[1], x[2]]))}`, { ic: 'check' })}`;
+    return `${box('3. Ваш креатив', poster, { ic: 'eye' })}${box('4. Чек-лист', `<div class="uscore"><b>${score}</b><span>балів зі ста. Потрібно хоча б 4 пункти з ${ck.length}</span></div>${checks(ck.map(x => [x[0], x[1], x[2]]))}`, { ic: 'check' })}`;
   },
   ready(S, d) {
     const tx = d.bg && lumA(d.bg) > .45 ? '#1d2433' : '#ffffff', ck = adCheck({ ...d, tx }), n = ck.filter(x => x[0]).length;

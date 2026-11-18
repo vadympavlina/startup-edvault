@@ -150,6 +150,10 @@ const QH = new Set();
 const qid = k => 'qh-' + String(k).replace(/[^\w-]/g, '_');
 export const qbtn = key => { const k = CUR + ':' + key; return `<button type="button" class="q" data-act="qh" data-k="${esc(k)}" aria-expanded="${QH.has(k)}" aria-controls="${qid(k)}" aria-label="Простими словами" title="Що це означає?">?</button>`; };
 export const qbody = (key, html, title = 'Простими словами') => { const k = CUR + ':' + key; return `<div class="qh" id="${qid(k)}"${QH.has(k) ? '' : ' hidden'}><b>${title}.</b> ${html}</div>`; };
+// рядок вибору нового зразка: позначка (галочка чи «радіо»), суть, ярлики й «?»; act — дія вправи (data-do), p/v/t/max/a — її параметри
+export const tg5 = (t, c = '') => `<span class="tg5 ${c}">${esc(t)}</span>`;
+export const lrow = ({ id, doo, p, v, t, max, a, on, radio = false, key, title, sub = '', tags = '', hint = '', extra = '' }) =>
+  `<div class="srow ${radio ? 'pick' : ''} ${on ? 'on' : ''}"><button type="button" class="sbtn" role="${radio ? 'radio' : 'checkbox'}" aria-checked="${!!on}" data-act="ex" data-ex="${id}" data-do="${doo}"${attrs({ p, v, t, max, a })}><span class="cb">${on ? icon('check', 14) : ''}</span><span class="sinfo"><h3>${title}</h3><p>${sub}</p></span></button><div class="smeta">${tags}${hint ? qbtn(key) : ''}</div>${extra}${hint ? qbody(key, hint) : ''}</div>`;
 // шапка вправ нового зразка: одне пояснення й смужка кроків (крок підсвічується, коли зроблено)
 const stepsNav = (def, S, d) => {
   const steps = def.neo.steps(S, d), cur = steps.findIndex(x => !x[1]);
