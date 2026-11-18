@@ -1,7 +1,7 @@
 // Симулятор стартапу · вправи етапу 5 «Гроші на старт»: джерела фінансування, інвестиції в стартап, гранти й конкурси.
 import { esc, term, donut } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, X, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, X, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 const dots = n => `<span class="dots5" aria-label="${n} з 5">${'●'.repeat(n)}<i>${'●'.repeat(5 - n)}</i></span>`;
@@ -22,33 +22,54 @@ function srcCalc(d) {
   const dil = eqAmt ? eqAmt / (d.pre + eqAmt) : 0;
   return { raised, eqAmt, interest, dil, kinds: kinds.size, cover: d.need ? raised / d.need : 0, nonDil };
 }
+// простий опис кожного джерела: коротко в рядку, докладніше під кнопкою «?», суми-кнопки
+const SRC_TXT = {
+  own: { short: 'Ваші заощадження. Нічого не віддаєте.', plain: 'Це гроші, які ви вже маєте. Плюс: ніхто не командує вами. Мінус: якщо справа не вийде, гроші зникнуть. Беріть лише те, чого не шкода втратити.', chips: [50000, 100000, 200000, 300000] },
+  fff: { short: 'Вірять у вас. Домовтеся про частку письмово.', plain: 'Рідні й друзі дають гроші, бо довіряють вам. Щоб не посваритися, одразу запишіть, яку частку компанії вони отримують. Наприклад, 300 000 ₴ за 10%.', chips: [50000, 100000, 200000, 300000] },
+  loan: { short: 'Треба повернути з відсотками, навіть якщо не вийшло.', plain: 'Банк дає гроші в борг. За рік ви повертаєте більше, ніж узяли: тут 22% зверху. Кредит дають лише дорослим із документами, тому в житті це справа батьків чи вашого повноліття.', chips: [100000, 200000, 300000, 500000] },
+  crowd: { short: 'Багато людей скидаються по трохи.', plain: 'Краудфандинг — це коли ви розповідаєте про ідею в інтернеті, а люди скидаються по трохи й чекають від вас подарунок. Сайт бере комісію 12%. Працює, якщо про вас уже хтось знає.', chips: [50000, 100000, 200000, 300000] },
+  pre: { short: 'Клієнти платять наперед.', plain: 'Передзамовлення — клієнт платить за те, чого ще немає, і чекає. Ви отримуєте гроші й доказ, що продукт потрібен. Головне — вчасно виконати обіцяне.', chips: [50000, 100000, 150000, 200000] },
+  angel: { short: 'Дає гроші й поради за частину компанії.', plain: 'Бізнес-ангел — досвідчений підприємець, який вкладає свої гроші в початківців. Взамін він отримує частину компанії й часом допомагає порадами. Він хоче бачити, що у вас уже щось працює.', chips: [300000, 500000, 1000000, 1500000] },
+  grant: { short: 'Гроші не треба повертати, але дають не всім.', plain: 'Грант — подарунок від конкурсу чи фонду. Повертати й віддавати частку не треба. Але виграють не всі: шанс приблизно 30%, тож не розраховуйте лише на нього.', chips: [50000, 100000, 200000, 300000] },
+};
+const kfmt = v => (v / 1000).toLocaleString('uk-UA') + ' тис.';
 reg({
-  id: 'sources', stage: 4, t: 'Джерела фінансування', d: 'Порівняйте дев’ять джерел грошей і складіть свій набір.', icon: 'coins', min: 15,
-  intro: `Гроші на старт можна взяти по-різному, і в кожного способу своя ціна: комусь треба віддати відсотки чи частку компанії, а для грантів потрібна удача. Скільки грошей вам потрібно? Підберіть кілька джерел, щоб вистачило й не довелося віддавати зайвого.`,
+  id: 'sources', stage: 4, t: 'Джерела фінансування', d: 'Порівняйте сім джерел грошей і складіть свій набір.', icon: 'coins', min: 15,
+  neo: {
+    about: 'Гроші на старт беруть із кількох джерел, і в кожного своя ціна: за одні віддають відсотки, за інші частину компанії. Оберіть, звідки візьмете, щоб вистачило й не довелося віддавати зайве.',
+    steps: (S, d) => { const c = srcCalc(d); return [['Скільки потрібно', c.kinds > 0 || (d.ch || 0) > 0, 0], ['Звідки взяти', c.cover >= .7 && c.kinds >= 2, 1], ['Підсумок і пояснення', len(d.why) >= 20 && c.cover >= .7 && c.kinds >= 2, 2]]; },
+  },
   data: S => { const fp = X(S, 'finplan'); return { need: Math.max(100000, Math.round((fp.needNow || 300000) / 50000) * 50000), pre: 3000000, mix: {}, why: '', ch: 0 }; },
   onSet: (S, d) => { d.ch = (d.ch || 0) + 1; },
   view(S, d) {
-    const card = s => { const a = +d.mix[s.k] || 0; return `<article class="srcard ${a ? 'on' : ''}" style="--c:${s.col}"><header><b>${s.t}</b><span class="xtag">${s.tag}</span></header><p>${s.note}</p>
-      <div class="rt"><span>${s.sp >= 4 ? 'Швидко' : s.sp >= 3 ? 'Не дуже швидко' : 'Довго'}</span><span>${s.cost >= 4 ? 'Дешево' : s.cost >= 3 ? 'Помірна ціна' : 'Дорого'}</span></div>${xsl('sources', `mix.${s.k}`, d, { min: 0, max: s.max, step: s.max >= 1000000 ? 100000 : 10000, label: 'Скільки беремо', u: ' ₴', v: a })}</article>`; };
-    return `${tip('Підказка: оберіть кілька способів і поставте суму для кожного. Власні гроші й родина найпростіші. Кредит дають лише дорослим, а за гроші інвестора віддають частину компанії.')}${box('Скільки потрібно грошей', `<div class="xg c2">${xsl('sources', 'need', d, { min: 50000, max: 3000000, step: 50000, label: 'Потреба', u: ' ₴' })}</div><div class="xrow mt">${xb('sources', 'needFromPlan', 'Взяти потребу з фінансового плану', { ic: 'refresh', cls: 'sm' })}</div>`, { ic: 'wallet' })}
-    <div class="xg c2">${SRC.map(card).join('')}</div>
-    ${box('Перші гроші для вашої компанії', S.hasFff() ? tip('Родина й друзі вже вклали 300 000 ₴ в обмін на 10% компанії.', 'ok') : `<p class="sm">Найпростіше джерело на старті: родина й друзі. У грі це справжні гроші: 300 000 ₴ одразу на рахунок в обмін на 10% компанії. Вирішуйте самі, чи брати їх зараз.</p>${xb('sources', 'takeFff', 'Взяти 300 000 ₴ за 10%', { cls: 'primary', ic: 'coins' })}`, { ic: 'users' })}`;
+    const row = s => {
+      const a = +d.mix[s.k] || 0, on = a > 0, T = SRC_TXT[s.k], chips = T.chips.includes(a) || !a ? T.chips : [...T.chips, a].sort((x, y) => x - y);
+      return `<div class="srow ${on ? 'on' : ''}">
+        <button type="button" class="sbtn" role="checkbox" aria-checked="${on}" data-act="ex" data-ex="sources" data-do="src" data-a="${s.k}"><span class="cb">${on ? icon('check', 14) : ''}</span><span class="sinfo"><h3>${esc(s.t)}</h3><p>${T.short}</p></span></button>
+        <div class="smeta"><span class="tg5 ${s.sp >= 4 ? 'g' : s.sp >= 3 ? 'y' : 'r'}">${s.sp >= 4 ? 'швидко' : s.sp >= 3 ? 'не дуже швидко' : 'довго'}</span><span class="tg5 ${s.cost >= 4 ? 'g' : s.cost >= 3 ? 'y' : 'r'}">${s.cost >= 4 ? 'дешево' : s.cost >= 3 ? 'помірна ціна' : 'дорого'}</span><span class="tg5 b">${s.tag}</span>${qbtn(s.k)}</div>
+        ${on ? `<div class="samt"><span>Скільки:</span>${chips.map(v => xp('sources', `mix.${s.k}`, v, kfmt(v), a === v, { t: 'n' })).join('')}</div>` : ''}
+        ${qbody(s.k, T.plain)}</div>`;
+    };
+    return `${box('1. Скільки потрібно грошей', `<div class="xg c2">${xsl('sources', 'need', d, { min: 50000, max: 3000000, step: 50000, label: 'Потреба на старт', u: ' ₴' })}</div>${qbody('need', 'Потреба — це скільки грошей не вистачає, щоб дожити до перших продажів. Якщо не знаєте, натисніть кнопку нижче: число візьметься з вашого фінансового плану.')}<div class="xrow mt">${xb('sources', 'needFromPlan', 'Взяти з фінансового плану', { ic: 'refresh', cls: 'sm' })}</div>`, { ic: 'wallet', side: qbtn('need') })}
+    ${box('2. Звідки взяти гроші', `<p class="hl5">Поставте галочку біля джерела й оберіть суму. Біля кожного є «?» з поясненням.</p><div class="slist">${SRC.map(row).join('')}</div>
+      <div class="sgame"><p><b>Перші гроші в грі.</b> ${S.hasFff() ? 'Родина й друзі вже вклали 300 000 ₴ за 10% компанії.' : 'Родина й друзі можуть одразу дати 300 000 ₴ за 10% компанії. Це справжні гроші гри. Вирішуйте самі, чи брати їх зараз.'}</p>${S.hasFff() ? '' : xb('sources', 'takeFff', 'Взяти 300 000 ₴ за 10%', { cls: 'primary', ic: 'coins' })}</div>`, { ic: 'coins' })}`;
   },
   acts: {
+    src(S, d, el) { const k = el.dataset.a, T = SRC_TXT[k]; if (!T) return false; d.mix[k] = (+d.mix[k] || 0) > 0 ? 0 : T.chips[1]; d.ch = (d.ch || 0) + 1; },
     needFromPlan(S, d, el, C) { const n = X(S, 'finplan').needNow; if (!n) { C.toast('У фінплані гроші не закінчуються, тож потреба невелика. Поставте суму вручну.'); return false; } d.need = clamp(Math.round(n / 50000) * 50000, 50000, 3000000); C.toast('Потребу взято з фінансового плану', 'good'); },
     takeFff(S, d, el, C) { if (!S.takeFff()) return false; C?.toast?.('Родина й друзі вклали 300 000 ₴', 'good'); },
   },
   live(S, d) {
-    const c = srcCalc(d), items = SRC.filter(s => +d.mix[s.k] > 0).map(s => ({ v: +d.mix[s.k], color: s.col, t: s.t }));
-    return `${box('Ваш набір', `<div class="srcsum">${items.length ? donut(items, { size: 130 }) : '<div class="muted">Оберіть джерела вище</div>'}<div class="srcl">${items.map(i => `<span><i style="background:${i.color}"></i>${esc(i.t)} <b>${money0(i.v)}</b></span>`).join('')}</div></div>
-      <div class="kpis3 mt"><div><small>Очікувано отримаємо</small><b>${money0(d.need ? c.raised : 0)}</b></div><div><small>Покриття потреби</small><b class="${c.cover >= .9 ? 'pos' : 'neg'}">${pc(c.cover)}</b></div><div><small>Частка, яку віддаєте</small><b class="${c.dil > .35 ? 'neg' : ''}">${pc(c.dil, 1)}</b></div></div>
-      ${bar(c.cover, { color: c.cover >= .9 ? 'var(--ok)' : '#e0a100', label: 'Покриття' })}<p class="sm muted">Відсотки по кредиту за рік: ${money0(c.interest)} · Для грантів і краудфандингу враховано ймовірність і комісію.</p>
-      ${checks([[c.cover >= .9, 'Набір покриває потребу (хоча б 90%)', 'Додайте ще джерел або зменште потребу'], [c.kinds >= 2, 'Є хоча б два різних джерела', 'Не покладайтесь на одне джерело'], [c.dil <= .35, 'Віддаєте не більше третини компанії', 'Забагато частки: вам лишиться мало контролю'], [c.nonDil, 'Є джерело без розмивання частки']])}
-      ${xin('sources', 'why', d, { label: 'Чому саме такий набір?', area: true, rows: 2, max: 240, ph: 'Ми обрали ці джерела, тому що…', cls: 'mt' })}`, { ic: 'check' })}`;
+    const c = srcCalc(d), got = d.need ? c.raised : 0;
+    return `${box('3. Підсумок', `<div class="sumb"><div class="sb-t"><span>Обрано з потрібних ${money0(d.need)}</span><b class="${c.cover >= .9 ? 'pos' : c.cover < .7 ? 'neg' : ''}">${money0(got)} · ${pc(c.cover)}</b></div>${bar(c.cover, { color: c.cover >= .9 ? 'var(--ok)' : '#e0a100', label: 'Покриття потреби' })}
+      <div class="kpis3"><div><small>Частку компанії віддаєте</small><b class="${c.dil > .35 ? 'neg' : ''}">${pc(c.dil, 1)}</b></div><div><small>Відсотки за рік</small><b>${money0(c.interest)}</b></div><div><small>Різних джерел</small><b>${c.kinds}</b></div></div>
+      <p class="sm muted">Для грантів і краудфандингу враховано шанс і комісію, тому «отримаємо» трохи менше, ніж «просимо».</p></div>
+      ${checks([[c.cover >= .9, 'Грошей вистачає (хоча б 90% потреби)', 'Додайте ще джерело або зменште потребу'], [c.kinds >= 2, 'Є хоча б два різних джерела', 'Не покладайтесь на одне джерело'], [c.dil <= .35, 'Віддаєте не більше третини компанії', 'Забагато частки: вам лишиться мало впливу'], [c.nonDil, 'Є джерело, за яке не віддаєте частку']])}
+      ${xin('sources', 'why', d, { label: 'Чому саме такий набір?', area: true, rows: 2, max: 240, ph: 'Ми обрали ці джерела, тому що…', cls: 'mt', hint: 'Одне-два речення: що вам підходить і чого ви уникаєте.' })}`, { ic: 'check' })}`;
   },
   ready(S, d) {
     const c = srcCalc(d);
-    if (c.cover < .7) return { ok: false, msg: 'Набір покриває менше 70% потреби: додайте джерело або зменште потребу' };
+    if (c.cover < .7) return { ok: false, msg: 'Грошей поки вистачає менше ніж на 70% потреби: додайте джерело або зменште потребу' };
     if (c.kinds < 2) return { ok: false, msg: 'Оберіть хоча б два джерела' };
     if (len(d.why) < 20) return { ok: false, msg: 'Поясніть свій вибір' };
     return { ok: true, stars: 1 + (c.dil <= .2 ? 1 : 0) + (c.nonDil && c.kinds >= 3 ? 1 : 0) };
@@ -63,19 +84,26 @@ const EQQ = [
 ];
 reg({
   id: 'equity', stage: 4, t: 'Гроші від інвестора', d: 'Подивіться, яку частину компанії віддасте за гроші, і відповідайте на три питання.', icon: 'handshake', min: 10,
-  intro: `Інвестор може дати гроші, а взамін отримує <b>частину вашої компанії</b>. Оберіть, скільки грошей хочете й яку частину готові віддати, і подивіться, що вийде: скільки «коштує» компанія й скільки лишається вам.`,
+  neo: {
+    about: 'Інвестор дає гроші, а ви віддаєте частину компанії. Чим більший шматок віддаєте, тим менше лишається вам. Подивіться, що виходить за різних умов, і дайте відповідь на три питання.',
+    steps: (S, d) => [['Оберіть суму й частку', (d.ch || 0) >= 1, 0], ['Подивіться, що вийде', (d.ch || 0) >= 1, 1], ['Дайте відповідь на питання', quizDone(d, 'q', EQQ) >= EQQ.length && quizOk(d, 'q', EQQ) >= 2, 2]],
+  },
   data: () => ({ sum: 300000, pct: 15, q: {}, ch: 0 }),
   onSet: (S, d, p) => { if (p !== 'q' && !p.startsWith('q.')) d.ch = (d.ch || 0) + 1; },
   view(S, d) {
-    return `${tip('Підказка: поекспериментуйте з повзунками. Чим більше грошей просите за меншу частину, тим складніше домовитись. Спробуйте 300 000 ₴ за 15%.')}${box('Ваша пропозиція інвестору', `<div class="xg c2">${xsl('equity', 'sum', d, { min: 50000, max: 3000000, step: 50000, label: 'Скільки грошей просите', u: ' ₴' })}${xsl('equity', 'pct', d, { min: 5, max: 50, step: 1, label: 'Яку частину компанії віддаєте', u: '%' })}</div>`, { ic: 'wrench' })}`;
+    return `${box('1. Ваша пропозиція інвестору', `<p class="hl5">Рухайте повзунки й дивіться, що змінюється. Для початку спробуйте 300 000 ₴ за 15%.</p><div class="xg c2">
+        <div>${xsl('equity', 'sum', d, { min: 50000, max: 3000000, step: 50000, label: 'Скільки грошей просите', u: ' ₴' })}<p class="hl5 mt">Що це означає ${qbtn('sum')}</p></div>
+        <div>${xsl('equity', 'pct', d, { min: 5, max: 50, step: 1, label: 'Яку частину компанії віддаєте', u: '%' })}<p class="hl5 mt">Що це означає ${qbtn('pct')}</p></div></div>
+        ${qbody('sum', 'Це гроші, які інвестор вкладе в компанію. Вони потраплять на рахунок і підуть на розвиток.')}${qbody('pct', 'Частка — це шматок компанії, який стане власністю інвестора. Віддали 15% — інвестор отримує 15 з кожних 100 частин, а вам лишається 85. Частку «назад» не купиш, тому віддавайте обережно.')}`, { ic: 'wrench' })}`;
   },
   live(S, d) {
     const start = S.stake(), inv = d.pct / 100, mine = start * (1 - inv), val = d.sum / inv, others = 1 - start;
     const parts = [{ v: mine, color: '#6366f1' }, ...(others > .001 ? [{ v: others * (1 - inv), color: '#ec4899' }] : []), { v: inv, color: '#8b5cf6' }];
-    return `${box('Що вийде', `<div class="srcsum">${donut(parts, { size: 150 })}<div class="srcl"><span><i style="background:#6366f1"></i>Ви <b>${pc(mine, 1)}</b></span>${others > .001 ? `<span><i style="background:#ec4899"></i>Родина й друзі <b>${pc(others * (1 - inv), 1)}</b></span>` : ''}<span><i style="background:#8b5cf6"></i>Інвестор <b>${pc(inv, 1)}</b></span></div></div>
-      <div class="kpis3 mt"><div><small>Компанія «коштує»</small><b>${money0(val)}</b></div><div><small>Ваша частина в гривнях</small><b>${money0(mine * val)}</b></div><div><small>Отримаєте грошей</small><b>${money0(d.sum)}</b></div></div>
+    return `${box('2. Що вийде', `<p class="hl5">Інвестор платить <b>${money0(d.sum)}</b> і отримує <b>${pc(inv, 0)}</b> компанії. Отже, вся компанія «коштує» <b>${money0(val)}</b> ${qbtn('val')}</p>${qbody('val', `Якщо ${pc(inv, 0)} компанії коштують ${money0(d.sum)}, то 100% коштують у ${Math.round(1 / inv * 10) / 10} раза більше: ${money0(val)}. Так інвестор «оцінює» вашу компанію.`)}
+      <div class="srcsum">${donut(parts, { size: 150 })}<div class="srcl"><span><i style="background:#6366f1"></i>Ви <b>${pc(mine, 1)}</b></span>${others > .001 ? `<span><i style="background:#ec4899"></i>Родина й друзі <b>${pc(others * (1 - inv), 1)}</b></span>` : ''}<span><i style="background:#8b5cf6"></i>Інвестор <b>${pc(inv, 1)}</b></span></div></div>
+      <div class="kpis3 mt"><div><small>Вся компанія коштує</small><b>${money0(val)}</b></div><div><small>Ваша частина в гривнях</small><b>${money0(mine * val)}</b></div><div><small>Ви отримаєте</small><b>${money0(d.sum)}</b></div></div>
       ${d.pct > 30 ? tip('Ви віддаєте майже третину компанії або більше. Подумайте, чи не забагато.', 'bad') : val < d.sum * 4 ? tip('Інвестор отримує велику частину за невелику оцінку. Спробуйте віддати менше.', 'warn') : tip('Виглядає розумно: ви отримуєте гроші й лишаєтесь із великою частиною.', 'ok')}`, { ic: 'chart' })}
-    ${box('Перевірте себе', quiz('equity', 'q', d, EQQ), { ic: 'bulb', side: `правильно ${quizOk(d, 'q', EQQ)} з ${EQQ.length}` })}`;
+    ${box('3. Три питання', quiz('equity', 'q', d, EQQ), { ic: 'bulb', side: `правильно ${quizOk(d, 'q', EQQ)} з ${EQQ.length}` })}`;
   },
   ready(S, d) {
     if ((d.ch || 0) < 1) return { ok: false, msg: 'Спробуйте свої суми: змініть хоча б одне значення' };
@@ -103,17 +131,30 @@ function appScore(a, P) {
 }
 reg({
   id: 'grants', stage: 4, t: 'Гранти й конкурси', d: 'Перевірте, чи підходите, подайте заявку й дізнайтеся рішення журі.', icon: 'award', min: 20,
-  intro: `Грант — це гроші, які не треба повертати і за які не треба віддавати частку компанії. Їх дають тим, хто добре описав свою ідею. Оберіть конкурс, коротко опишіть проєкт (підказки під кожним полем) і подайте заявку. Якщо відмовили, це нормально: прочитайте відгук, виправте й подайте ще раз.`,
+  neo: {
+    about: 'Грант — це гроші, які не треба повертати і за які не віддають частку компанії. Їх дають за добре описану ідею. Оберіть конкурс, заповніть заявку й подайте її. Якщо відмовили, це нормально: прочитайте відгук, виправте й подайте ще раз.',
+    steps: (S, d) => {
+      const P = PROG.find(p => p.k === d.prog) || PROG[0], a = d.a[P.k] || {}, sent = Object.keys(d.res || {}).length > 0, full = FIELDS.every(([k, , , m]) => len(a[k]) >= m);
+      return [['Оберіть конкурс', sent || FIELDS.some(([k]) => len(a[k]) > 0), 0], ['Заповніть заявку', sent || full, 2], ['Подайте й прочитайте відгук', sent, 3]];
+    },
+  },
   data: () => ({ prog: 'start', social: false, english: false, a: { start: {}, school: {}, tech: {}, social: {}, accel: {}, world: {} }, res: {} }),
   view(S, d) {
-    const P = PROG.find(p => p.k === d.prog) || PROG[0], reqs = P.req(S), ok = reqs.every(r => r[1]), a = d.a[P.k] ||= {}, sc = appScore(a, P);
-    return `${box('Оберіть програму', `<div class="xg c2">${PROG.map(p => { const e = p.req(S).every(r => r[1]), r = d.res[p.k]; return `<div class="chcard ${d.prog === p.k ? 'on' : ''}">${xp('grants', 'prog', p.k, esc(p.t), d.prog === p.k, { cls: 'card' })}<small><b>${money0(p.prize)}</b> · ${e ? '<span class="xtag ok">підходите</span>' : '<span class="xtag">ще не підходите</span>'}${r ? ` · <span class="xtag ${r.res === 'win' ? 'ok' : r.res === 'fin' ? 'warn' : 'bad'}">${{ win: 'отримали', fin: 'фіналіст', no: 'відмова' }[r.res]}</span>` : ''}</small><p>${esc(p.who)}</p></div>`; }).join('')}</div>`, { ic: 'award' })}
-    ${box(`Критерії: ${P.t}`, `${checks(reqs.map(r => [r[1], r[0]]))}${P.k === 'social' ? `<label class="switch" style="margin-top:8px"><input type="checkbox" data-exi="grants" data-p="social" ${d.social ? 'checked' : ''}><span></span>Так, наш проєкт допомагає людям</label>` : ''}${ok ? '' : tip('Поки що ви не відповідаєте всім критеріям. Заявку можна написати, але журі, найімовірніше, відмовить. Краще повернутися, коли виконаєте вимоги.', 'warn')}`, { ic: 'check' })}
-    ${box('Заявка', `${FIELDS.map(([k, l, ph, , hint]) => xin('grants', `a.${P.k}.${k}`, d, { label: l, area: true, rows: 3, max: 400, ph, hint, cls: 'mt' })).join('')}`, { ic: 'pen' })}`;
+    const P = PROG.find(p => p.k === d.prog) || PROG[0], reqs = P.req(S), ok = reqs.every(r => r[1]), a = d.a[P.k] ||= {};
+    const row = p => {
+      const e = p.req(S).every(r => r[1]), r = d.res[p.k], on = d.prog === p.k;
+      return `<div class="srow pick ${on ? 'on' : ''}">
+        <button type="button" class="sbtn" role="radio" aria-checked="${on}" data-act="ex" data-ex="grants" data-do="set" data-p="prog" data-v="${p.k}" data-t="s"><span class="cb"></span><span class="sinfo"><h3>${esc(p.t)}</h3><p>${esc(p.who)}</p></span></button>
+        <div class="smeta"><span class="tg5 b">${money0(p.prize)}</span>${e ? '<span class="tg5 g">підходите</span>' : '<span class="tg5">ще не підходите</span>'}${r ? `<span class="tg5 ${r.res === 'win' ? 'g' : r.res === 'fin' ? 'y' : 'r'}">${{ win: 'отримали', fin: 'фіналіст', no: 'відмова' }[r.res]}</span>` : ''}${qbtn('p_' + p.k)}</div>
+        ${qbody('p_' + p.k, `${esc(p.who)} Щоб виграти, опишіть проблему, рішення, команду й на що підуть гроші. Зазвичай потрібно близько ${p.diff} балів зі ста.`)}</div>`;
+    };
+    return `${box('1. Оберіть конкурс', `<p class="hl5">Біля кожного видно приз і чи ви вже підходите.</p><div class="slist" role="radiogroup" aria-label="Конкурси">${PROG.map(row).join('')}</div>`, { ic: 'award' })}
+    ${box(`2. Чи ви підходите: ${P.t}`, `<p class="hl5">Це умови конкурсу. Галочка означає, що умову вже виконано.</p>${checks(reqs.map(r => [r[1], r[0]]))}${P.k === 'social' ? `<label class="switch" style="margin-top:8px"><input type="checkbox" data-exi="grants" data-p="social" ${d.social ? 'checked' : ''}><span></span>Так, наш проєкт допомагає людям</label>` : ''}${ok ? '' : tip('Не всі умови виконано. Заявку подати можна, але шанс малий. Краще спершу виконати умови.', 'warn')}`, { ic: 'check' })}
+    ${box('3. Заявка', `<p class="hl5">Пишіть простими словами, по одному-два речення. Підказка є під кожним полем.</p>${FIELDS.map(([k, l, ph, , hint]) => xin('grants', `a.${P.k}.${k}`, d, { label: l, area: true, rows: 3, max: 400, ph, hint, cls: 'mt' })).join('')}`, { ic: 'pen' })}`;
   },
   live(S, d) {
-    const P = PROG.find(p => p.k === d.prog) || PROG[0], a = d.a[P.k] ||= {}, sc = appScore(a, P), ok = P.req(S).every(r => r[1]), r = d.res[P.k];
-    return `${box('Перевірка заявки', `<div class="uscore"><b>${sc.score}</b><span>з 100. Щоб пройти, зазвичай потрібно близько ${P.diff}</span></div>${checks(sc.parts.map(x => [x[2], x[0]]))}<div class="xrow mt">${xb('grants', 'submit', r ? 'Подати ще раз' : 'Подати заявку', { cls: 'primary', ic: 'rocket', dis: sc.score < 30 })}${sc.score < 30 ? '<small class="muted">Спершу заповніть заявку хоча б наполовину.</small>' : ''}</div>
+    const P = PROG.find(p => p.k === d.prog) || PROG[0], a = d.a[P.k] ||= {}, sc = appScore(a, P), r = d.res[P.k];
+    return `${box('4. Перевірка й подання', `<div class="uscore"><b>${sc.score}</b><span>балів зі ста. Щоб пройти, зазвичай потрібно близько ${P.diff}</span></div>${checks(sc.parts.map(x => [x[2], x[0]]))}<div class="xrow mt">${xb('grants', 'submit', r ? 'Подати ще раз' : 'Подати заявку', { cls: 'primary', ic: 'rocket', dis: sc.score < 30 })}${sc.score < 30 ? '<small class="muted">Спершу заповніть заявку хоча б наполовину.</small>' : ''}</div>
       ${r ? `<div class="jury ${r.res}"><h4>${r.res === 'win' ? 'Заявку підтримано!' : r.res === 'fin' ? 'Ви серед фіналістів' : 'Цього разу відмовили'}</h4><p>${esc(r.msg)}</p></div>` : ''}`, { ic: 'check' })}`;
   },
   acts: {
@@ -143,12 +184,15 @@ const pitchSc = d => { const p = d.p || {}, f = k => len(p[k]) >= 25, num = k =>
   return { angel: clamp((f('team') ? 30 : 0) + (num('trac') ? 30 : 0) + (f('problem') ? 20 : 0) + (f('ask') && num('ask') ? 20 : 0), 0, 100), fund: clamp((num('market') ? 30 : 0) + (num('trac') ? 30 : 0) + (f('solution') ? 15 : 0) + (f('ask') && num('ask') ? 25 : 0), 0, 100), accel: clamp((f('problem') ? 25 : 0) + (f('team') ? 25 : 0) + (f('solution') ? 25 : 0) + (num('trac') ? 25 : 0), 0, 100), words: wordsOf(all) }; };
 reg({
   id: 'pitch', stage: 4, opt: true, t: 'Пітч за хвилину', d: 'Розкажіть про компанію інвестору за 60 секунд.', icon: 'mic', min: 12,
-  intro: `${term('Пітч-дек', 'Пітч')} — коротка розповідь для інвестора: проблема, рішення, ринок, перші результати, команда й що ви просите. Уявіть, що розповідаєте другу про свою ідею за одну хвилину. Напишіть по одному-два речення в кожному полі й подивіться, кому з трьох типів інвесторів це сподобається. Підказки є під полями.`,
+  neo: {
+    about: '[[Пітч-дек|Пітч]] — це розповідь про вашу компанію за одну хвилину. Уявіть, що розповідаєте другу. Напишіть по одному-два речення в кожному з шести полів і подивіться, кому з інвесторів це сподобається.',
+    steps: (S, d) => { const p = d.p || {}, six = PIT.every(([k]) => len(p[k]) >= 20), nums = /\d/.test(p.trac || '') && /\d/.test(p.ask || ''); return [['Напишіть шість частин', six, 0], ['Додайте цифри', six && nums, 3], ['Подивіться, кому сподобається', six && nums, 6]]; },
+  },
   data: () => ({ p: {} }),
-  view(S, d) { return `<div class="xg c2">${PIT.map(([k, t, ph], i) => `<div class="xbox"><header><span class="xtag">${i + 1}</span><h3>${t}</h3></header>${xin('pitch', `p.${k}`, d, { area: true, rows: 2, max: 160, ph: 'наприклад: ' + ph, hint: PITH[k] })}</div>`).join('')}</div>`; },
+  view(S, d) { return `<p class="hl5">Біля кожної частини є «?» з поясненням і прикладом. Цифри (скільки людей, скільки грошей) роблять пітч переконливішим.</p><div class="xg c2">${PIT.map(([k, t, ph], i) => `<div class="xbox"><header><span class="xtag">${i + 1}</span><h2>${t}</h2>${qbtn(k)}</header>${xin('pitch', `p.${k}`, d, { area: true, rows: 2, max: 160, ph: 'наприклад: ' + ph, hint: PITH[k] })}${qbody(k, `${PITH[k]} Приклад: ${esc(ph)}`)}</div>`).join('')}</div>`; },
   live(S, d) {
     const r = pitchSc(d), w = r.words, sec = Math.round(w / 2.5);
-    return `${box('Хто зацікавиться', `${[['angel', 'Бізнес-ангел', 'шукає сильну команду й перші результати'], ['fund', 'Венчурний фонд', 'шукає великий ринок і швидке зростання'], ['accel', 'Акселератор', 'шукає чітку проблему й готовність вчитися']].map(([k, t, h]) => `<div class="cmp"><span>${t}<small class="muted" style="display:block">${h}</small></span>${bar(r[k] / 100, { color: r[k] >= 70 ? 'var(--ok)' : '#e0a100', label: t })}<b>${r[k]}%</b></div>`).join('')}<p class="sm muted">Слів: ${w}. Це приблизно ${sec} с мовлення. ${sec > 70 ? 'Задовго: скоротіть до хвилини.' : sec < 25 ? 'Занадто коротко.' : 'Вкладаєтесь у хвилину.'}</p>`, { ic: 'chart' })}`;
+    return `${box('Кому це сподобається', `${[['angel', 'Бізнес-ангел', 'шукає сильну команду й перші результати'], ['fund', 'Венчурний фонд', 'шукає великий ринок і швидке зростання'], ['accel', 'Акселератор', 'шукає чітку проблему й готовність вчитися']].map(([k, t, h]) => `<div class="cmp"><span>${t}<small class="muted" style="display:block">${h}</small></span>${bar(r[k] / 100, { color: r[k] >= 70 ? 'var(--ok)' : '#e0a100', label: t })}<b>${r[k]}%</b></div>`).join('')}<p class="sm muted">Слів: ${w}. Це приблизно ${sec} с мовлення. ${sec > 70 ? 'Задовго: скоротіть до хвилини.' : sec < 25 ? 'Занадто коротко.' : 'Вкладаєтесь у хвилину.'}</p>`, { ic: 'chart' })}`;
   },
   ready(S, d) { const r = pitchSc(d); if (PIT.some(([k]) => len(d.p[k]) < 20)) return { ok: false, msg: 'Заповніть усі шість розділів хоча б одним реченням' }; if (!/\d/.test(d.p.trac || '') || !/\d/.test(d.p.ask || '')) return { ok: false, msg: 'Додайте цифри в «Що вже зроблено» й «Що просите»' }; return { ok: true, stars: 1 + (r.angel >= 70 ? 1 : 0) + (r.fund >= 70 ? 1 : 0) }; },
 });

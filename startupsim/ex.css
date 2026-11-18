@@ -633,3 +633,52 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 .ex-help .eh-s { margin: 0; padding-left: 24px; display: grid; gap: 4px; font-size: 14px; line-height: 1.45; color: var(--tx-m); }
 .ex-help .eh-s li::marker { font-weight: 700; color: var(--ink); }
 .bx-h { margin: -2px 0 10px; font-size: 14px; line-height: 1.45; color: var(--tx-m); }
+
+/* ═════════ Етап 5: нове оформлення вправ (пояснення, кроки, підказки «?», рядки вибору, підсумок) ═════════ */
+.ex-intro.neo { background: var(--yel); border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink); }
+.ex-intro.neo p { font-size: 15.5px; color: var(--ink); }
+.ex-intro.neo p b { font-family: Rubik, sans-serif; }
+.ex-steps { margin: 12px 0 4px; }
+.ex-steps ol { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.ex-steps button { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 4px; border: 2px solid var(--ink); border-radius: 999px; background: var(--white); font: 600 14px 'Golos Text', system-ui, sans-serif; color: var(--ink); min-height: 36px; }
+.ex-steps button:hover { background: #f4f6f5; }
+.ex-steps button span { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--white); font: 700 13px Rubik, sans-serif; }
+.ex-steps button.on { background: var(--sky); }
+.ex-steps button.done { background: var(--ok-soft); }
+.ex-steps button.done span { background: var(--ok); }
+/* кнопка «?» і пояснення */
+.q { display: inline-grid; place-items: center; width: 24px; height: 24px; min-width: 24px; margin-left: 8px; border: 2px solid var(--ink); border-radius: 50%; background: var(--white); font: 700 13px Rubik, sans-serif; color: var(--ink); vertical-align: 1px; padding: 0; }
+.q:hover, .q[aria-expanded="true"] { background: var(--sky); }
+.qh { grid-column: 1 / -1; margin-top: 8px; padding: 9px 13px; background: var(--sky); border: 2px dashed var(--ink); border-radius: 12px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.qh[hidden] { display: none; }
+.qh b { font-family: Rubik, sans-serif; }
+.qh-in { margin: 6px 0 0; }
+/* рядки вибору (джерела, програми): позначка зліва, суть, ярлики справа */
+.slist { display: grid; gap: 9px; }
+.srow { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 14px; background: var(--white); }
+.srow.on { background: var(--mint); }
+.srow .sbtn { display: flex; align-items: center; gap: 12px; text-align: left; min-width: 0; padding: 2px; border-radius: 10px; }
+.srow .cb { flex: none; width: 24px; height: 24px; border: 2px solid var(--ink); border-radius: 7px; background: var(--white); display: grid; place-items: center; color: var(--white); }
+.srow.on .cb { background: var(--ink); }
+.srow.pick .cb { border-radius: 50%; }
+.srow.pick.on .cb { background: var(--ink); box-shadow: inset 0 0 0 4px var(--white); }
+.srow .sinfo { min-width: 0; }
+.srow .sinfo h3 { font: 700 15.5px Rubik, sans-serif; display: flex; align-items: center; flex-wrap: wrap; }
+.srow .sinfo p { font-size: 13.5px; color: var(--tx-m2); line-height: 1.4; margin-top: 1px; }
+.srow .smeta { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.srow .samt { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0 2px 38px; }
+.srow .samt > span { font-size: 13px; font-weight: 600; color: var(--tx-m2); margin-right: 2px; }
+.srow .samt .xp { padding: 4px 12px; min-height: 32px; font-size: 14px; }
+.tg5 { display: inline-block; padding: 1px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font: 600 12.5px 'Golos Text', sans-serif; background: var(--white); white-space: nowrap; }
+.tg5.g { background: var(--mint); } .tg5.y { background: var(--yel); } .tg5.r { background: var(--pink); } .tg5.b { background: var(--sky); }
+/* підсумок: смуга «обрано з потрібного» */
+.sumb { display: grid; gap: 6px; padding: 12px 14px; border: 2px solid var(--ink); border-radius: 14px; background: var(--white); }
+.sumb .sb-t { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--tx-m2); }
+.sumb .sb-t b { font: 700 17px Rubik, sans-serif; color: var(--ink); }
+.sumb .sb-t b.pos { color: var(--ok); } .sumb .sb-t b.neg { color: var(--bad); }
+.sumb .x-bar { height: 16px; border: 2px solid var(--ink); border-radius: 9px; background: var(--white); }
+.sgame { margin-top: 12px; padding: 11px 14px; border: 2px dashed var(--ink); border-radius: 14px; background: var(--white); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.sgame p { flex: 1 1 260px; font-size: 14px; line-height: 1.45; }
+.srow.fix { grid-template-columns: 1fr; }
+.xbox .hl5 { margin: 0 0 8px; font-size: 14px; color: var(--tx-m2); }
+@media (max-width: 760px) { .srow { grid-template-columns: 1fr; } .srow .smeta { justify-content: flex-start; padding-left: 38px; } .srow .samt { padding-left: 0; } }

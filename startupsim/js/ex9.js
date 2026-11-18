@@ -1,7 +1,7 @@
 // Симулятор стартапу · додаткові вправи етапів 5–9: торг з інвестором, A/B-тест, подорож клієнта, складна розмова, ціна години, шахрайство, складні відсотки.
 import { esc, sideChart } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, mk, hash, clamp, sumOf, money0, pc } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, mk, hash, clamp, sumOf, money0, pc, qbtn, qbody } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 const fm = n => Math.round(n).toLocaleString('uk-UA').replace(/\s/g, ' ');
@@ -13,17 +13,21 @@ const BURN = 60000;
 reg({
   id: 'negotiate', stage: 4, opt: true, cols: true, t: 'Переговори з інвестором', d: 'Запропонуйте суму й частку та проведіть торг із бізнес-ангелом.', icon: 'handshake', min: 18,
   intro: `Інвестор дає гроші за частину компанії, і скільки він згоден дати, залежить від того, що ви вже зробили. Позначте, що у вас є, і запропонуйте суму та частину компанії, яку віддасте. Для початку спробуйте 500 000 ₴ за 15%. Якщо попросите задорого, інвестор поверне зустрічну пропозицію: ви можете погодитись, поторгуватись або піти.`,
+  neo: {
+    about: 'Бізнес-ангел готовий дати гроші за частину компанії. Скільки саме, залежить від того, що у вас уже є. Позначте свої успіхи, запропонуйте суму й частку та спробуйте домовитись.',
+    steps: (S, d) => [['Позначте, що вже є', d.tr.length > 0, 0], ['Запропонуйте умови', d.r > 0, 1], ['Домовтесь про угоду', !!d.deal, 2]],
+  },
   data: () => ({ tr: [], m: 1000000, e: 15, st: 'open', r: 0, log: [], cnt: null, deal: null }),
   view(S, d) {
     const open = d.st === 'open', cnt = d.st === 'counter';
-    return `${box('Що ви вже маєте', `<div class="xrow">${TRAC.map(t => xp('negotiate', 'tr', t[0], t[1], d.tr.includes(t[0]), { set: 'tog' })).join('')}</div><p class="sm muted">Інвестор вірить лише тому, що ви можете показати. Чим більше у вас доказів, тим більше він готовий заплатити.</p>`, { ic: 'star' })}
-    ${box('Ваша пропозиція', `<div class="xg c2">${xsl('negotiate', 'm', d, { min: 200000, max: 3000000, step: 50000, label: 'Скільки просите', u: ' ₴' })}${xsl('negotiate', 'e', d, { min: 3, max: 40, step: 1, label: 'Яку частку віддаєте', u: '%' })}</div>
+    return `${box('1. Що ви вже маєте', `<p class="hl5">Позначте все, що про вас правда ${qbtn('proof')}</p>${qbody('proof', 'Інвестор вірить лише тому, що можна показати. Кожен доказ піднімає ціну вашої компанії в його очах: клієнти, прототип, команда, дохід. Не вигадуйте: позначайте лише те, що справді є.')}<div class="xrow">${TRAC.map(t => xp('negotiate', 'tr', t[0], t[1], d.tr.includes(t[0]), { set: 'tog' })).join('')}</div>`, { ic: 'star' })}
+    ${box('2. Ваша пропозиція', `<p class="hl5">Для початку спробуйте 500 000 ₴ за 15% ${qbtn('offer')}</p>${qbody('offer', 'Ви називаєте суму, яку просите, і частину компанії, яку за це віддаєте. Чим більше просите за меншу частку, тим дорожче «коштує» ваша компанія. Якщо інвестор вважає, що це занадто, він запропонує свою частку, і можна торгуватись.')}<div class="xg c2">${xsl('negotiate', 'm', d, { min: 200000, max: 3000000, step: 50000, label: 'Скільки просите', u: ' ₴' })}${xsl('negotiate', 'e', d, { min: 3, max: 40, step: 1, label: 'Яку частку віддаєте', u: '%' })}</div>
       <p class="sm">Це означає, що ви оцінюєте компанію в <b>${money0(d.m / (d.e / 100))}</b>.</p>
       <div class="xrow">${open ? xb('negotiate', 'offer', 'Запропонувати інвестору', { cls: 'primary', ic: 'handshake' }) : ''}${cnt ? `${xb('negotiate', 'accept', `Погодитись на ${d.cnt.e}%`, { cls: 'primary', ic: 'check' })}${d.cnt.final ? '' : xb('negotiate', 'mid', `Запропонувати ${Math.round((d.e + d.cnt.e) / 2)}%`, { ic: 'handshake' })}${xb('negotiate', 'walk', 'Піти з переговорів', { ic: 'x' })}` : ''}${d.st !== 'open' ? xb('negotiate', 'reset', 'Почати заново', { cls: 'ghost', ic: 'refresh' }) : ''}</div>`, { ic: 'coins' })}`;
   },
   live(S, d) {
     const dl = d.deal;
-    return `${box('Розмова з Іриною, бізнес-ангелом', d.log.length ? `<div class="chat">${d.log.map(x => `<div class="msg ${x[0] === 'me' ? 'me' : 'her'}">${x[0] === 'me' ? '' : '<b>Ірина</b>'}<span>${esc(x[1])}</span></div>`).join('')}</div>` : `<p class="muted">Оберіть, що у вас є, і зробіть першу пропозицію.</p>`, { ic: 'users' })}
+    return `${box('3. Розмова з Іриною, бізнес-ангелом', d.log.length ? `<div class="chat">${d.log.map(x => `<div class="msg ${x[0] === 'me' ? 'me' : 'her'}">${x[0] === 'me' ? '' : '<b>Ірина</b>'}<span>${esc(x[1])}</span></div>`).join('')}</div>` : `<p class="muted">Оберіть, що у вас є, і зробіть першу пропозицію.</p>`, { ic: 'users' })}
     ${dl ? box('Угоду укладено', `<div class="kpis3"><div><small>Інвестор отримує</small><b>${dl.e}%</b></div><div><small>Оцінка компанії</small><b>${money0(dl.m / (dl.e / 100))}</b></div><div><small>Грошей вистачить на</small><b>+${Math.round(dl.m / BURN)} міс.</b></div></div>${bar((100 - dl.e) / 100, { color: 'var(--acc)', label: 'Ваша частка' })}<p class="sm muted">Вам лишається ${100 - dl.e}% компанії. Після наступних раундів частка зменшуватиметься: це називається розмиванням.</p>`, { ic: 'check' }) : d.st === 'out' ? tip('Ви пішли з переговорів. Інколи це правильно, але гроші потрібні: спробуйте ще раз із іншою пропозицією.', 'bad') : ''}`;
   },
   acts: {

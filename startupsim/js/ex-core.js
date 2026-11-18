@@ -8,7 +8,7 @@ import { icon } from './icons.js';
 export const STAGE_T = ['Ніша й продукт', 'Аудиторія й бренд', 'Позиціонування', 'Ціна й гроші', 'Гроші на старт', 'Просування', 'Команда', 'Фриланс', 'Платежі й капітал'];
 
 export const EX = {};
-export const reg = (...defs) => defs.forEach(d => { EX[d.id] = d; });
+export const reg = (...defs) => defs.forEach(d => { if (d.neo && !d.intro) d.intro = d.neo.about; EX[d.id] = d; });
 const R = S => (S.s.ex ||= { d: {}, done: {} });
 // дані вправи: створюються з початкових значень при першому відкритті
 const checked = new WeakSet();
@@ -144,15 +144,32 @@ const introOf = def => HELP[def.id] ? rich(HELP[def.id].plain) : def.intro;
 const helpBox = id => { const h = HELP[id]; return h ? `<aside class="ex-help" aria-label="Що робити"><p class="eh-p">${icon('bulb', 18)}<b>Що робити</b></p><ol class="eh-s">${h.how.map(x => `<li>${esc(x)}</li>`).join('')}</ol></aside>` : ''; };
 let CUR = ''; // вправа, яку зараз малюємо: для підказок під заголовками блоків
 const boxHint = title => { for (const m of [BOXHELP[CUR], BOXHELP._]) { if (!m) continue; if (m[title]) return m[title]; const k = Object.keys(m).find(x => x.endsWith('*') && title.startsWith(x.slice(0, -1))); if (k) return m[k]; } return ''; };
+/* ═════════ підказки біля пунктів: кнопка «?» і пояснення «Простими словами» ═════════ */
+// Відкриті підказки пам'ятаємо між перемальовуваннями, щоб вони не закривались, коли учень рухає повзунок.
+const QH = new Set();
+const qid = k => 'qh-' + String(k).replace(/[^\w-]/g, '_');
+export const qbtn = key => { const k = CUR + ':' + key; return `<button type="button" class="q" data-act="qh" data-k="${esc(k)}" aria-expanded="${QH.has(k)}" aria-controls="${qid(k)}" aria-label="Простими словами" title="Що це означає?">?</button>`; };
+export const qbody = (key, html, title = 'Простими словами') => { const k = CUR + ':' + key; return `<div class="qh" id="${qid(k)}"${QH.has(k) ? '' : ' hidden'}><b>${title}.</b> ${html}</div>`; };
+// шапка вправ нового зразка: одне пояснення й смужка кроків (крок підсвічується, коли зроблено)
+const stepsNav = (def, S, d) => {
+  const steps = def.neo.steps(S, d), cur = steps.findIndex(x => !x[1]);
+  return `<nav class="ex-steps" aria-label="Кроки вправи"><ol>${steps.map(([t, ok, bi], i) => `<li><button type="button" class="${ok ? 'done' : i === cur ? 'on' : ''}" data-act="exJump" data-i="${bi ?? i}"${i === cur ? ' aria-current="step"' : ''}><span>${ok ? icon('check', 13) : i + 1}</span>${esc(t)}${ok ? '<small class="sr-only">: зроблено</small>' : ''}</button></li>`).join('')}</ol></nav>`;
+};
+function neoHead(def, S, d, done) {
+  const n = def.neo;
+  return `<section class="ex-intro neo"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p><b>Про що це.</b> ${rich(n.about)}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
+      ${stepsNav(def, S, d)}`;
+}
 function page(def, S, ui) {
     CUR = def.id;
     const d = X(S, def.id), done = S.s.ex.done[def.id];
     const main = def.view(S, d, { ui, done });
+    const head = def.neo ? neoHead(def, S, d, done) : `<section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${introOf(def)}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
+      ${helpBox(def.id)}
+      ${stepMap(main)}`;
     return `<div class="ex" data-ex-root="${def.id}">
       <button class="ex-back" data-act="exBack" data-ex="${def.id}">${icon('left', 16)} Етап ${def.stage + 1} · ${esc(STAGE_T[def.stage])}</button>
-      <section class="ex-intro"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p>${introOf(def)}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
-      ${helpBox(def.id)}
-      ${stepMap(main)}
+      ${head}
       <div class="ex-body ${def.cols ? 'cols' : ''}">${def.cols ? `<div class="ex-main">${main}</div>` : main}${def.live ? `<div class="ex-live" data-live>${def.live(S, d, { ui, done })}</div>` : ''}</div>
       <footer class="ex-foot" role="group" aria-label="Завершення вправи">${footInner(S, def, d)}</footer></div>`;
 }
@@ -193,6 +210,12 @@ export const exActs = {
         try { await navigator.clipboard.writeText(text); toast('Промпт скопійовано', 'good'); }
         catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Промпт скопійовано', 'good'); } catch { toast('Не вдалося скопіювати: виділіть текст вручну', 'bad'); } ta.remove(); }
       }) });
+  },
+  // підказка «?»: відкривається й закривається на місці, без перемальовування (фокус і прокрутка лишаються)
+  qh(C, el) {
+    const k = el.dataset.k, open = !QH.has(k); open ? QH.add(k) : QH.delete(k);
+    document.querySelectorAll('[data-act="qh"]').forEach(b => { if (b.dataset.k === k) b.setAttribute('aria-expanded', String(open)); });
+    const body = document.getElementById(qid(k)); if (body) body.hidden = !open;
   },
   exJump(C, el) {
     const b = document.querySelectorAll('.ex-body .xbox')[+el.dataset.i]; if (!b) return;
@@ -245,6 +268,7 @@ function patchLive(C, def, d) {
   refreshView(C, def, d, ctx);
   const f = document.querySelector('.ex-foot'), h2 = f ? footInner(C.S, def, d) : null;
   if (f && f._h !== h2) { fill(f, h2); f._h = h2; }
+  if (def.neo) { const nav = document.querySelector('.ex-steps'), h3 = stepsNav(def, C.S, d); if (nav && nav._h !== h3) { const t = document.createElement('div'); t.innerHTML = h3; nav.replaceWith(t.firstElementChild); document.querySelector('.ex-steps')._h = h3; } }
 }
 let saveT = 0;
 export function installEx(C) {
