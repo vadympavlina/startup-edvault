@@ -162,7 +162,7 @@ await step('команда: співбесіда відкриває навичк
   assert.match(await p.locator('.md').innerText(), /Імовірність, що погодиться/);
   await p.locator('.md [data-o="sal"]').fill(String(await p.locator('.md [data-o="sal"]').getAttribute('max')));
   await p.click('.md [data-o="go"]');
-  assert.match(await p.locator('#toast').innerText(), /у команді|відмовився/);
+  assert.match(await p.locator('#toast').innerText(), /у команді|відмов/);
 });
 
 await step('фриланс: замовлення через безпечну угоду й узяте замовлення', async () => {
