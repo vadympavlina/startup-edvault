@@ -39,7 +39,7 @@ const parse = (v, t) => t === 'n' ? +v : t === 'b' ? v === '1' || v === 'true' :
 const attrs = o => Object.entries(o || {}).map(([k, v]) => ` data-${k}="${esc(v)}"`).join('');
 /* Для учня: лише позитивна відзнака, без порожніх зірок (оцінку 1–3 бачить викладач). */
 export const mastery = n => n >= 3 ? `<span class="chip gold">${icon('star', 14)} Майстерно</span>` : '';
-export const stars = (n, max = 3) => `<span class="stars" aria-label="${n} з ${max}">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
+export const stars = (n, max = 3) => `<span class="stars" role="img" aria-label="${n} з ${max}">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
 // кнопка-дія вправи: data-do — назва дії, a/b/c — довільні параметри
 export const xb = (id, act, label, { a, b, c, i, p, v, from, max, cls = '', ic, title = '', dis = false } = {}) => `<button type="button" class="btn ${cls}" data-act="ex" data-ex="${id}" data-do="${act}"${attrs({ a, b, c, i, p, v, from, max })}${title ? ` title="${esc(title)}" aria-label="${esc(title)}"` : ''}${dis ? ' disabled' : ''}>${ic ? icon(ic, 16) : ''}${label}</button>`;
 // пілюля, що ставить значення (радіо) чи вмикає/вимикає (набір)
@@ -157,7 +157,7 @@ export const lrow = ({ id, doo, p, v, t, max, a, on, radio = false, key, title, 
 // шапка вправ нового зразка: одне пояснення й смужка кроків (крок підсвічується, коли зроблено)
 const stepsNav = (def, S, d) => {
   const steps = def.neo.steps(S, d), cur = steps.findIndex(x => !x[1]);
-  return `<nav class="ex-steps" aria-label="Кроки вправи"><ol>${steps.map(([t, ok, bi], i) => `<li><button type="button" class="${ok ? 'done' : i === cur ? 'on' : ''}" data-act="exJump" data-i="${bi ?? i}"${i === cur ? ' aria-current="step"' : ''}><span>${ok ? icon('check', 13) : i + 1}</span>${esc(t)}${ok ? '<small class="sr-only">: зроблено</small>' : ''}</button></li>`).join('')}</ol></nav>`;
+  return `<nav class="ex-steps" aria-label="Кроки вправи"><ol>${steps.map(([t, ok, bi], i) => `<li><button type="button" class="${ok ? 'done' : i === cur ? 'on' : ''}" ${bi && typeof bi === 'object' ? `data-act="ex" data-ex="${def.id}" data-do="set" data-p="${esc(bi.p)}" data-v="${esc(bi.v)}" data-t="s"` : `data-act="exJump" data-i="${bi ?? i}"`}${i === cur ? ' aria-current="step"' : ''}><span>${ok ? icon('check', 13) : i + 1}</span>${esc(t)}${ok ? '<small class="sr-only">: зроблено</small>' : ''}</button></li>`).join('')}</ol></nav>`;
 };
 function neoHead(def, S, d, done) {
   const n = def.neo;

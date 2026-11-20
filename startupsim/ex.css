@@ -242,7 +242,7 @@
 .chcard small { color: var(--tx-m); } .chcard p { font-size: 13px; color: var(--tx-m); }
 .chw { flex-direction: column; align-items: stretch; gap: 2px; }
 .sheet { border: 2px solid var(--ink); border-radius: 6px; background: #fffef8; padding: 18px 22px; box-shadow: 6px 6px 0 var(--ink); transform: rotate(-.4deg); }
-.sheet h4 { font: 700 18px Rubik, sans-serif; margin-bottom: 10px; }
+.sheet h4, .sheet h3 { font: 700 18px Rubik, sans-serif; margin-bottom: 10px; }
 .sheet dl { display: grid; grid-template-columns: 110px 1fr; gap: 6px 14px; } .sheet dt { font: 600 13px Rubik, sans-serif; color: var(--tx-m); } .sheet dd { margin: 0; }
 .goalline { margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: var(--yel); font: 600 16px Rubik, sans-serif; }
 .warnt { color: #9b1c1c; font-weight: 600; }

@@ -2,7 +2,7 @@
 import { ROLES } from './data.js';
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
-import { stars, reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone } from './ex-core.js';
+import { stars, reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, lrow, tg5 } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 
@@ -20,10 +20,14 @@ const SIT = [
 ];
 reg({
   id: 'leadership', stage: 6, t: 'Ваш стиль лідерства', d: 'Відповідайте на 8 ситуацій і дізнайтеся свій стиль.', icon: 'user', min: 10,
+  neo: {
+    about: 'Стиль лідерства — це те, як ви ведете команду: самі вирішуєте, радитесь, даєте свободу чи допомагаєте знайти рішення. Найкращого стилю немає: добрий керівник змінює його залежно від ситуації. Дайте відповідь на вісім ситуацій і дізнайтеся свій.',
+    steps: (S, d) => { const n = Object.keys(d.a).length, all = n >= SIT.length; return [['Дайте відповіді на 8 ситуацій', all, 0], ['Подивіться свій стиль', all, 8], ['Оберіть стиль і правило', all && !!d.mine && len(d.rule) >= 20, 8]]; },
+  },
   intro: `${term('Стилі лідерства', 'Стилі керівництва')} — це способи вести команду: <b>авторитарний</b>, <b>демократичний</b>, <b>ліберальний</b> і <b>коучинг</b>. Немає найкращого: добрий керівник змінює стиль залежно від ситуації. Дайте відповідь у вісьмох ситуаціях, і ми покажемо ваш профіль.`,
   data: () => ({ a: {}, mine: '', rule: '' }),
   view(S, d) {
-    return SIT.map(([q, opts], i) => `<div class="xbox"><header><span class="xtag">${i + 1} з ${SIT.length}</span><h3>${esc(q)}</h3></header><div class="xg c2">${opts.map(([k, t], j) => xp('leadership', `a.${i}`, j, esc(t), d.a[i] === j, { t: 'n', cls: 'card' })).join('')}</div></div>`).join('');
+    return `<p class="hl5">Оберіть те, що найближче до вашого вчинку. Правильних відповідей немає. Які бувають стилі ${qbtn('st')}</p>${qbody('st', 'Авторитарний: рішення ухвалюєте самі й швидко. Демократичний: радитесь із командою й обираєте разом. Ліберальний: даєте людям свободу діяти. Коучинг: ставите питання й допомагаєте людині знайти рішення самій.')}` + SIT.map(([q, opts], i) => `<div class="xbox"><header><span class="xtag">${i + 1} з ${SIT.length}</span><h2>${esc(q)}</h2></header><div class="xg c2">${opts.map(([k, t], j) => xp('leadership', `a.${i}`, j, esc(t), d.a[i] === j, { t: 'n', cls: 'card' })).join('')}</div></div>`).join('');
   },
   live(S, d) {
     const cnt = { a: 0, d: 0, l: 0, c: 0 }; SIT.forEach(([, o], i) => { if (d.a[i] != null) cnt[o[d.a[i]][0]]++; });
@@ -49,20 +53,24 @@ const TASKS7 = [['Писати код і виправляти помилки', '
 const OWNERS = [['me', 'Я особисто'], ...Object.entries(ROLES).map(([k, r]) => [k, r.t]), ['no', 'Нікому']];
 reg({
   id: 'roles', stage: 6, t: 'Ролі в команді', d: 'Розподіліть справи між ролями й виберіть, кого наймати першим.', icon: 'users', min: 12,
+  neo: {
+    about: 'У команди є ролі: хто що вміє й за що відповідає. Розподіліть справи компанії між людьми й побачите, чим перевантажений засновник і які справи лишились без власника. Потім вирішіть, кого наймати першим.',
+    steps: (S, d) => { const all = Object.keys(d.own).length >= TASKS7.length; return [['Розподіліть справи', all, 0], ['Подивіться аналіз', all, 1], ['Оберіть, кого наймати', all && d.first.length > 0 && len(d.why) >= 20, 2]]; },
+  },
   intro: `У команди є <b>ролі</b>: хто що вміє й за що відповідає. Розподіліть справи компанії між людьми: побачите, чим перевантажений засновник і які справи залишилися без власника. Потім вирішіть, кого наймати першим.`,
   data: () => ({ own: {}, first: [], why: '' }),
   view(S, d) {
-    return `${box('Хто за що відповідає?', `<div class="xlist">${TASKS7.map(([t], i) => `<div class="xitem rl"><span>${esc(t)}</span><div class="xrow">${OWNERS.map(([k, n]) => xp('roles', `own.${i}`, k, n, d.own[i] === k)).join('')}</div></div>`).join('')}</div>`, { ic: 'users', side: `розподілено ${Object.keys(d.own).length} з ${TASKS7.length}` })}`;
+    return `${box('1. Хто за що відповідає?', `<p class="hl5">Для кожної справи оберіть людину. Що таке роль ${qbtn('role')}</p>${qbody('role', 'Роль — це «хто за що відповідає». Якщо майже все лежить на вас, ви перевантажитесь і можете вигоріти. Справи «нікому» — це ризик: про них просто забудуть.')}<div class="xlist">${TASKS7.map(([t], i) => `<div class="xitem rl"><span>${esc(t)}</span><div class="xrow">${OWNERS.map(([k, n]) => xp('roles', `own.${i}`, k, n, d.own[i] === k)).join('')}</div></div>`).join('')}</div>`, { ic: 'users', side: `розподілено ${Object.keys(d.own).length} з ${TASKS7.length}` })}`;
   },
   live(S, d) {
     const cnt = {}; Object.values(d.own).forEach(k => { cnt[k] = (cnt[k] || 0) + 1; });
     const done = Object.keys(d.own).length === TASKS7.length, me = cnt.me || 0, nob = cnt.no || 0;
     if (!done) return '';
     const skill = S.s.founder.bg;
-    return `${box('Аналіз', `${checks([[me <= 4, `Засновник бере на себе не більше чотирьох справ (зараз ${me})`, 'Засновник перевантажений: так легко вигоріти'], [nob === 0, 'Усі справи мають власника', `Справ без власника: ${nob}`], [Object.keys(cnt).filter(k => k !== 'me' && k !== 'no').length >= 1, 'Хоча б частину справ віддано ролям, а не лише вам']])}
+    return `${box('2. Аналіз', `${checks([[me <= 4, `Засновник бере на себе не більше чотирьох справ (зараз ${me})`, 'Засновник перевантажений: так легко вигоріти'], [nob === 0, 'Усі справи мають власника', `Справ без власника: ${nob}`], [Object.keys(cnt).filter(k => k !== 'me' && k !== 'no').length >= 1, 'Хоча б частину справ віддано ролям, а не лише вам']])}
       <p class="sm muted">Ваш досвід: <b>${esc(S.s.founder.bg === 'dev' ? 'розробник' : S.s.founder.bg === 'design' ? 'дизайнер' : S.s.founder.bg === 'mkt' ? 'маркетолог' : 'продавець')}</b>. Те, чого ви не вмієте, варто віддавати людям, які в цьому сильніші.</p>`, { ic: 'check' })}
-    ${box('Кого наймати першим?', `<p class="sub">Оберіть до двох ролей. Подумайте, чого найбільше бракує й що найдорожче робити самому.</p><div class="xg c2">${Object.entries(ROLES).map(([k, r]) => `<div class="chcard ${d.first.includes(k) ? 'on' : ''}">${xp('roles', 'first', k, `${icon(r.icon, 15)} ${esc(r.t)}`, d.first.includes(k), { set: 'tog', max: 2, cls: 'card' })}<small>${esc(r.desc)} · від ${money0(S.marketSalary(k, 1))} / міс (досвід 1) до ${money0(S.marketSalary(k, 3))} (досвід 3)</small>${cnt[k] ? `<small>Справ для цієї ролі: <b>${cnt[k]}</b></small>` : ''}</div>`).join('')}</div>
-      ${xin('roles', 'why', d, { label: 'Чому саме ці ролі першими?', area: true, rows: 2, max: 240, cls: 'mt', ph: 'Спершу потрібен…, бо…' })}`, { ic: 'rocket' })}`;
+    ${box('3. Кого наймати першим?', `<p class="hl5">Поставте галочки біля двох ролей (не більше). Подумайте, чого бракує найбільше й що найдорожче робити самому.</p><div class="slist">${Object.entries(ROLES).map(([k, r]) => lrow({ id: 'roles', doo: 'tog', p: 'first', v: k, t: 's', max: 2, on: d.first.includes(k), key: 'r_' + k, title: `${icon(r.icon, 15)} ${esc(r.t)}`, sub: esc(r.desc), tags: tg5(`від ${money0(S.marketSalary(k, 1))} на місяць`, 'y') + (cnt[k] ? tg5(`справ: ${cnt[k]}`, 'b') : ''), hint: `${esc(r.desc)} Зарплата залежить від досвіду: від ${money0(S.marketSalary(k, 1))} (початківець) до ${money0(S.marketSalary(k, 3))} (досвідчений) на місяць.${cnt[k] ? ` Ви віддали цій ролі справ: ${cnt[k]}.` : ''}` })).join('')}</div>
+      ${xin('roles', 'why', d, { label: 'Чому саме ці ролі першими?', area: true, rows: 2, max: 240, cls: 'mt', ph: 'Спершу потрібен…, бо…', hint: 'Одне-два речення: чого бракує найбільше.' })}`, { ic: 'rocket' })}`;
   },
   ready(S, d) {
     if (Object.keys(d.own).length < TASKS7.length) return { ok: false, msg: 'Розподіліть усі справи' };
@@ -83,6 +91,10 @@ const AQ = [
 ];
 reg({
   id: 'agile', stage: 6, t: 'Agile, Scrum і Kanban', d: 'Проведіть спринт, попрацюйте з Kanban-дошкою й порівняйте методи.', icon: 'cube', min: 20,
+  neo: {
+    about: 'Agile — це коли роботу ділять на короткі кроки й часто перевіряють результат. Scrum працює спринтами по 1–2 тижні, Kanban — безперервним потоком задач. Проведіть спринт, попрацюйте з дошкою й порівняйте обидва методи.',
+    steps: (S, d) => [['Проведіть спринт (вкладка Scrum)', d.sprints > 0 && ['good', 'bad', 'act'].every(k => len(d.retro[k]) >= 3), { p: 'tab', v: 'scrum' }], ['Попрацюйте з Kanban', d.kb.filter(x => x.col === 'done').length >= 4, { p: 'tab', v: 'kanban' }], ['Порівняйте й перевірте себе', quizDone(d, 'q', AQ) >= AQ.length && quizOk(d, 'q', AQ) >= 2, { p: 'tab', v: 'cmp' }]],
+  },
   intro: `${term('Agile', 'Agile')} — гнучкий підхід до роботи: короткі цикли, швидкий відгук, готовність змінювати план. ${term('Scrum', 'Scrum')} працює спринтами (1–2 тижні), ${term('Kanban', 'Kanban')} — безперервним потоком із лімітом задач «у роботі». Спробуйте обидва й відповідайте, коли який підходить.`,
   data: S => ({ tab: 'scrum', pick: [], done: [], sprints: 0, log: [], retro: { good: '', bad: '', act: '' }, kb: KB.map(x => ({ ...x })), day: 0, q: {}, seed: 11 }),
   view(S, d) {
@@ -90,7 +102,7 @@ reg({
     const head = `<div class="tabs" role="group" style="margin-bottom:8px">${tab('scrum', `Scrum${d.sprints ? ' ' + icon('check', 14) : ''}`)}${tab('kanban', `Kanban${d.kb.filter(x => x.col === 'done').length >= 4 ? ' ' + icon('check', 14) : ''}`)}${tab('cmp', `Порівняння${quizDone(d, 'q', AQ) >= 3 ? ' ' + icon('check', 14) : ''}`)}</div>`;
     if (d.tab === 'scrum') {
       const rest = STORIES.filter(s => !d.done.includes(s.id)), tot = sumOf(d.pick.map(i => STORIES[i].pts));
-      return `${head}${box('Спринт-планування', `<p class="sub">Можливості команди за спринт: <b>${cap} очок</b> (ви + ${S.s.team.length} ${S.s.team.length === 1 ? 'колега' : 'колег'}). Оберіть історії з бек-логу: що найцінніше й вміщається?</p>
+      return `${head}${box('1. Спринт-планування', `<p class="hl5">Що таке спринт ${qbtn('sp')}</p>${qbody('sp', 'Спринт — це короткий відрізок роботи (1–2 тижні), за який команда робить те, що запланувала. Історія — одне завдання для користувача. Очки — скільки зусиль воно коштує. «Можливості команди» — скільки очок ви встигаєте за спринт.')}<p class="sub">Можливості команди за спринт: <b>${cap} очок</b> (ви + ${S.s.team.length} ${S.s.team.length === 1 ? 'колега' : 'колег'}). Оберіть історії з бек-логу: що найцінніше й вміщається?</p>
         <div class="xlist">${rest.map(s => `<div class="xitem sty ${d.pick.includes(s.id) ? 'on' : ''}"><span><b>${esc(s.t)}</b><small>цінність ${stars(Math.round(s.val / 2), 5)} · ризик ${s.risk >= .25 ? 'високий' : s.risk >= .1 ? 'середній' : 'низький'}</small></span><span class="xtag">${s.pts} оч.</span>${xp('agile', 'pick', s.id, d.pick.includes(s.id) ? 'У спринті' : 'Додати', d.pick.includes(s.id), { set: 'tog', t: 'n' })}</div>`).join('')}</div>
         <div class="mvpbar"><div class="x-bar"><i style="width:${clamp(tot / cap, 0, 1) * 100}%;background:${tot > cap ? '#d33' : 'var(--ok)'}"></i></div><b>${tot} з ${cap} оч.</b></div>
         ${tot > cap ? tip('Ви беретеся за більше, ніж команда встигає: ризикуєте не закінчити нічого.', 'warn') : ''}<div class="xrow">${xb('agile', 'run', d.sprints ? 'Запустити наступний спринт' : 'Запустити спринт', { cls: 'primary', ic: 'play', dis: !d.pick.length })}</div>`, { ic: 'calendar' })}`;
@@ -98,12 +110,12 @@ reg({
     if (d.tab === 'kanban') {
       const col = (k, t, lim) => { const cs = d.kb.filter(x => x.col === k); return `<div class="kcol ${lim && cs.length >= lim ? 'full' : ''}"><h4>${t}${lim ? `<small>${cs.length} / ${lim}</small>` : `<small>${cs.length}</small>`}</h4>${cs.map(c => `<article class="kcard"><b>${esc(c.t)}</b><small>${c.col === 'done' ? `цикл ${c.cyc} дн.` : c.start != null ? `у роботі ${d.day - c.start} дн. з ${c.need}` : `потрібно ≈ ${c.need} дн.`}</small><div class="xrow">${k !== 'back' ? xb('agile', 'mv', '', { a: c.id, b: -1, ic: 'left', cls: 'ib', title: 'Назад' }) : ''}${k !== 'done' ? xb('agile', 'mv', '', { a: c.id, b: 1, ic: 'right', cls: 'ib', title: 'Далі' }) : ''}</div></article>`).join('')}</div>`; };
       const dn = d.kb.filter(x => x.col === 'done'), avg = dn.length ? sumOf(dn.map(x => x.cyc)) / dn.length : 0;
-      return `${head}${box('Kanban-дошка', `<p class="sub">Беріть задачі в роботу, але не більше ліміту. Кожен «день» робота над задачею рухається. Завершуйте, перш ніж починати нове.</p><div class="kboard">${col('back', 'Список', 0)}${col('doing', 'У роботі', 3)}${col('rev', 'Перевірка', 2)}${col('done', 'Готово', 0)}</div>
+      return `${head}${box('2. Kanban-дошка', `<p class="hl5">Що таке ліміт ${qbtn('lim')}</p>${qbody('lim', 'Kanban — це дошка зі стовпцями: «Зробити», «Роблю», «Перевірка», «Готово». Ліміт — скільки задач можна тримати в стовпці одночасно. Він не дає братися за все одразу й вчить спершу доводити справу до кінця.')}<p class="sub">Беріть задачі в роботу, але не більше ліміту. Кожен «день» робота над задачею рухається. Завершуйте, перш ніж починати нове.</p><div class="kboard">${col('back', 'Список', 0)}${col('doing', 'У роботі', 3)}${col('rev', 'Перевірка', 2)}${col('done', 'Готово', 0)}</div>
         <div class="xrow mt">${xb('agile', 'day', `День ${d.day + 1}`, { cls: 'primary', ic: 'next' })}<span class="xtag">Минуло днів: ${d.day}</span>${dn.length ? `<span class="xtag ok">Середній цикл: ${avg.toFixed(1).replace('.', ',')} дн.</span>` : ''}</div>
         ${dn.length >= 4 ? tip('Ви завершили чотири й більше задач. Чим менше задач одночасно «в роботі», тим швидше кожна доходить до кінця.', 'ok') : ''}`, { ic: 'cube' })}`;
     }
-    return `${head}${box('Коли що обирати', `<div class="xscroll"><table class="xtable"><thead><tr><th></th><th>Scrum</th><th>Kanban</th></tr></thead><tbody><tr><td><b>Ритм</b></td><td>Спринти 1–2 тижні</td><td>Безперервний потік</td></tr><tr><td><b>Зміни</b></td><td>Після спринту, всередині спринту — ні</td><td>У будь-який момент</td></tr><tr><td><b>Ролі</b></td><td>Власник продукту, Scrum-майстер, команда</td><td>Окремих ролей немає</td></tr><tr><td><b>Контроль</b></td><td>Обсяг спринту за можливостями команди</td><td>Ліміт задач «у роботі»</td></tr><tr><td><b>Добре для</b></td><td>Розробки продукту з вимогами, що змінюються</td><td>Підтримки, потоку малих завдань</td></tr></tbody></table></div>`, { ic: 'plan' })}
-      ${box('Перевірте себе', quiz('agile', 'q', d, AQ), { ic: 'bulb', side: `правильно ${quizOk(d, 'q', AQ)} з ${AQ.length}` })}`;
+    return `${head}${box('3. Коли що обирати', `<div class="xscroll"><table class="xtable"><thead><tr><th></th><th>Scrum</th><th>Kanban</th></tr></thead><tbody><tr><td><b>Ритм</b></td><td>Спринти 1–2 тижні</td><td>Безперервний потік</td></tr><tr><td><b>Зміни</b></td><td>Після спринту, всередині спринту — ні</td><td>У будь-який момент</td></tr><tr><td><b>Ролі</b></td><td>Власник продукту, Scrum-майстер, команда</td><td>Окремих ролей немає</td></tr><tr><td><b>Контроль</b></td><td>Обсяг спринту за можливостями команди</td><td>Ліміт задач «у роботі»</td></tr><tr><td><b>Добре для</b></td><td>Розробки продукту з вимогами, що змінюються</td><td>Підтримки, потоку малих завдань</td></tr></tbody></table></div>`, { ic: 'plan' })}
+      ${box('4. Перевірте себе', quiz('agile', 'q', d, AQ), { ic: 'bulb', side: `правильно ${quizOk(d, 'q', AQ)} з ${AQ.length}` })}`;
   },
   live(S, d) {
     if (d.tab !== 'scrum' || !d.log.length) return '';
@@ -153,14 +165,18 @@ const CAND = [
 ];
 reg({
   id: 'hiring', stage: 6, t: 'Наймання людини', d: 'Складіть вакансію, оберіть питання й виберіть кандидата.', icon: 'search', min: 18,
+  neo: {
+    about: 'Наймання — одне з найдорожчих рішень стартапу: помилка коштує місяців. Складіть вакансію, оберіть правильні запитання для співбесіди (деякі ставити не можна) і виберіть кандидата.',
+    steps: (S, d) => { const ok = QSTN.filter(([, g], i) => d.q[i] === g).length; return [['Складіть вакансію', d.req.length >= 3, 0], ['Оберіть запитання', Object.keys(d.q).length >= QSTN.length && ok >= 6, 1], ['Оберіть кандидата', !!d.pick && len(d.why) >= 20, 2]]; },
+  },
   intro: `${term('Наймання', 'Найм')} — одне з найдорожчих рішень стартапу: помилка коштує місяців. Складіть вакансію, оберіть правильні запитання для співбесіди (деякі питати не можна!) і порівняйте трьох кандидатів за вимогами, які ви самі поставили.`,
   data: () => ({ role: 'dev', req: [], sal: 0, q: {}, cand: {}, pick: '', why: '' }),
   view(S, d) {
     const R = ROLES[d.role], mid = S.marketSalary(d.role, 2), sal = d.sal || mid;
-    return `${box('1. Вакансія', `<div class="xrow">${Object.entries(ROLES).map(([k, r]) => xp('hiring', 'role', k, r.t, d.role === k)).join('')}</div><p class="sm muted">${esc(R.desc)}</p>
+    return `${box('1. Вакансія', `<p class="hl5">Оберіть роль, потім три-чотири вимоги. Що таке вимоги ${qbtn('req')}</p>${qbody('req', 'Вимоги — це що кандидат має вміти чи мати. Що більше вимог, то менше людей підходить і то вища зарплата, тож залиште найважливіше.')}<div class="xrow">${Object.entries(ROLES).map(([k, r]) => xp('hiring', 'role', k, r.t, d.role === k)).join('')}</div><p class="sm muted">${esc(R.desc)}</p>
       <p class="xf-l mt">Що важливо від кандидата? Оберіть три-чотири вимоги.</p><div class="xrow">${REQ.map(([k, t]) => xp('hiring', 'req', k, t, d.req.includes(k), { set: 'tog', max: 4 })).join('')}</div>
       ${xsl('hiring', 'sal', d, { min: Math.round(S.marketSalary(d.role, 1) * .7), max: Math.round(S.marketSalary(d.role, 4) * 1.2), step: 1000, label: 'Зарплата на місяць', u: ' ₴', v: sal })}<p class="sm muted">Ринкова зарплата для цієї ролі: від ${money0(S.marketSalary(d.role, 1))} до ${money0(S.marketSalary(d.role, 3))}.</p>`, { ic: 'pen' })}
-    ${box('2. Запитання для співбесіди', `<p class="sub">Які запитання ви поставите? Позначте кожне: «Ставлю» чи «Не ставлю».</p><div class="xlist">${QSTN.map(([q, good, why], i) => `<div class="quiz"><b>${esc(q)}</b><div class="xrow">${xp('hiring', `q.${i}`, 1, 'Ставлю', d.q[i] === 1, { t: 'n', cls: d.q[i] != null ? (good === 1 ? 'right' : d.q[i] === 1 ? 'wrong' : '') : '' })}${xp('hiring', `q.${i}`, 0, 'Не ставлю', d.q[i] === 0, { t: 'n', cls: d.q[i] != null ? (good === 0 ? 'right' : d.q[i] === 0 ? 'wrong' : '') : '' })}</div>${d.q[i] != null ? `<p class="x-tip ${d.q[i] === good ? 'ok' : 'warn'}">${icon(d.q[i] === good ? 'check' : 'info', 16)}<span>${d.q[i] === good ? 'Правильно. ' : 'Не зовсім. '}${esc(why)}</span></p>` : ''}</div>`).join('')}</div>`, { ic: 'mic' })}
+    ${box('2. Запитання для співбесіди', `<p class="hl5">Які запитання ви поставите? Позначте кожне: «Ставлю» чи «Не ставлю». Чому деякі не можна ${qbtn('ill')}</p>${qbody('ill', 'Питати можна про досвід, навички й роботу. Не можна питати про вік, сім’ю, плани мати дітей, віру чи здоров’я: це особисте й нечесно щодо людей, а в багатьох країнах ще й заборонено законом.')}<div class="xlist">${QSTN.map(([q, good, why], i) => `<div class="quiz"><b>${esc(q)}</b><div class="xrow">${xp('hiring', `q.${i}`, 1, 'Ставлю', d.q[i] === 1, { t: 'n', cls: d.q[i] != null ? (good === 1 ? 'right' : d.q[i] === 1 ? 'wrong' : '') : '' })}${xp('hiring', `q.${i}`, 0, 'Не ставлю', d.q[i] === 0, { t: 'n', cls: d.q[i] != null ? (good === 0 ? 'right' : d.q[i] === 0 ? 'wrong' : '') : '' })}</div>${d.q[i] != null ? `<p class="x-tip ${d.q[i] === good ? 'ok' : 'warn'}">${icon(d.q[i] === good ? 'check' : 'info', 16)}<span>${d.q[i] === good ? 'Правильно. ' : 'Не зовсім. '}${esc(why)}</span></p>` : ''}</div>`).join('')}</div>`, { ic: 'mic' })}
     ${box('3. Кандидати', `<div class="xg c3">${CAND.map((c, i) => `<article class="nmcard ${d.pick === c.n ? 'fin' : ''}"><header><span class="pav sm" style="--h:${hash(c.n) % 360}">${c.n[0]}</span><b>${c.n}</b></header><p class="sm"><b>Резюме:</b> ${esc(c.cv)}</p><p class="sm"><b>Співбесіда:</b> ${esc(c.note)}</p>${d.req.length ? `<div class="xrow">${d.req.map(k => `<label class="xf" style="width:46%"><span class="xf-l">${REQ.find(r => r[0] === k)[1].split(' ')[0]}…</span><select class="inp" data-exi="hiring" data-p="cand.${c.n}.${k}">${['—', 1, 2, 3, 4, 5].map(v => `<option value="${v === '—' ? '' : v}" ${String(d.cand[c.n]?.[k] ?? '') === String(v === '—' ? '' : v) ? 'selected' : ''}>${v}</option>`).join('')}</select></label>`).join('')}</div>` : '<p class="sm muted">Спершу оберіть вимоги у вакансії.</p>'}${xp('hiring', 'pick', c.n, d.pick === c.n ? 'Це мій вибір' : 'Обрати кандидата', d.pick === c.n, { cls: 'card' })}</article>`).join('')}</div>
       ${d.pick ? (() => { const sc = c => sumOf(d.req.map(k => c.s[k])), best = [...CAND].sort((a, b) => sc(b) - sc(a))[0]; return tip(d.pick === best.n ? `Ви обрали кандидата, який найкраще відповідає вашим вимогам: ${best.n}.` : `За вашими вимогами найкраще підходить ${best.n}: перегляньте співбесіду ще раз. Але остаточне рішення завжди за вами.`, d.pick === best.n ? 'ok' : 'warn'); })() : ''}
       ${xin('hiring', 'why', d, { label: 'Чому саме цей кандидат?', area: true, rows: 2, max: 240, cls: 'mt', ph: 'Обираю цього кандидата, тому що…' })}`, { ic: 'users' })}`;
@@ -184,18 +200,22 @@ const RIT = [['daily', 'Щоденна 10-хвилинна зустріч'], ['d
 const RQ = [{ q: 'Колега з іншого часового поясу не відповідає на термінове питання пів дня. Що найкраще?', a: ['Зробити вигляд, що все гаразд', 'Домовитись про «спільні години» та правила, коли очікується відповідь', 'Вимагати відповідати цілодобово'], ok: 1, why: 'Правила спільних годин і швидкості відповіді допомагають без постійного тиску.' }, { q: 'Що найбільше загрожує віддаленій команді?', a: ['Відсутність офісу', 'Відчуття ізоляції й нечітка комунікація', 'Занадто тихі колеги'], ok: 1, why: 'Без розмов біля кавомашини люди відчувають ізоляцію. Потрібні ритуали й чіткі правила.' }];
 reg({
   id: 'remote', stage: 6, opt: true, t: 'Дистанційна робота', d: 'Складіть правила роботи віддаленої команди.', icon: 'laptop', min: 12,
+  neo: {
+    about: 'Віддалена команда працює з різних міст і навіть країн. Тут важливі не «години в офісі», а чіткі правила: де спілкуємось, коли відповідаємо й як бачимо результат. Складіть правила своєї команди.',
+    steps: (S, d) => [['Оберіть інструменти', d.tools.length >= 3, 0], ['Ритуали й правила часу', d.rit.length >= 2, 1], ['Перевірте себе', quizDone(d, 'q', RQ) >= RQ.length, 3]],
+  },
   intro: `Віддалена команда працює з різних міст і навіть країн. Тут важливі не «години в офісі», а <b>чіткі правила</b>: де спілкуємось, коли відповідаємо й як бачимо результат. Складіть правила своєї команди й подивіться, де ризики.`,
   data: () => ({ tools: [], rit: [], core: 4, resp: 4, q: {}, ch: 0 }),
   onSet: (S, d, p) => { if (!p.startsWith('q')) d.ch = (d.ch || 0) + 1; },
   view(S, d) {
-    return `${box('Інструменти', `<div class="xrow">${TOOLS.map(([k, t]) => xp('remote', 'tools', k, t, d.tools.includes(k), { set: 'tog' })).join('')}</div>`, { ic: 'wrench' })}${box('Ритуали', `<div class="xrow">${RIT.map(([k, t]) => xp('remote', 'rit', k, t, d.rit.includes(k), { set: 'tog' })).join('')}</div>`, { ic: 'calendar' })}
-    ${box('Правила часу', `<div class="xg c2">${xsl('remote', 'core', d, { min: 0, max: 8, step: 1, label: 'Спільні години, коли всі на зв’язку', u: ' год' })}${xsl('remote', 'resp', d, { min: 1, max: 24, step: 1, label: 'Відповідь на повідомлення за', u: ' год' })}</div>`, { ic: 'clock' })}
-    ${box('Перевірте себе', quiz('remote', 'q', d, RQ), { ic: 'bulb' })}`;
+    return `${box('1. Інструменти', `<p class="hl5">Оберіть хоча б три: чим команда спілкується й працює.</p><div class="xrow">${TOOLS.map(([k, t]) => xp('remote', 'tools', k, t, d.tools.includes(k), { set: 'tog' })).join('')}</div>`, { ic: 'wrench' })}${box('2. Ритуали', `<p class="hl5">Оберіть хоча б два. Що таке ритуал ${qbtn('rit')}</p>${qbody('rit', 'Ритуал — це регулярна зустріч чи звичка команди: наприклад, щоденна 10-хвилинка чи щотижнева демонстрація результатів. Вони замінюють розмови біля кави й не дають команді розпорошитись.')}<div class="xrow">${RIT.map(([k, t]) => xp('remote', 'rit', k, t, d.rit.includes(k), { set: 'tog' })).join('')}</div>`, { ic: 'calendar' })}
+    ${box('3. Правила часу', `<div class="xg c2">${xsl('remote', 'core', d, { min: 0, max: 8, step: 1, label: 'Спільні години, коли всі на зв’язку', u: ' год' })}${xsl('remote', 'resp', d, { min: 1, max: 24, step: 1, label: 'Відповідь на повідомлення за', u: ' год' })}</div>`, { ic: 'clock' })}
+    ${box('4. Перевірте себе', quiz('remote', 'q', d, RQ), { ic: 'bulb' })}`;
   },
   live(S, d) {
     const comm = clamp(.2 + d.tools.length * .1 + d.rit.length * .1 + Math.min(d.core, 4) * .05 - (d.resp > 12 ? .2 : 0), 0, 1), burn = clamp((d.rit.length > 4 ? .3 : 0) + (d.resp <= 2 ? .35 : 0) + (d.core > 6 ? .25 : 0) + (d.rit.includes('daily') && d.rit.includes('demo') && d.rit.includes('one') ? .15 : 0), 0, 1);
     return `${box('Правила команди', `<div class="kpis3"><div><small>Якість комунікації</small>${bar(comm, { color: comm > .6 ? 'var(--ok)' : '#e0a100', label: 'Комунікація' })}</div><div><small>Ризик вигорання</small>${bar(burn, { color: burn > .5 ? '#d33' : 'var(--ok)', label: 'Вигорання' })}</div><div><small>Правил</small><b>${d.tools.length + d.rit.length}</b></div></div>
-      <div class="sheet"><h4>Правила нашої команди</h4><dl><dt>Спілкуємось</dt><dd>${d.tools.map(k => TOOLS.find(t => t[0] === k)[1]).join('; ') || '—'}</dd><dt>Ритуали</dt><dd>${d.rit.map(k => RIT.find(t => t[0] === k)[1]).join('; ') || '—'}</dd><dt>Час</dt><dd>${d.core} спільних годин на день; відповідь на повідомлення — протягом ${d.resp} год.</dd></dl></div>`, { ic: 'plan' })}`;
+      <div class="sheet"><h3>Правила нашої команди</h3><dl><dt>Спілкуємось</dt><dd>${d.tools.map(k => TOOLS.find(t => t[0] === k)[1]).join('; ') || '—'}</dd><dt>Ритуали</dt><dd>${d.rit.map(k => RIT.find(t => t[0] === k)[1]).join('; ') || '—'}</dd><dt>Час</dt><dd>${d.core} спільних годин на день; відповідь на повідомлення — протягом ${d.resp} год.</dd></dl></div>`, { ic: 'plan' })}`;
   },
   ready(S, d) { if (d.tools.length < 3) return { ok: false, msg: 'Оберіть хоча б три інструменти' }; if (d.rit.length < 2) return { ok: false, msg: 'Оберіть хоча б два ритуали' }; if (quizDone(d, 'q', RQ) < RQ.length) return { ok: false, msg: 'Дайте відповідь на запитання' }; return { ok: true, stars: 1 + (quizOk(d, 'q', RQ) === RQ.length ? 1 : 0) + (d.rit.length >= 3 && d.rit.length <= 4 ? 1 : 0) }; },
 });
