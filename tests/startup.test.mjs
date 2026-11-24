@@ -486,3 +486,23 @@ test('власний формат файлу .edvault: не JSON, читабел
   assert.equal(unpackGame(broken.join('\n')).ok, false, 'змінені дані не відкриваються');
   assert.equal(unpackGame('EDVAULT-STARTUP 1\nDATA\n!!!\nEND').ok, false);
 });
+
+test('усі події (і нові) створюють лист, а кожен варіант виконується без помилок для всіх ідей', async () => {
+  const { EVENTS } = await import('../startupsim/js/sim.js');
+  assert.ok(Object.keys(EVENTS).length >= 24);
+  for (const idea of ['homework', 'plant', 'english', 'booking']) {
+    for (const id of Object.keys(EVENTS)) {
+      const ev = EVENTS[id]; if (!ev.make) continue;
+      const n = ev.choices ? ev.choices(newGame({ idea, seed: 5 })).length : 1;
+      for (let ci = 0; ci < n; ci++) {
+        const S = newGame({ idea, seed: 5 });
+        S.s.cash = 400000; S.s.week = 30; S.s.product.launched = true; S.s.company.form = 'fop';
+        S.s.team.push({ id: 'm1', name: 'А', role: 'dev', skill: 3, salary: 20000, morale: 40, joined: 1 }, { id: 'm2', name: 'Б', role: 'mkt', skill: 3, salary: 20000, morale: 70, joined: 1 });
+        S.trigger(id);
+        const mail = S.s.inbox.find(m => m.ev === id); assert.ok(mail, `${idea}/${id}: немає листа`);
+        if (mail.choices) { const res = S.choose(mail.id, ci); assert.equal(typeof res, 'string', `${idea}/${id}/${ci}`); }
+        assert.ok(Number.isFinite(S.s.cash), `${idea}/${id}/${ci}: гроші не число`);
+      }
+    }
+  }
+});

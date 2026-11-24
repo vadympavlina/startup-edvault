@@ -4,6 +4,7 @@
 import { IDEAS, CHANNELS, MODELS, BACKGROUNDS, ROLES, FIRST, LAST, FEM, gx, whoFem, roleName, TRAITS, INVESTORS, SLIDES, ACHIEVEMENTS } from './data.js';
 import { applyMods, PROMOS, LOYALTY } from './mods.js';
 import { makeCustomIdea, DEFAULT_UW } from './custom.js';
+import { EXTRA_EVENTS } from './events.js';
 
 export const WEEKS = 104;
 export const HOURS = 50;            // нормальний робочий тиждень засновника
@@ -917,4 +918,5 @@ export const EVENTS = {
     make: S => ({ from: 'Аналітика', title: 'Сезонний спад', body: `Цього місяця відвідувачів помітно менше — для ідеї «${S.I.t}» це сезонне. Не панікуйте й не робіть висновків за один місяць: порівнюйте з тим самим сезоном.` }) },
 };
 
+Object.assign(EVENTS, EXTRA_EVENTS);
 applyMods(Sim);
