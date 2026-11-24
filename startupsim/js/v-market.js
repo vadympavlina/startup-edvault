@@ -115,7 +115,7 @@ function product(S, ui) {
   <div class="kpis">
     <div class="kpi"><span class="kpi-l">Швидкість роботи</span><b>${caps.dev.toFixed(1).replace('.', ',')} оч. за тиждень</b><small>${s.team.filter(m => m.role === 'dev').length ? 'ви + розробники' : 'лише ви'} · оч. = очки роботи</small></div>
     <div class="kpi ${p.quality < 50 ? 'warn' : ''}"><span class="kpi-l">Якість</span><b>${Math.round(p.quality)}%</b>${meter(p.quality / 100, { color: p.quality < 50 ? 'var(--warn)' : 'var(--ok)' })}</div>
-    <div class="kpi ${p.bugs > 15 ? 'bad' : ''}"><span class="kpi-l">Баги</span><b>${Math.round(p.bugs)}</b><small>${p.bugs > 15 ? 'відганяють користувачів' : 'під контролем'}</small></div>
+    <div class="kpi ${p.bugs > 15 ? 'bad' : ''}"><span class="kpi-l">${S.I.kind === 'hardware' ? 'Дефекти' : 'Баги'}</span><b>${Math.round(p.bugs)}</b><small>${p.bugs > 15 ? (S.I.kind === 'hardware' ? 'відганяють покупців' : 'відганяють користувачів') : 'під контролем'}</small></div>
     <div class="kpi adv ${p.debt > 50 ? 'warn' : ''}"><span class="kpi-l">${term('Технічний борг', 'Недоробки в коді')}</span><b>${Math.round(p.debt)}</b><small>сповільнює на ${Math.round(Math.min(60, p.debt / 1.6))}%</small></div>
   </div>
   <section class="card adv"><header class="card-h"><h2>${icon('wrench')} Як працюємо</h2></header>
