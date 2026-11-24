@@ -124,3 +124,15 @@ test('до кожної вправи є підказка «Простими сл
     assert.ok(h && h.plain && h.how.length === 3, `${def.id}: підказка`);
   }
 });
+
+test('вправи не нав’язують «домашку»: для інших ідей і власної прикладів про неї немає (крім підписаних «з іншої ідеї»)', () => {
+  for (const [idea, o] of GAMES.filter(([i]) => i !== 'homework')) {
+    const S = make(idea, o);
+    for (const def of exAll()) {
+      // сторінка = вигляд + підказки у placeholder-ах; підписані приклади «з іншої ідеї» вилучаємо
+      const x = html(S, def, X(S, def.id)).replace(/<p class="ex-eg">[\s\S]*?<\/p>/g, '').replace(/з іншої ідеї[^<]*/g, '');
+      const hit = x.match(/[^<>"]{0,40}(домашк|Домашк|школяр)[^<>"]{0,40}/);
+      if (idea === 'custom' || idea === 'plant' || idea === 'booking' || idea === 'english') assert.ok(!hit || /Школяр|школяр/.test(S.I.t + JSON.stringify(S.I.segments)), `${idea}/${def.id}: «${hit && hit[0]}»`);
+    }
+  }
+});

@@ -2,7 +2,7 @@
 // перевіркою логотипа, макетами, збереженими варіантами й експортом у SVG та PNG.
 import { esc } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, xcol, tip, box, checks, bar, clamp } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xcol, tip, box, checks, bar, clamp, own } from './ex-core.js';
 import { logoMark, logoSvg, SHAPES, SHAPE_KEYS, shapeCss } from './logo.js';
 import { X } from './ex-core.js';
 
@@ -91,7 +91,7 @@ reg({
           ${d.grad ? xsl('logo', 'ang', d, { min: 0, max: 360, step: 10, label: 'Напрям градієнта', u: '°', cls: 'mt' }) : ''}
           <p class="sm ${symC(d) >= 3 ? 'muted' : 'warnt'}">Контраст символу: ${symC(d).toFixed(1).replace('.', ',')} до 1 ${symC(d) >= 3 ? '— добре видно.' : '— символ погано видно, спробуйте світліший чи темніший колір.'}</p>
           <p class="sm"><b>Підібрати другий колір до основного:</b></p><div class="xrow">${[['30', 'Сусідній'], ['180', 'Контрастний'], ['120', 'Тріада'], ['-40', 'Холодніший']].map(([o, t]) => xb('logo', 'harm', t, { a: o, cls: 'sm' })).join('')}</div>`, { ic: 'wrench' })}`,
-      text: () => `${box('Назва й підпис', `<div class="xg c2">${xin('logo', 'name', d, { label: 'Назва', max: 28 })}${xin('logo', 'tag', d, { label: 'Підпис під назвою (необов’язково)', max: 40, ph: 'наприклад, «розумна домашка»' })}</div>`, { ic: 'pen' })}
+      text: () => `${box('Назва й підпис', `<div class="xg c2">${xin('logo', 'name', d, { label: 'Назва', max: 28 })}${xin('logo', 'tag', d, { label: 'Підпис під назвою (необов’язково)', max: 40, ph: own(S, 'наприклад, «розумна домашка»', 'наприклад, коротко про суть: що ви робите') })}</div>`, { ic: 'pen' })}
         ${box('Шрифт', `<div class="bs-fonts">${Object.entries(BF).map(([k, f]) => `<button type="button" class="bs-f ${d.font === k ? 'on' : ''}" aria-pressed="${d.font === k}" data-act="ex" data-ex="logo" data-do="set" data-p="font" data-v="${k}" data-t="s"><span style="font-family:${f.css};font-weight:${f.w}">${esc(d.name || 'Назва')}</span><small>${f.t}</small></button>`).join('')}</div>`, { ic: 'book' })}
         ${box('Розташування', `<div class="xrow">${[['side', 'Знак ліворуч'], ['stack', 'Знак зверху'], ['mark', 'Лише знак'], ['word', 'Лише напис']].map(([k, t]) => xp('logo', 'layout', k, t, d.layout === k)).join('')}</div>
           <div class="xrow mt"><label class="switch"><input type="checkbox" data-exi="logo" data-p="upper" ${d.upper ? 'checked' : ''}><span></span>Великі літери</label></div>${xsl('logo', 'track', d, { min: 0, max: 8, step: 1, label: 'Відстань між літерами', u: '', cls: 'mt' })}`, { ic: 'compass' })}`,

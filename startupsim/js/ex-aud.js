@@ -2,10 +2,9 @@
 import { CHANNELS } from './data.js';
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, hash, clamp, sumOf, money0, goalMetrics } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, hash, clamp, sumOf, money0, goalMetrics, eg, ideaBits, own } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
-const eg = t => `<p class="ex-eg"><b>Приклад.</b> ${t}</p>`;
 const step = (n, t) => `<span class="ex-n">${n}</span>${t}`;
 const chips = (id, p, opts, cur, o = {}) => opts.map(v => xp(id, p, v, esc(v), cur === v, o)).join('');
 const dots = (id, p, cur, label) => `<span class="rdots" role="radiogroup" aria-label="${esc(label)}">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="rdot ${v <= cur ? 'on' : ''}" role="radio" aria-checked="${v === cur}" aria-label="${v} з 5" data-act="ex" data-ex="${id}" data-do="set" data-p="${p}" data-v="${v}" data-t="n"></button>`).join('')}</span>`;
@@ -30,7 +29,7 @@ reg({
     return `${box(step(1, 'Які у вас групи клієнтів?'), `<p class="sub">Це групи, які можуть користуватися вашим продуктом чи платити за нього. Деякі вже додано з гри. Додайте ще одну, якщо хочете.</p>
       <div class="xrow">${d.segs.map(x => `<span class="segc ${x.id === d.cur ? 'on' : ''}">${xp('w5', 'cur', x.id, esc(x.name), x.id === d.cur)}${d.segs.length > 1 ? xb('w5', 'delSeg', '', { i: d.segs.indexOf(x), ic: 'x', cls: 'ib', title: 'Прибрати сегмент' }) : ''}</span>`).join('')}</div>
       ${d.segs.length < 4 ? `<div class="xadd" style="margin-top:12px"><input class="inp" id="w5-new" maxlength="160" placeholder="Ще одна група, наприклад «студенти» чи «вчителі»" aria-label="Нова група">${xb('w5', 'addSeg', 'Додати', { ic: 'plus' })}</div>` : ''}
-      ${eg('для «домашки з поясненням»: «школярі» (користуються), «батьки» (платять), «школи» (купують для всього класу).')}`, { ic: 'users' })}
+      ${eg(S, 'для «домашки з поясненням»: «школярі» (користуються), «батьки» (платять), «школи» (купують для всього класу).')}`, { ic: 'users' })}
     ${s ? `${box(step(2, `Опишіть групу «${esc(s.name)}»`), `<p class="sub">Відповідайте на п’ять запитань: оберіть варіант або впишіть своє. Не ідеально, головне, щоб ви уявляли цю людину. Для інших груп перемикайтесь угорі.</p>
       ${W5.map(([k, q, opts]) => `<div class="w5r"><b>${q}</b><div class="xrow">${chips('w5', `segs.${i}.a.${k}`, opts, s.a[k])}</div>${xin('w5', `segs.${i}.a.${k}`, d, { ph: 'або своя відповідь…', max: 60 })}</div>`).join('')}`, { ic: 'target', side: `${filled(s)} з 5` })}
     ${box(step(3, 'Наскільки ця група вигідна?'), `<p class="sub">Оцініть від 1 до 5. Це допоможе порівняти групи й обрати найкращу.</p>
@@ -78,7 +77,7 @@ reg({
     return `${box(step(1, 'Навіщо? Яка мета?'), `<p class="sub">Що ви хочете отримати від просування найближчим часом? Оберіть одну мету або сформулюйте свою.</p><div class="xrow">${chips('strategy', 'goal', GOALS, d.goal, { cls: 'card' })}</div>${xin('strategy', 'goal', d, { ph: 'або сформулюйте свою мету', max: 80, cls: 'mt' })}`, { ic: 'flag' })}
     ${box(step(2, 'Що ми кажемо клієнту?'), `<p class="sub">Група клієнтів з гри: <b>${esc(g.t)}</b>. Напишіть одне речення, яке ця людина запам’ятає. Говоріть про її вигоду, а не про вашу технологію.</p>
       <div class="xrow sg"><small class="muted">Шаблони:</small>${MSG.map(t => `<button type="button" class="xchip" data-act="ex" data-ex="strategy" data-do="tpl" data-a="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-      ${xin('strategy', 'msg', d, { area: true, rows: 2, max: 160, ph: 'Ми пояснюємо домашку за 5 хвилин, а не за 2 години', cls: 'mt' })}${eg('«Не розумієш домашку? Сфотографуй, і за хвилину отримаєш пояснення крок за кроком».')}`, { ic: 'mic' })}
+      ${xin('strategy', 'msg', d, { area: true, rows: 2, max: 160, ph: own(S, 'Ми пояснюємо домашку за 5 хвилин, а не за 2 години', `Одне речення: що «${ideaBits(S).t}» дає клієнту, і чим швидше чи краще за звичний спосіб`), cls: 'mt' })}${eg(S, '«Не розумієш домашку? Сфотографуй, і за хвилину отримаєш пояснення крок за кроком».')}`, { ic: 'mic' })}
     ${box(step(3, 'Де ми шукаємо клієнтів?'), `<p class="sub">Оберіть до трьох каналів. Біля кожного написано, наскільки він підходить вашій групі клієнтів.</p><div class="chlist">${chs.map(([k, c]) => { const [w, cl] = fitWord(g.fit?.[k]), on = d.ch.includes(k); return `<div class="chrow ${on ? 'on' : ''}">${xp('strategy', 'ch', k, `${icon(c.icon, 15)} ${esc(c.t)}`, on, { set: 'tog', max: 3, cls: 'card' })}<span class="xtag">${ONLINE.has(k) ? 'онлайн' : 'офлайн'}</span><span class="xtag ${cl}">${w}</span><small>${esc(c.desc)}</small></div>`; }).join('')}</div>`, { ic: 'compass', side: `обрано ${d.ch.length} з 3` })}
     ${box(step(4, 'Скільки грошей на місяць?'), `<p class="sub">Визначте бюджет і розподіліть його між обраними каналами.</p>${xsl('strategy', 'budget', d, { min: 0, max: 100000, step: 1000, label: 'Бюджет на місяць', u: ' ₴' })}
       ${d.ch.length ? `<div class="xlist" style="margin-top:8px">${d.ch.map(k => `<div class="xitem chw"><div class="xrow"><b>${esc(CHANNELS[k].t)}</b><b style="margin-left:auto">${money0(d.budget * (d.w[k] ?? 50) / wt)}</b></div>${xsl('strategy', `w.${k}`, d, { min: 0, max: 100, step: 5, label: 'Частка бюджету', u: '%', v: d.w[k] ?? 50 })}</div>`).join('')}</div>` : '<p class="sm muted">Спершу оберіть канали в кроці 3.</p>'}`, { ic: 'coins' })}
@@ -115,7 +114,7 @@ reg({
     const M = goalMetrics(), cur = M[d.metric].now(S);
     return `${box(step(1, 'Що ми вимірюємо?'), `<p class="sub">Оберіть число, яке покаже, що справи йдуть добре. Під кожним варіантом написано, скільки зараз.</p><div class="xrow">${Object.entries(M).map(([k, m]) => xp('smart', 'metric', k, m.t, d.metric === k, { sub: `зараз: ${m.fmt(m.now(S))}` })).join('')}</div>`, { ic: 'chart' })}
     ${box(step(2, 'Скільки й до коли?'), `<p class="sub">Визначте число й термін. Ціль має бути трохи складнішою за те, що є зараз, але реалістичною.</p><div class="xg c2">${xsl('smart', 'target', d, { min: M[d.metric].min, max: M[d.metric].max, step: M[d.metric].step, label: 'Цільове значення', u: M[d.metric].u })}${xsl('smart', 'weeks', d, { min: 4, max: 40, step: 1, label: 'Скільки тижнів на це', u: ' тиж.' })}</div>
-      <p class="sm muted">Зараз: ${M[d.metric].fmt(cur)}.</p>${eg('«Мати 30 платних клієнтів до тижня 20»: є що, скільки й коли.')}`, { ic: 'calendar' })}
+      <p class="sm muted">Зараз: ${M[d.metric].fmt(cur)}.</p>${eg(S, '«Мати 30 платних клієнтів до тижня 20»: є що, скільки й коли.', '«Мати 30 платних клієнтів до тижня 20»: є що, скільки й коли.')}`, { ic: 'calendar' })}
     ${box(step(3, 'Навіщо і як досягнете?'), `<p class="sub">Поясніть, чому ціль важлива, і назвіть три кроки.</p>${xin('smart', 'why', d, { label: 'Чому ця ціль важлива саме зараз?', area: true, rows: 2, max: 200, ph: 'Ця ціль важлива, бо без перших платних клієнтів ми не доведемо, що продукт потрібен.' })}<div class="xg" style="margin-top:8px">${d.steps.map((_, i) => xin('smart', `steps.${i}`, d, { label: `Крок ${i + 1}`, ph: ['Поговорити з клієнтами', 'Запустити рекламу', 'Додати функцію оплати'][i], max: 120 })).join('')}</div>`, { ic: 'bulb' })}`;
   },
   live(S, d) {

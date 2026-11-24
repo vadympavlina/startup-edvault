@@ -1,10 +1,9 @@
 // Симулятор стартапу · вправи етапу 1: «Оцініть нішу» і «Що в першу версію». Покрокові, з простими запитаннями й прикладами.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, clamp, sumOf, pc } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, clamp, sumOf, pc, eg } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
-const eg = t => `<p class="ex-eg"><b>Приклад.</b> ${t}</p>`;
 const step = (n, t) => `<span class="ex-n">${n}</span>${t}`;
 const dots = (id, p, cur, label) => `<span class="rdots" role="radiogroup" aria-label="${esc(label)}">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="rdot ${v <= cur ? 'on' : ''}" role="radio" aria-checked="${v === cur}" aria-label="${v} з 5" data-act="ex" data-ex="${id}" data-do="set" data-p="${p}" data-v="${v}" data-t="n"></button>`).join('')}</span>`;
 
@@ -35,7 +34,7 @@ reg({
   view(S, d) {
     fixN(d); const rows = rowsOf(S, d);
     return `${box(step(1, 'Ваша ідея'), `<p class="sub">«${esc(S.I.t)}»: ${esc(S.I.pitch)}</p><p class="sm">Нижче п’ять запитань. Для кожного натисніть на кружечок від 1 до 5: що правее, то краще для вашої ідеї. Під запитанням є підказка, як це з’ясувати.</p>`, { ic: 'bulb' })}
-    ${box(step(2, 'П’ять запитань про нішу'), CRIT.map(([k, t, q, lo, hi, how]) => `<div class="qrow"><div class="qh"><b>${q}</b><small>${t}</small></div>${dots('niche', `me.${k}`, d.me[k] || 3, q)}<div class="qs"><span>${lo}</span><span>${hi}</span></div><p class="how">Як з’ясувати: ${how}</p></div>`).join('') + eg('для ідеї «домашка з поясненням»: проблема болить школярам на 4 з 5, клієнтів багато (4), але конкурентів теж багато (2).'), { ic: 'target' })}
+    ${box(step(2, 'П’ять запитань про нішу'), CRIT.map(([k, t, q, lo, hi, how]) => `<div class="qrow"><div class="qh"><b>${q}</b><small>${t}</small></div>${dots('niche', `me.${k}`, d.me[k] || 3, q)}<div class="qs"><span>${lo}</span><span>${hi}</span></div><p class="how">Як з’ясувати: ${how}</p></div>`).join('') + eg(S, 'для ідеї «домашка з поясненням»: проблема болить школярам на 4 з 5, клієнтів багато (4), але конкурентів теж багато (2).'), { ic: 'target' })}
     ${box(step(3, 'Порівняйте з іншою ідеєю'), `<p class="sub">Це необов’язково, але допомагає зрозуміти, чи ваша ніша найкраща. Додайте готову ідею для порівняння або свою.</p><div class="xrow">${ALTS.map(a => xp('niche', 'cmp', a.id, esc(a.t), d.cmp.includes(a.id), { set: 'tog', max: 3 })).join('')}</div>
       ${d.own.map((o, i) => `<div class="ownn"><div class="plh"><b>${esc(o.t)}</b>${xb('niche', 'delOwn', '', { i, ic: 'trash', cls: 'ib', title: 'Прибрати' })}</div>${CRIT.map(([k, t, q]) => `<div class="rrow"><span>${t}</span>${dots('niche', `own.${i}.s.${k}`, o.s[k] || 3, `${o.t}: ${t}`)}</div>`).join('')}</div>`).join('')}
       ${d.own.length < 2 ? `<div class="xadd" style="margin-top:12px"><input class="inp" id="niche-new" maxlength="240" placeholder="Своя ідея для порівняння, наприклад «майстер-класи з кераміки»" aria-label="Своя ідея">${xb('niche', 'addOwn', 'Додати', { ic: 'plus' })}</div>` : ''}`, { ic: 'chart' })}
@@ -75,7 +74,7 @@ reg({
       <div class="fw"><span class="wk" aria-label="Обсяг роботи: ${wt}">Робота: ${[1, 2, 3].map(i => `<i class="${i <= w ? 'on' : ''}"></i>`).join('')} ${wt}</span>${xp('mvp', `cls.${id}`, inV(id) ? 'could' : 'must', inV(id) ? 'У першій версії' : 'Взяти в першу версію', inV(id), { cls: 'tgl' })}</div></article>`; };
     return `${box(step(1, 'Що найважливіше для клієнта?'), `<p class="sub">Подумайте: без чого людина не отримає користі, заради якої прийшла? Це головна функція. Додайте ще лише те, що справді потрібне першим клієнтам.</p>
       <div class="xrow" style="margin-bottom:10px">${xb('mvp', 'suggest', 'Підказати: головне й оплата', { ic: 'bulb', cls: 'sm' })}<small class="muted">Позначить головну функцію та функцію для оплат.</small></div>
-      <div class="feats2">${feats.map(card).join('')}</div>${eg('для «домашки з поясненням» у першу версію входять: «Фото умови → розв’язок» (головна) і «Оплата в застосунку»; а «Серії днів і нагороди» чекають на потім.')}`, { ic: 'cube', side: `обрано ${feats.filter(([id]) => inV(id)).length} з ${feats.length}` })}
+      <div class="feats2">${feats.map(card).join('')}</div>${eg(S, 'для «домашки з поясненням» у першу версію входять: «Фото умови → розв’язок» (головна) і «Оплата в застосунку»; а «Серії днів і нагороди» чекають на потім.')}`, { ic: 'cube', side: `обрано ${feats.filter(([id]) => inV(id)).length} з ${feats.length}` })}
     ${box(step(2, 'Скільки роботи готові вкласти?'), `<p class="sub">Кожна функція потребує роботи (у грі це «бали»). Чим більше функцій, тим довше розробка. Оберіть, скільки балів готові вкласти в першу версію.</p>${xsl('mvp', 'budget', d, { min: 10, max: 80, step: 1, label: 'Обсяг роботи для першої версії', u: ' балів' })}`, { ic: 'wrench' })}
     ${box(step(3, 'Поставте в розробку'), `<p class="sub">Коли перший список готовий, натисніть кнопку: ці функції з’являться в розділі «Продукт» → «У роботі».</p><div class="xrow">${xb('mvp', 'apply', d.applied ? 'Оновити чергу розробки' : 'Поставити в розробку', { cls: 'primary', ic: 'rocket', dis: !feats.some(([id]) => inV(id)) })}</div>`, { ic: 'rocket' })}`;
   },

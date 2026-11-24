@@ -142,6 +142,13 @@ import { HELP, BOXHELP } from './ex-help.js';
 const rich = t => esc(t).replace(/\[\[(.+?)\|(.+?)\]\]/g, (m, k, l) => term(k, l));
 const introOf = def => HELP[def.id] ? rich(HELP[def.id].plain) : def.intro;
 const helpBox = id => { const h = HELP[id]; return h ? `<aside class="ex-help" aria-label="Що робити"><p class="eh-p">${icon('bulb', 18)}<b>Що робити</b></p><ol class="eh-s">${h.how.map(x => `<li>${esc(x)}</li>`).join('')}</ol></aside>` : ''; };
+/* ═════════ приклади, що не прив'язані до однієї ідеї ═════════
+   Прикладів у вправах багато, і писалися вони для «Помічника з домашки». Тому: для цієї ідеї показуємо готовий приклад,
+   для решти (і для власної ідеї) — чесно підписуємо, що це приклад з іншої ідеї, або беремо слова з ідеї самого учня. */
+export const isHw = S => S.s.idea === 'homework';
+export const ideaBits = S => { const I = S.I || {}, g = (S.seg && S.seg()) || {}; return { t: I.t || 'ваша ідея', problem: I.problem || 'ваша проблема', pitch: I.pitch || '', seg: String(g.short || g.t || 'клієнти').toLowerCase(), segT: g.t || 'клієнти', who: g.who?.[0] || 'клієнт', hw: I.kind === 'hardware' }; };
+export const own = (S, hwText, gen) => isHw(S) ? hwText : gen;
+export const eg = (S, t, gen) => gen != null && !isHw(S) ? `<p class="ex-eg"><b>Приклад.</b> ${gen}</p>` : `<p class="ex-eg"><b>Приклад${isHw(S) ? '' : ' з іншої ідеї («Помічник із домашки»)'}.</b> ${t}${isHw(S) ? '' : ` Подумайте, як це виглядає для «${esc(ideaBits(S).t)}».`}</p>`;
 let CUR = ''; // вправа, яку зараз малюємо: для підказок під заголовками блоків
 const boxHint = title => { for (const m of [BOXHELP[CUR], BOXHELP._]) { if (!m) continue; if (m[title]) return m[title]; const k = Object.keys(m).find(x => x.endsWith('*') && title.startsWith(x.slice(0, -1))); if (k) return m[k]; } return ''; };
 /* ═════════ підказки біля пунктів: кнопка «?» і пояснення «Простими словами» ═════════ */

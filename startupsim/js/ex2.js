@@ -1,7 +1,7 @@
 // Симулятор стартапу · вправи етапу 3 «Позиціонування»: SWOT, унікальна пропозиція, неймінг, PR, відгуки.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, tip, box, checks, mk, hash, clamp, sumOf, plural, X } from './ex-core.js';
+import { reg, xb, xp, xin, tip, box, checks, mk, hash, clamp, sumOf, plural, X, own, ideaBits } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 
@@ -59,6 +59,8 @@ function uspScore(v, S) {
   const parts = [[UF.every(([k]) => len(v[k]) >= 3), 'Заповнено всі частини', 25], [/\d/.test(t), 'Є конкретна цифра чи термін', 20], [len(v.vs) >= 4, 'Названо, чим ви відрізняєтесь від інших', 20], [!UBAD.test(t), 'Без порожніх слів («інноваційний», «найкращий»)', 15], [t.length > 0 && t.length <= 230, 'Не довше двох-трьох речень', 10], [t.toLowerCase().includes(seg) || len(v.who) >= 8, 'Видно, для кого це', 10]];
   return { parts, score: sumOf(parts.map(p => (p[0] ? p[2] : 0))), text: t };
 }
+// підказки до шаблону УТП: для «домашки» — готовий приклад, для решти — слова з вашої ідеї
+const ufGen = (S, k) => { const b = ideaBits(S); return { who: `наприклад, ${b.seg}`, prob: `наприклад, ${b.problem}`, prod: `наприклад, «${b.t}»`, cat: 'наприклад, на що це схоже: «розумний помічник», «експрес-сервіс»', gain: 'головна вигода з цифрою чи терміном', vs: 'наприклад, звичного способу чи конкурента', proof: 'наприклад, відгуки, перевірка експертом, гарантія' }[k] || ''; };
 const REACT = { yes: ['Це саме те, що мені треба!', 'Звучить конкретно, варто спробувати.', 'Чітко: розумію, що отримаю.', 'Беру, поки не дорого.'], maybe: ['Начебто непогано, але чим це краще, ніж у всіх?', 'Може. Мені б ще приклад.', 'Цікаво, але впевненості поки немає.'], no: ['Звучить як усе, що вже траплялося.', 'Загальні слова, нічого конкретного.', 'Незрозуміло, навіщо це мені.'] };
 reg({
   id: 'usp', stage: 2, t: 'Унікальна пропозиція', d: 'Складіть два варіанти пропозиції й перевірте їх на клієнтах.', icon: 'bolt', min: 15,
@@ -68,7 +70,7 @@ reg({
     const cur = d[d.ab], sc = uspScore(cur, S);
     const tab = k => `<button type="button" class="tab ${d.ab === k ? 'on' : ''}" data-act="ex" data-ex="usp" data-do="set" data-p="ab" data-v="${k}" data-t="s" aria-pressed="${d.ab === k}">Варіант ${k.toUpperCase()}${uspScore(d[k], S).score >= 70 ? ' ' + icon('check', 14) : ''}</button>`;
     return `<div class="tabs" role="group" style="margin-bottom:6px">${tab('a')}${tab('b')}</div>
-    ${box(`Варіант ${d.ab.toUpperCase()}: складіть за шаблоном`, `<div class="xg c2">${UF.map(([k, l, ph]) => xin('usp', `${d.ab}.${k}`, d, { label: l, ph: 'наприклад, ' + ph, max: 90 })).join('')}</div>`, { ic: 'pen' })}`;
+    ${box(`Варіант ${d.ab.toUpperCase()}: складіть за шаблоном`, `<div class="xg c2">${UF.map(([k, l, ph]) => xin('usp', `${d.ab}.${k}`, d, { label: l, ph: own(S, 'наприклад, ' + ph, ufGen(S, k)), max: 90 })).join('')}</div>`, { ic: 'pen' })}`;
   },
   live(S, d) {
     const cur = d[d.ab], sc = uspScore(cur, S), t = sc.text, other = uspScore(d[d.ab === 'a' ? 'b' : 'a'], S);
@@ -170,11 +172,11 @@ reg({
   view(S, d) {
     const reach = sumOf(d.media.map(k => MEDIA.find(m => m[0] === k)?.[4] || 0)), c = S.s.company;
     return `${box('1. Новинний привід', `<p class="sub">Про вас напишуть, якщо є що розповісти. Оберіть до двох приводів.</p><div class="xrow">${HOOKS.map(([k, t]) => xp('pr', 'hooks', k, t, d.hooks.includes(k), { set: 'tog', max: 2 })).join('')}</div>`, { ic: 'bulb' })}
-    ${box('2. Прес-реліз', `<div class="xg side"><div>${xin('pr', 'head', d, { label: 'Заголовок', max: 100, ph: 'Школяр із Львова створив застосунок, що пояснює домашку', hint: 'До 90 символів. Краще з дією й цифрою.' })}${xin('pr', 'lead', d, { label: 'Перший абзац: що, хто, коли, де, навіщо', area: true, rows: 4, max: 400, cls: 'mt', ph: 'Сьогодні команда «' + c.name + '» запустила…' })}${xin('pr', 'quote', d, { label: 'Цитата засновника', area: true, rows: 2, max: 200, cls: 'mt', ph: '«Ми хотіли, щоб…», — каже ' + S.s.founder.name })}</div>
+    ${box('2. Прес-реліз', `<div class="xg side"><div>${xin('pr', 'head', d, { label: 'Заголовок', max: 100, ph: own(S, 'Школяр із Львова створив застосунок, що пояснює домашку', `Засновник із України запустив «${ideaBits(S).t}»: що змінилося для клієнтів`), hint: 'До 90 символів. Краще з дією й цифрою.' })}${xin('pr', 'lead', d, { label: 'Перший абзац: що, хто, коли, де, навіщо', area: true, rows: 4, max: 400, cls: 'mt', ph: 'Сьогодні команда «' + c.name + '» запустила…' })}${xin('pr', 'quote', d, { label: 'Цитата засновника', area: true, rows: 2, max: 200, cls: 'mt', ph: '«Ми хотіли, щоб…», — каже ' + S.s.founder.name })}</div>
       <div><article class="news"><small>НОВИНИ · ${esc(c.name)}</small><h4>${esc(d.head || 'Тут буде заголовок')}</h4><p>${esc(d.lead || 'Тут буде перший абзац новини…')}</p>${d.quote ? `<blockquote>${esc(d.quote)}</blockquote>` : ''}<footer>Про компанію: ${esc(c.name)} — ${esc(S.I.pitch)}</footer></article></div></div>
       ${checks([[len(d.head) >= 20 && len(d.head) <= 90, 'Заголовок 20–90 символів', 'Занадто короткий чи задовгий'], [/\d/.test(d.head) || /запуст|створ|відкри|допомож/i.test(d.head), 'У заголовку є дія чи цифра'], [len(d.lead) >= 80, 'Перший абзац відповідає на «що, хто, коли»'], [len(d.quote) >= 20, 'Є жива цитата засновника']])}`, { ic: 'pen' })}
     ${box('3. Де опублікувати', `<div class="xg c2">${MEDIA.map(([k, t, tr, fit, r, who]) => `<div class="chcard ${d.media.includes(k) ? 'on' : ''}">${xp('pr', 'media', k, esc(t), d.media.includes(k), { set: 'tog', max: 3, cls: 'card' })}<small>охоплення ≈ ${r.toLocaleString('uk-UA')} · ${who}</small><small>довіра ${'●'.repeat(tr)}${'○'.repeat(5 - tr)} · підходить вам ${'●'.repeat(fit)}${'○'.repeat(5 - fit)}</small></div>`).join('')}</div><p class="sm muted">Разом може побачити: <b>${reach.toLocaleString('uk-UA')}</b> людей.</p>`, { ic: 'megaphone', side: `обрано ${d.media.length} з 3` })}
-    ${box('4. Складна ситуація', `<p class="sub"><b>Клієнт опублікував допис:</b> «Застосунок двічі списав з мене гроші, а підтримка мовчить». Допис уже має 120 вподобань. Що ви зробите?</p><div class="xg c2">${CRISIS.map(([k, t, why]) => `<div class="chcard ${d.crisis === k ? 'on' : ''}">${xp('pr', 'crisis', k, esc(t), d.crisis === k, { cls: 'card' })}${d.crisis ? `<p class="sm ${k === 'fix' ? '' : 'muted'}">${esc(why)}</p>` : ''}</div>`).join('')}</div>`, { ic: 'shield' })}`;
+    ${box('4. Складна ситуація', `<p class="sub"><b>Клієнт опублікував допис:</b> «${S.I.kind === 'hardware' ? 'Замовлення прийшло з браком, а підтримка мовчить' : 'Мене двічі списали гроші, а підтримка мовчить'}». Допис уже має 120 вподобань. Що ви зробите?</p><div class="xg c2">${CRISIS.map(([k, t, why]) => `<div class="chcard ${d.crisis === k ? 'on' : ''}">${xp('pr', 'crisis', k, esc(t), d.crisis === k, { cls: 'card' })}${d.crisis ? `<p class="sm ${k === 'fix' ? '' : 'muted'}">${esc(why)}</p>` : ''}</div>`).join('')}</div>`, { ic: 'shield' })}`;
   },
   ready(S, d) {
     if (!d.hooks.length) return { ok: false, msg: 'Оберіть новинний привід' };

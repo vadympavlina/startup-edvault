@@ -1,7 +1,7 @@
 // Симулятор стартапу · оболонка: меню, верхня панель, маршрути, старт, підсумки тижня, збереження.
 import { IDEAS, BACKGROUNDS, ACHIEVEMENTS } from './data.js';
 import { Sim, newGame, okState, money, num, pct, plural, dateText, WEEKS, HOURS } from './sim.js';
-import { ARCH, KINDS, SIZES, SCOPES, ideaCheck } from './custom.js';
+import { ARCH, KINDS, SIZES, SCOPES, EXAMPLES, ideaCheck } from './custom.js';
 import { serializeGame, unpackGame, fileName } from './file.js';
 import { icon } from './icons.js';
 import { takeMigration } from './migrate.js';
@@ -325,7 +325,7 @@ function startWizard() {
       <div class="wz-open"><button class="btn" data-act="openFile">${icon('open', 16)} Відкрити збережену гру з файлу</button><small class="muted">Або перетягніть файл .edvault на цю сторінку</small></div></div>`,
     idea: () => `${tag('idea')}<h2>Оберіть нішу й ідею</h2><div class="wz-ideas">${Object.entries(IDEAS).filter(([k]) => k !== 'custom').map(([k, x]) => `<button class="wz-idea ${w.idea === k ? 'on' : ''}" data-w="idea" data-v="${k}" style="--ic:${x.color}"><span class="wz-ic">${icon(x.icon, 26)}</span><b>${esc(x.t)}</b><p>${esc(x.pitch)}</p><small>${{ app: 'Застосунок', hardware: 'Пристрій («залізо»)', saas: 'Сервіс для бізнесу' }[x.kind]} · сегменти: ${Object.values(x.segments).map(g => g.short.toLowerCase()).join(', ')}</small></button>`).join('')}
       <button class="wz-idea own ${w.idea === 'custom' ? 'on' : ''}" data-w="idea" data-v="custom" style="--ic:#111827"><span class="wz-ic">${icon('bulb', 26)}</span><b>Своя ідея</b><p>Опишіть власний стартап: проблему, клієнтів, функції й конкурентів. А ринок покаже, чи праві ви.</p><small>Ваші припущення перевірятимуться інтерв'ю</small></button></div>`,
-    cIdea: () => `${tag('cIdea')}<h2>Опишіть свою ідею</h2>${w.restored ? `<p class="note">${icon('info', 16)} <span>Ми відновили вашу попередню ідею — можна доопрацювати її. <button class="link" data-w="clearIdea">Почати з чистого аркуша</button></span></p>` : ''}<div class="wz-form">
+    cIdea: () => `${tag('cIdea')}<h2>Опишіть свою ідею</h2><div class="wz-ex" role="group" aria-label="Готові заготовки"><span class="muted sm">Немає ідеї? Візьміть заготовку й змініть під себе:</span>${EXAMPLES.map(x => `<button type="button" class="chip-btn" data-w="example" data-v="${x.id}">${esc(x.label)}</button>`).join('')}</div>${w.restored ? `<p class="note">${icon('info', 16)} <span>Ми відновили вашу попередню ідею — можна доопрацювати її. <button class="link" data-w="clearIdea">Почати з чистого аркуша</button></span></p>` : ''}<div class="wz-form">
       <label class="wz-f"><span>Назва ідеї</span><input class="inp" data-c="name" value="${esc(c.name)}" maxlength="40" placeholder="Наприклад: Обмін книжками між школярами" autofocus></label>
       <div class="wz-f"><span>Що це буде</span><div class="wz-kinds">${Object.entries(KINDS).map(([k, x]) => `<button class="opt ${c.kind === k ? 'on' : ''}" data-w="kind" data-v="${k}"><b>${esc(x.t)}</b><small>${esc(x.d)}</small></button>`).join('')}</div></div>
       <label class="wz-f"><span>Яку проблему розв'язуєте (кілька слів)</span><input class="inp" data-c="problem" value="${esc(c.problem)}" maxlength="60" placeholder="Наприклад: пошук підручників і книжок"></label>
@@ -379,6 +379,7 @@ function startWizard() {
     else if (k === 'kind') { c.kind = b.dataset.v; if (c.kind === 'hardware' && c.batchMin < 100) Object.assign(c, { batchMin: 100, leadTime: 3 }); if (c.kind === 'goods' && c.batchMin >= 100) Object.assign(c, { batchMin: 20, leadTime: 1, unitCost: Math.min(c.unitCost, 150) }); }
     else if (k === 'scope') c.scope = b.dataset.v;
     else if (k === 'mode') w.simple = b.dataset.v === 'simple';
+    else if (k === 'example') { const x = EXAMPLES.find(z => z.id === b.dataset.v); if (x) { w.c = c = { ...JSON.parse(JSON.stringify(blankC)), ...JSON.parse(JSON.stringify(x)) }; delete c.id; delete c.label; w.restored = false; } }
     else if (k === 'clearIdea') { w.c = c = JSON.parse(JSON.stringify(blankC)); w.restored = false; try { localStorage.removeItem(IDEA_KEY); } catch { /* приватний режим */ } }
     else if (k === 'addSeg') c.segments.push({ name: '', arch: 'adults', size: '', price: '' });
     else if (k === 'rmSeg') { const i = +b.dataset.v; c.segments.splice(i, 1); for (const f of [...c.features, ...c.competitors]) f.segs = f.segs.filter(x => x !== i).map(x => x > i ? x - 1 : x); }

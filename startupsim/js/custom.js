@@ -47,6 +47,25 @@ export const KINDS = {
 };
 // де працює компанія: частка всього ринку країни
 export const SCOPES = { city: { t: 'В одному місті', k: .07 }, region: { t: 'В області або кількох містах', k: .25 }, country: { t: 'По всій Україні', k: 1 } };
+// Готові заготовки власної ідеї: один клік заповнює майстер, а далі їх можна змінювати. Це лише припущення учня: правду про ринок гра ховає.
+export const EXAMPLES = [
+  { id: 'swap', label: 'Обмін книжками', name: 'Обмін книжками між школярами', kind: 'app', scope: 'city', problem: 'пошук підручників і книжок', pitch: 'Застосунок, де школярі обмінюються підручниками й книжками з тими, хто живе поруч.',
+    segments: [{ name: 'Школярі 12–17 років', arch: 'teens', size: '', price: '' }, { name: 'Батьки школярів', arch: 'parents', size: '', price: '' }],
+    features: [{ name: 'Каталог книжок поруч', desc: 'Карта з книжками сусідів', size: 'm', core: true, segs: [0, 1] }, { name: 'Чат для домовленостей', desc: '', size: 's', core: false, segs: [0] }, { name: 'Рейтинг надійних обмінників', desc: '', size: 's', core: false, segs: [0, 1] }],
+    competitors: [{ name: 'Оголошення в соцмережах', price: 0, weak: 'Складно знайти й довіряти', segs: [0, 1] }] },
+  { id: 'candles', label: 'Свічки на замовлення', name: 'Свічки ручної роботи', kind: 'goods', scope: 'city', problem: 'нудні подарунки', pitch: 'Свічки з ароматами й гравіюванням на замовлення: подарунок із характером.', unitCost: 80, batchMin: 30, leadTime: 2,
+    segments: [{ name: 'Студенти', arch: 'students', size: '', price: '' }, { name: 'Кав’ярні й магазини', arch: 'smb', size: '', price: '' }],
+    features: [{ name: 'Набір ароматів', desc: '', size: 's', core: true, segs: [0, 1] }, { name: 'Гравіювання імені', desc: '', size: 'm', core: false, segs: [0] }, { name: 'Подарункова упаковка', desc: '', size: 's', core: false, segs: [0, 1] }],
+    competitors: [{ name: 'Маркетплейси', price: 300, weak: 'Однакові свічки без душі', segs: [0] }] },
+  { id: 'tutor', label: 'Гурток з програмування', name: 'Гурток програмування для дітей', kind: 'service', scope: 'city', problem: 'нудна комп’ютерна освіта', pitch: 'Малі групи, де діти за місяць роблять свою першу гру. Абонемент на заняття.',
+    segments: [{ name: 'Батьки дітей 8–13 років', arch: 'parents', size: '', price: '' }, { name: 'Школи й гуртки', arch: 'schools', size: '', price: '' }],
+    features: [{ name: 'Малі групи до 6 дітей', desc: '', size: 'm', core: true, segs: [0, 1] }, { name: 'Звіт батькам щомісяця', desc: '', size: 's', core: false, segs: [0] }, { name: 'Проєкт на показ у кінці місяця', desc: '', size: 's', core: false, segs: [0, 1] }],
+    competitors: [{ name: 'Великі школи програмування', price: 1500, weak: 'Великі групи, мало уваги', segs: [0] }] },
+  { id: 'crm', label: 'Облік для кав’ярень', name: 'Облік залишків для кав’ярень', kind: 'saas', scope: 'region', problem: 'облік продуктів у кав’ярні', pitch: 'Сервіс, який рахує залишки кави, молока й десертів і підказує, що пора замовити.',
+    segments: [{ name: 'Власники кав’ярень', arch: 'smb', size: '', price: '' }, { name: 'Мережі кав’ярень', arch: 'corp', size: '', price: '' }],
+    features: [{ name: 'Облік залишків за зміну', desc: '', size: 'm', core: true, segs: [0, 1] }, { name: 'Підказка, що замовити', desc: '', size: 'm', core: false, segs: [0, 1] }, { name: 'Звіт про списання', desc: '', size: 's', core: false, segs: [1] }],
+    competitors: [{ name: 'Таблиці Excel', price: 0, weak: 'Помилки й забуті записи', segs: [0] }] },
+];
 export const DEFAULT_UW = ['пристрій', 'пристрої', 'пристроїв', 'пристрою'];
 export const SIZES = { s: { t: 'Мала', cost: 5 }, m: { t: 'Середня', cost: 10 }, l: { t: 'Велика', cost: 16 } };
 

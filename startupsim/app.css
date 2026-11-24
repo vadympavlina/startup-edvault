@@ -782,3 +782,7 @@ body.simple .adv { display: none; }
 .chat .ivtag.fog { border-left-color: var(--warn, #d97706); background: #fff4e0; color: #7a4a06; }
 .chat .ivtag b { font-weight: 700; }
 .chip.gold { background: #fff3c4; color: #7a5a00; }
+.wz-ex { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 14px; }
+.chip-btn { border: 2px solid var(--ink); background: var(--white); color: var(--ink); border-radius: 999px; padding: 4px 12px; font: 600 13px Rubik, sans-serif; cursor: pointer; }
+.chip-btn:hover { background: var(--ink); color: var(--white); }
+.chip-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }

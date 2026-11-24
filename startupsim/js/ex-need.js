@@ -1,10 +1,9 @@
 // Симулятор стартапу · вправи етапу 1: «Конкуренти» і «Що болить клієнтам». Обидві покрокові, з прикладами й підказками.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, tip, box, checks, bar, hash, clamp, sumOf } from './ex-core.js';
+import { reg, xb, xp, xin, tip, box, checks, bar, hash, clamp, sumOf, eg, ideaBits, own } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
-const eg = t => `<p class="ex-eg"><b>Приклад.</b> ${t}</p>`;
 const step = (n, t) => `<span class="ex-n">${n}</span>${t}`;
 // оцінка від 1 до 5: п'ять кружечків
 const dots = (id, p, cur, label) => `<span class="rdots" role="radiogroup" aria-label="${esc(label)}">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="rdot ${v <= cur ? 'on' : ''}" role="radio" aria-checked="${v === cur}" aria-label="${v} з 5" data-act="ex" data-ex="${id}" data-do="set" data-p="${p}" data-v="${v}" data-t="n"></button>`).join('')}</span>`;
@@ -28,12 +27,12 @@ reg({
       <div class="cmpl">${d.comps.map((c, i) => `<div class="cmpi"><b>${esc(c.t)}</b><span class="xrow">${TYPES.map(([k, t]) => xp('market', `comps.${i}.type`, k, t, c.type === k)).join('')}</span>${xb('market', 'delComp', '', { i, ic: 'trash', cls: 'ib', title: 'Прибрати' })}</div>`).join('') || '<p class="muted">Поки порожньо. Додайте перший варіант нижче.</p>'}</div>
       ${d.comps.length < 8 ? `<div class="xadd" style="margin-top:12px"><input class="inp" id="market-new" maxlength="200" placeholder="Назва конкурента чи способу" aria-label="Новий конкурент">${xb('market', 'addComp', 'Додати', { ic: 'plus' })}</div>
       <div class="xrow sg" style="margin-top:8px"><small class="muted">Швидко додати:</small>${SUBS.filter(x => !used.includes(x.toLowerCase())).map(x => `<button type="button" class="xchip" data-act="ex" data-ex="market" data-do="addComp" data-a="${esc(x)}">+ ${esc(x)}</button>`).join('')}</div>` : ''}
-      ${eg('для «домашки з поясненням» конкуренти: «репетитор» (інший спосіб), «сайти з готовими відповідями» (схожий продукт), «питають друзів» (роблять самі).')}`, { ic: 'search', side: `${d.comps.length} з 8` })}
+      ${eg(S, 'для «домашки з поясненням» конкуренти: «репетитор» (інший спосіб), «сайти з готовими відповідями» (схожий продукт), «питають друзів» (роблять самі).')}`, { ic: 'search', side: `${d.comps.length} з 8` })}
     ${box(step(2, 'Оцініть їх і себе від 1 до 5'), `<p class="sub">Натискайте на кружечки: 1 — погано, 5 — відмінно. Для «Ми» оцініть, яким ви плануєте бути. Оцінки можна орієнтовні: головне зрозуміти, де ви сильніші.</p>
       ${[...d.comps.map((c, i) => ({ c, i })), { me: true }].map(({ c, i, me }) => `<div class="rcard ${me ? 'me' : ''}"><h3>${me ? 'Ми: наш продукт' : esc(c.t)}</h3>${CR.map(([k, t, hint]) => `<div class="rrow"><span>${t}<small>${hint}</small></span>${dots('market', me ? `me.r.${k}` : `comps.${i}.r.${k}`, (me ? d.me.r[k] : c.r?.[k]) || 3, `${me ? 'Ми' : c.t}: ${t}`)}</div>`).join('')}
         ${me ? '' : `<div class="xg c2" style="margin-top:8px">${xin('market', `comps.${i}.plus`, d, { label: 'Чим добрий', ph: 'наприклад, дешево', max: 90 })}${xin('market', `comps.${i}.minus`, d, { label: 'Чим слабкий', ph: 'наприклад, довго чекати', max: 90 })}</div>`}</div>`).join('')}`, { ic: 'chart' })}
     ${box(step(3, 'Чим ви будете відрізнятися?'), `<p class="sub">Один-два речення: чому клієнт обере саме вас. Спирайтеся на ті критерії, де ваша оцінка вища, ніж у конкурентів (праворуч видно, де).</p>${xin('market', 'why', d, { area: true, rows: 3, max: 300, ph: 'Ми швидші за репетитора, бо пояснюємо одразу, а коштуємо дешевше.' })}
-      <div class="xrow">${xb('market', 'hint', 'Підказати початок фрази', { ic: 'bulb', cls: 'sm' })}</div>${eg('«На відміну від репетиторів, ми пояснюємо задачу одразу й дешевше: 99 грн на місяць замість 600 за годину.»')}`, { ic: 'flag' })}`;
+      <div class="xrow">${xb('market', 'hint', 'Підказати початок фрази', { ic: 'bulb', cls: 'sm' })}</div>${eg(S, '«На відміну від репетиторів, ми пояснюємо задачу одразу й дешевше: 99 грн на місяць замість 600 за годину.»')}`, { ic: 'flag' })}`;
   },
   live(S, d) {
     fixM(d);
@@ -93,11 +92,11 @@ reg({
       <div class="pl">${d.pains.map((p, i) => `<div class="pli ${i === topIdx(d) ? 'is-top' : ''}"><div class="plh"><b>${esc(p.t)}</b>${xb('needs', 'delPain', '', { i, ic: 'trash', cls: 'ib', title: 'Прибрати' })}</div><div class="plc"><span>Наскільки болить ${dots('needs', `pains.${i}.s`, p.s || 3, `${p.t}: наскільки болить`)}</span><span>Як часто <span class="xrow">${FREQ.map(([k, t]) => xp('needs', `pains.${i}.f`, k, t, (p.f || 'some') === k)).join('')}</span></span></div></div>`).join('') || '<p class="muted">Поки порожньо. Додайте першу проблему нижче.</p>'}</div>
       ${d.pains.length < 5 ? `<div class="xadd" style="margin-top:12px"><input class="inp" id="nd-pain" maxlength="200" placeholder="Своїми словами: що саме болить?" aria-label="Нова проблема">${xb('needs', 'addPain', 'Додати', { ic: 'plus' })}</div>
       <div class="xrow sg" style="margin-top:8px"><small class="muted">Підказки:</small>${free.map(x => `<button type="button" class="xchip" data-act="ex" data-ex="needs" data-do="addPain" data-a="${esc(x)}">+ ${esc(x)}</button>`).join('')}</div>` : ''}
-      ${eg('«Не розумію домашку» · болить на 4 з 5 · трапляється щодня. Це сильна, часта проблема, тож вона важлива.')}`, { ic: 'alert', side: `${d.pains.length} з 5` })}
+      ${eg(S, '«Не розумію домашку» · болить на 4 з 5 · трапляється щодня. Це сильна, часта проблема, тож вона важлива.')}`, { ic: 'alert', side: `${d.pains.length} з 5` })}
     ${box(step(4, 'Як вони справляються зараз?'), `<p class="sub">Люди вже якось розв’язують проблему. Позначте, як саме. Це ваші майбутні конкуренти.</p><div class="xrow">${[...new Set([...g.solutions, ...d.now])].map(x => xp('needs', 'now', x, esc(x), d.now.includes(x), { set: 'tog' })).join('')}</div>
       <div class="xadd" style="margin-top:10px"><input class="inp" id="nd-now" maxlength="200" placeholder="Свій варіант" aria-label="Свій спосіб">${xb('needs', 'add', '', { p: 'now', from: '#nd-now', max: 8, ic: 'plus', cls: 'ib', title: 'Додати' })}</div>`, { ic: 'compass' })}
     ${box(step(5, 'Головна потреба'), `<p class="sub">Складіть одне речення за шаблоном: <b>«Коли… я хочу… щоб…»</b>. Воно показує, що клієнту справді потрібно (результат), а не яку програму він хоче.</p>
-      <div class="xg">${xin('needs', 'jtbd.when', d, { label: 'Коли (ситуація)', ph: g.who?.[0] ? `Коли ${g.who[0]} сідає за домашку й не розуміє тему` : 'Коли…', max: 100 })}${xin('needs', 'jtbd.want', d, { label: 'Я хочу (що зробити)', ph: 'швидко зрозуміти, як розв’язувати', max: 100 })}${xin('needs', 'jtbd.so', d, { label: 'Щоб (навіщо)', ph: 'здати роботу вчасно й не нервувати', max: 100 })}</div>
+      <div class="xg">${xin('needs', 'jtbd.when', d, { label: 'Коли (ситуація)', ph: own(S, g.who?.[0] ? `Коли ${g.who[0]} сідає за домашку й не розуміє тему` : 'Коли…', g.who?.[0] ? `Коли ${g.who[0]} стикається з проблемою «${ideaBits(S).problem}»` : 'Коли…'), max: 100 })}${xin('needs', 'jtbd.want', d, { label: 'Я хочу (що зробити)', ph: own(S, 'швидко зрозуміти, як розв’язувати', 'швидко й без зайвих зусиль розв’язати цю проблему'), max: 100 })}${xin('needs', 'jtbd.so', d, { label: 'Щоб (навіщо)', ph: own(S, 'здати роботу вчасно й не нервувати', 'зекономити час і гроші й не нервувати'), max: 100 })}</div>
       <div class="xrow" style="margin-top:8px">${xb('needs', 'fill', 'Підставити з головної проблеми', { ic: 'bulb', cls: 'sm' })}</div>`, { ic: 'flag' })}`;
   },
   live(S, d) {

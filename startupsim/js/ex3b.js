@@ -1,7 +1,7 @@
 // Симулятор стартапу · вправи етапу 5 «Гроші на старт»: джерела фінансування, інвестиції в стартап, гранти й конкурси.
 import { esc, term, donut } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, X, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, X, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, own, ideaBits, isHw } from './ex-core.js';
 
 const len = s => String(s || '').trim().length;
 const dots = n => `<span class="dots5" aria-label="${n} з 5">${'●'.repeat(n)}<i>${'●'.repeat(5 - n)}</i></span>`;
@@ -119,10 +119,12 @@ const talksOf = S => sumOf(Object.values(S.s.know).map(k => k.n));
 const PROG = [
   { k: 'start', t: 'Старт-грант для молодих підприємців', prize: 100000, diff: 55, who: 'Для тих, хто починає: потрібна ідея і кілька розмов із майбутніми клієнтами.', kw: /клієнт|ринок|ціль/i, req: S => [['Є опис проблеми в бізнес-плані (хоча б 3 блоки)', S.canvasFilled() >= 3], ['Ви поговорили хоча б із трьома людьми', talksOf(S) >= 3]] },
   { k: 'school', t: 'Шкільний конкурс бізнес-ідей', prize: 20000, diff: 40, who: 'Приз за кращу ідею. Дивляться, чи ідея зрозуміла й цікава.', kw: /ідея|нов|унікал|вирішу/i, req: S => [['Описано проблему в бізнес-плані', (S.s.canvas?.problem || '').trim().length >= 10]] },
-  { k: 'social', t: 'Соціальний грант', prize: 150000, diff: 62, who: 'Для ідей, що допомагають людям: школярам, літнім, тваринам, природі.', kw: /допомог|суспіль|доступн|громад|діт/i, req: S => [['Описано, для кого цей проєкт', !!S.s.canvas?.segment], ['Проєкт допомагає людям (ваше твердження)', !!X(S, 'grants').social]] },
+  { k: 'social', t: 'Соціальний грант', prize: 150000, diff: 62, who: 'Для ідей, що допомагають людям: дітям, літнім, тваринам, природі.', kw: /допомог|суспіль|доступн|громад|діт/i, req: S => [['Описано, для кого цей проєкт', !!S.s.canvas?.segment], ['Проєкт допомагає людям (ваше твердження)', !!X(S, 'grants').social]] },
   { k: 'accel', t: 'Програма акселератора', prize: 30000, diff: 60, who: 'Невеликі гроші й наставники. Беруть тих, у кого вже є перша версія продукту.', kw: /команд|зростан|клієнт|рух/i, req: S => [['Є перша версія або функції в розробці', S.s.product.launched || S.s.product.built.length > 0 || S.s.product.queue.length > 0]] },
 ];
 const FIELDS = [['problem', 'Яку проблему ви розв’язуєте і в кого вона?', 'Школярі витрачають по 2 години на домашку й не розуміють пояснень…', 40, 'Підказка: опишіть одну людину. Хто вона і що її бісить?'], ['solution', 'Як ви її розв’язуєте?', 'Застосунок, який крок за кроком пояснює розв’язок…', 40, 'Підказка: одне-два речення, без складних слів.'], ['team', 'Хто в команді?', 'Я розробляю продукт; допомагає подруга-дизайнерка…', 20, 'Підказка: навіть якщо ви один, напишіть, у чому ви сильні.'], ['plan', 'На що підуть гроші? Що вийде через півроку?', 'Реклама — 40%, розробка — 60%. За 6 місяців: 500 користувачів, 50 платних…', 40, 'Підказка: додайте хоча б дві цифри, наприклад, суму й кількість людей.']];
+// підказки до заявки й пітчу: для «домашки» — готові приклади, для решти — слова з вашої ідеї
+const fieldGen = (S, k) => { const b = ideaBits(S); return { problem: `${b.seg[0].toUpperCase() + b.seg.slice(1)} стикаються з проблемою «${b.problem}»: скільки це коштує їм часу чи грошей…`, solution: `«${b.t}»: ${b.pitch ? b.pitch.charAt(0).toLowerCase() + b.pitch.slice(1) : 'що саме ви робите крок за кроком'}`, team: 'Я роблю…; допомагає… із досвідом…', plan: 'За 3 місяці: перша версія, 20 клієнтів, перші гроші…' }[k] || ''; };
 function appScore(a, P) {
   const f = FIELDS.filter(([k, , , m]) => len(a[k]) >= m).length, txt = FIELDS.map(([k]) => a[k] || '').join(' '), nums = (txt.match(/\d+/g) || []).length;
   const fine = len(txt) >= 180 && len(txt) <= 900;
@@ -150,7 +152,7 @@ reg({
     };
     return `${box('1. Оберіть конкурс', `<p class="hl5">Біля кожного видно приз і чи ви вже підходите.</p><div class="slist" role="radiogroup" aria-label="Конкурси">${PROG.map(row).join('')}</div>`, { ic: 'award' })}
     ${box(`2. Чи ви підходите: ${P.t}`, `<p class="hl5">Це умови конкурсу. Галочка означає, що умову вже виконано.</p>${checks(reqs.map(r => [r[1], r[0]]))}${P.k === 'social' ? `<label class="switch" style="margin-top:8px"><input type="checkbox" data-exi="grants" data-p="social" ${d.social ? 'checked' : ''}><span></span>Так, наш проєкт допомагає людям</label>` : ''}${ok ? '' : tip('Не всі умови виконано. Заявку подати можна, але шанс малий. Краще спершу виконати умови.', 'warn')}`, { ic: 'check' })}
-    ${box('3. Заявка', `<p class="hl5">Пишіть простими словами, по одному-два речення. Підказка є під кожним полем.</p>${FIELDS.map(([k, l, ph, , hint]) => xin('grants', `a.${P.k}.${k}`, d, { label: l, area: true, rows: 3, max: 400, ph, hint, cls: 'mt' })).join('')}`, { ic: 'pen' })}`;
+    ${box('3. Заявка', `<p class="hl5">Пишіть простими словами, по одному-два речення. Підказка є під кожним полем.</p>${FIELDS.map(([k, l, ph, , hint]) => xin('grants', `a.${P.k}.${k}`, d, { label: l, area: true, rows: 3, max: 400, ph: own(S, ph, fieldGen(S, k)), hint, cls: 'mt' })).join('')}`, { ic: 'pen' })}`;
   },
   live(S, d) {
     const P = PROG.find(p => p.k === d.prog) || PROG[0], a = d.a[P.k] ||= {}, sc = appScore(a, P), r = d.res[P.k];
@@ -178,6 +180,7 @@ reg({
 
 /* ═════════ Пітч за хвилину (необов'язкова) ═════════ */
 const PIT = [['problem', 'Проблема', 'Школярі витрачають по дві години на домашку й не розуміють пояснень учителя.'], ['solution', 'Рішення', 'Наш застосунок крок за кроком пояснює розв’язок за фото умови.'], ['market', 'Ринок', 'В Україні 900 тисяч школярів 12–17 років, і більшість має смартфон.'], ['trac', 'Що вже зроблено', 'За два тижні 40 учнів користувалися, 6 заплатили 70 ₴.'], ['team', 'Команда', 'Я пишу код; допомагає вчителька математики з 10-річним досвідом.'], ['ask', 'Що просите', 'Шукаю 300 тисяч ₴ на 6 місяців: реклама й розробка.']];
+const pitGen = (S, k) => { const b = ideaBits(S); return { problem: `${b.seg[0].toUpperCase() + b.seg.slice(1)} стикаються з проблемою «${b.problem}».`, solution: `«${b.t}»: ${b.pitch ? b.pitch.charAt(0).toLowerCase() + b.pitch.slice(1) : 'одне речення про рішення'}`, market: 'Скільки людей має цю проблему, хоча б приблизно.', trac: 'За два тижні N людей спробували, M заплатили.', team: 'Я роблю…; допомагає… із досвідом…', ask: 'Шукаю N ₴ на N місяців: на що саме.' }[k] || ''; };
 const PITH = { problem: 'Хто страждає і від чого?', solution: 'Що ви пропонуєте, одним реченням.', market: 'Скільки людей має цю проблему? Хоча б приблизно.', trac: 'Що вже зробили? Додайте цифру: скільки людей спробували чи заплатили.', team: 'Хто з вами і чим допомагає.', ask: 'Скільки грошей просите й на що, наприклад: 100 000 ₴ на рекламу.' };
 const wordsOf = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
 const pitchSc = d => { const p = d.p || {}, f = k => len(p[k]) >= 25, num = k => /\d/.test(p[k] || ''); const all = PIT.map(([k]) => p[k] || '').join(' ');
@@ -189,7 +192,7 @@ reg({
     steps: (S, d) => { const p = d.p || {}, six = PIT.every(([k]) => len(p[k]) >= 20), nums = /\d/.test(p.trac || '') && /\d/.test(p.ask || ''); return [['Напишіть шість частин', six, 0], ['Додайте цифри', six && nums, 3], ['Подивіться, кому сподобається', six && nums, 6]]; },
   },
   data: () => ({ p: {} }),
-  view(S, d) { return `<p class="hl5">Біля кожної частини є «?» з поясненням і прикладом. Цифри (скільки людей, скільки грошей) роблять пітч переконливішим.</p><div class="xg c2">${PIT.map(([k, t, ph], i) => `<div class="xbox"><header><span class="xtag">${i + 1}</span><h2>${t}</h2>${qbtn(k)}</header>${xin('pitch', `p.${k}`, d, { area: true, rows: 2, max: 160, ph: 'наприклад: ' + ph, hint: PITH[k] })}${qbody(k, `${PITH[k]} Приклад: ${esc(ph)}`)}</div>`).join('')}</div>`; },
+  view(S, d) { return `<p class="hl5">Біля кожної частини є «?» з поясненням і прикладом. Цифри (скільки людей, скільки грошей) роблять пітч переконливішим.</p><div class="xg c2">${PIT.map(([k, t, ph], i) => `<div class="xbox"><header><span class="xtag">${i + 1}</span><h2>${t}</h2>${qbtn(k)}</header>${xin('pitch', `p.${k}`, d, { area: true, rows: 2, max: 160, ph: 'наприклад: ' + own(S, ph, pitGen(S, k)), hint: PITH[k] })}${qbody(k, `${PITH[k]} Приклад${isHw(S) ? '' : ' (з іншої ідеї)'}: ${esc(ph)}`)}</div>`).join('')}</div>`; },
   live(S, d) {
     const r = pitchSc(d), w = r.words, sec = Math.round(w / 2.5);
     return `${box('Кому це сподобається', `${[['angel', 'Бізнес-ангел', 'шукає сильну команду й перші результати'], ['fund', 'Венчурний фонд', 'шукає великий ринок і швидке зростання'], ['accel', 'Акселератор', 'шукає чітку проблему й готовність вчитися']].map(([k, t, h]) => `<div class="cmp"><span>${t}<small class="muted" style="display:block">${h}</small></span>${bar(r[k] / 100, { color: r[k] >= 70 ? 'var(--ok)' : '#e0a100', label: t })}<b>${r[k]}%</b></div>`).join('')}<p class="sm muted">Слів: ${w}. Це приблизно ${sec} с мовлення. ${sec > 70 ? 'Задовго: скоротіть до хвилини.' : sec < 25 ? 'Занадто коротко.' : 'Вкладаєтесь у хвилину.'}</p>`, { ic: 'chart' })}`;
