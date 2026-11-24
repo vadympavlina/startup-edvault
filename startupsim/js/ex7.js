@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 9 «Платежі й капітал»: платіжні інструменти, види грошей, інвестиційний портфель, крипта й трейдинг.
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 /* ═════════ Віртуальні банки й картки ═════════ */
 const TOOLS = { card: 'Фізична картка', vcard: 'Віртуальна картка з лімітом', onecard: 'Одноразова картка', wallet: 'Apple Pay / Google Pay', p2p: 'Переказ за номером картки', iban: 'Рахунок (IBAN)', link: 'Платіжне посилання або QR', cash: 'Готівка' };

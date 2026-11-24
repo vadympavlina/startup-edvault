@@ -149,6 +149,20 @@ export const isHw = S => S.s.idea === 'homework';
 export const ideaBits = S => { const I = S.I || {}, g = (S.seg && S.seg()) || {}; return { t: I.t || 'ваша ідея', problem: I.problem || 'ваша проблема', pitch: I.pitch || '', seg: String(g.short || g.t || 'клієнти').toLowerCase(), segT: g.t || 'клієнти', who: g.who?.[0] || 'клієнт', hw: I.kind === 'hardware' }; };
 export const own = (S, hwText, gen) => isHw(S) ? hwText : gen;
 export const eg = (S, t, gen) => gen != null && !isHw(S) ? `<p class="ex-eg"><b>Приклад.</b> ${gen}</p>` : `<p class="ex-eg"><b>Приклад${isHw(S) ? '' : ' з іншої ідеї («Помічник із домашки»)'}.</b> ${t}${isHw(S) ? '' : ` Подумайте, як це виглядає для «${esc(ideaBits(S).t)}».`}</p>`;
+/* Довжина осмисленого тексту. Сміття («ааааа», «asdf asdf asdf», довгий рядок без пробілів) вважається майже порожнім, тому вправа не завершиться,
+   поки учень не напише справжню відповідь. Дуже короткі рядки (до 5 знаків) і числа не перевіряються. */
+export const len = s => {
+  const t = String(s ?? '').trim(), n = t.length;
+  if (n < 5) return n;
+  const low = t.toLowerCase(), letters = low.replace(/[^a-zа-яіїєґ]/g, ''), words = low.split(/\s+/).filter(Boolean);
+  if (!letters) return n;                                                                // числа й символи (телефон) не перевіряємо
+  if (/(.)\1{4,}/.test(low)) return 3;                                                   // «ааааа»
+  if (new Set(letters).size < Math.min(6, n / 4)) return 3;                              // кілька літер на весь рядок
+  if (n >= 25 && words.length < 3) return 3;                                             // довгий рядок без пробілів
+  if (words.length >= 4 && new Set(words).size <= Math.ceil(words.length / 3)) return 3; // те саме слово знову й знову
+  if (letters.length >= 15 && (letters.match(/[аеєиіїоуюяaeiouy]/g) || []).length / letters.length < .2) return 3; // майже без голосних
+  return n;
+};
 let CUR = ''; // вправа, яку зараз малюємо: для підказок під заголовками блоків
 const boxHint = title => { for (const m of [BOXHELP[CUR], BOXHELP._]) { if (!m) continue; if (m[title]) return m[title]; const k = Object.keys(m).find(x => x.endsWith('*') && title.startsWith(x.slice(0, -1))); if (k) return m[k]; } return ''; };
 /* ═════════ підказки біля пунктів: кнопка «?» і пояснення «Простими словами» ═════════ */

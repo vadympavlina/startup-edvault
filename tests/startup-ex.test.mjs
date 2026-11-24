@@ -136,3 +136,19 @@ test('вправи не нав’язують «домашку»: для інш�
     }
   }
 });
+
+test('текстові вправи не приймають сміття замість відповіді («ааааа», «asdf asdf»), а справжній текст приймають', async () => {
+  const { len } = await import('../startupsim/js/ex-core.js');
+  for (const junk of ['ааааааааааа', 'asdf jkl asdf jkl asdf jkl', 'прпрпрпрпрпрпрпрпрпрпрпрпрпрп', 'нннннн ннннн нннннн нннннн', 'длинныйрядокбезпробілівдлинныйрядок']) assert.ok(len(junk) < 8, `«${junk}» має вважатися сміттям`);
+  for (const ok of ['Спершу потрібен дизайнер, бо ніхто не вміє малювати', '0501234567', 'marta@gmail.com', 'Школярі', 'Дизайнера й розробника']) assert.equal(len(ok), ok.length, `«${ok}» має проходити`);
+  const mutate = (o, f) => typeof o === 'string' ? f(o) : Array.isArray(o) ? o.map(x => mutate(x, f)) : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, mutate(v, f)])) : o;
+  const PROTECTED = ['interview', 'premortem', 'swot', 'pr', 'price', 'finplan', 'assort', 'sources', 'channels', 'funnel', 'promomix', 'leadership', 'roles', 'hiring', 'exchanges', 'trading', 'abtest', 'journey', 'conflict', 'niche', 'market', 'strategy', 'needs', 'smart', 'bmodel', 'palette', 'bbook', 'brandvoice', 'w5'];
+  const S = make('homework', {});
+  for (const id of PROTECTED) {
+    const def = EX[id], d = X(S, id); FILL[id](S, d);
+    assert.ok(def.ready(S, d).ok, `${id}: добра відповідь має проходити`);
+    const junked = mutate(JSON.parse(JSON.stringify(d)), s => s.length >= 8 ? 'а'.repeat(s.length) : s);
+    for (const k of Object.keys(d)) delete d[k]; Object.assign(d, junked);
+    assert.equal(def.ready(S, d).ok, false, `${id}: сміття замість тексту не має проходити`);
+  }
+});

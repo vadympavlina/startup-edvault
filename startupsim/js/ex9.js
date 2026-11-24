@@ -1,9 +1,8 @@
 // Симулятор стартапу · додаткові вправи етапів 5–9: торг з інвестором, A/B-тест, подорож клієнта, складна розмова, ціна години, шахрайство, складні відсотки.
 import { esc, sideChart } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, mk, hash, clamp, sumOf, money0, pc, qbtn, qbody } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, mk, hash, clamp, sumOf, money0, pc, qbtn, qbody, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const fm = n => Math.round(n).toLocaleString('uk-UA').replace(/\s/g, ' ');
 
 /* ═════════ Торг з інвестором ═════════ */

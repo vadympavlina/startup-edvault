@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 3 «Позиціонування»: SWOT, унікальна пропозиція, неймінг, PR, відгуки.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, tip, box, checks, mk, hash, clamp, sumOf, plural, X, own, ideaBits } from './ex-core.js';
+import { reg, xb, xp, xin, tip, box, checks, mk, hash, clamp, sumOf, plural, X, own, ideaBits, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 /* ═════════ SWOT ═════════ */
 const Q = { S: ['Сильні сторони', 'всередині компанії, допомагає', 'ok'], W: ['Слабкі сторони', 'всередині компанії, заважає', 'bad'], O: ['Можливості', 'ззовні, допомагає', 'ok'], T: ['Загрози', 'ззовні, заважає', 'bad'] };

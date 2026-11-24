@@ -1,9 +1,8 @@
 // Симулятор стартапу · додаткові вправи етапів 1–4: інтерв’ю з клієнтом, палітра бренду, пре-мортем, календар грошей.
 import { esc, sideChart } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, xsel, tip, box, checks, bar, clamp, sumOf, money0 } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xsel, tip, box, checks, bar, clamp, sumOf, money0, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 /* ═════════ Інтерв’ю з клієнтом ═════════ */
 const IQ = [

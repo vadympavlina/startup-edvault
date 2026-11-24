@@ -3,9 +3,8 @@ import { MODELS } from './data.js';
 import { money } from './sim.js';
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, xnum, tip, box, checks, bar, radar, stars, hash, clamp, sumOf, pc, money0 } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xnum, tip, box, checks, bar, radar, stars, hash, clamp, sumOf, pc, money0, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 /* ═════════ Модель заробітку ═════════ */
 const MODEL_X = { free: { su: .4, pay: 1, arpu: 3, hint: 'Заробіток із реклами: 3 ₴ на місяць з користувача.' }, freemium: { su: .12, pay: .05, hint: 'Платить 5 із 100 зареєстрованих.' }, trial: { su: .06, pay: .35, hint: 'Реєструється менше, а платить третина.' }, device: { su: .015, pay: 1, once: true, hint: 'Платять одразу, але є собівартість товару.' }, b2b: { su: .004, pay: .5, mult: 25, hint: 'Клієнтів мало, зате кожен — це організація.' } };

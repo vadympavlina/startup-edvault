@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 8 «Фриланс»: біржі, резюме, пошук замовника й спілкування, оформлення ФОП.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, xnum, xcol, tip, box, checks, bar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xnum, xcol, tip, box, checks, bar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 /* ═════════ Біржі фрилансу ═════════ */
 const PLAT = [

@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 5 «Гроші на старт»: джерела фінансування, інвестиції в стартап, гранти й конкурси.
 import { esc, term, donut } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, X, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, own, ideaBits, isHw } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, X, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, own, ideaBits, isHw, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const dots = n => `<span class="dots5" aria-label="${n} з 5">${'●'.repeat(n)}<i>${'●'.repeat(5 - n)}</i></span>`;
 
 /* ═════════ Джерела фінансування ═════════ */

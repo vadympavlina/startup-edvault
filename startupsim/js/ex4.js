@@ -3,9 +3,8 @@ import { FONTS, SYMBOLS } from './mods.js';
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
 import { logo } from './ui.js';
-import { reg, xb, xp, xin, xsl, xnum, xcol, tip, box, checks, bar, X, clamp, sumOf, pc, money0, qbtn, qbody, lrow, tg5, own } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xnum, xcol, tip, box, checks, bar, X, clamp, sumOf, pc, money0, qbtn, qbody, lrow, tg5, own, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const price0 = S => S.s.price[S.s.target] || 100;
 const lerp = (a, b, t) => a + (b - a) * t;
 

@@ -2,9 +2,8 @@
 import { CHANNELS } from './data.js';
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, hash, clamp, sumOf, money0, goalMetrics, eg, ideaBits, own } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, hash, clamp, sumOf, money0, goalMetrics, eg, ideaBits, own, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const step = (n, t) => `<span class="ex-n">${n}</span>${t}`;
 const chips = (id, p, opts, cur, o = {}) => opts.map(v => xp(id, p, v, esc(v), cur === v, o)).join('');
 const dots = (id, p, cur, label) => `<span class="rdots" role="radiogroup" aria-label="${esc(label)}">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="rdot ${v <= cur ? 'on' : ''}" role="radio" aria-checked="${v === cur}" aria-label="${v} з 5" data-act="ex" data-ex="${id}" data-do="set" data-p="${p}" data-v="${v}" data-t="n"></button>`).join('')}</span>`;
@@ -18,7 +17,7 @@ const W5 = [
   ['where', 'Де вони шукають і купують?', ['В інтернеті', 'У соцмережах', 'У магазині', 'Через знайомих', 'На заходах']],
 ];
 const segScore = s => Math.round(((s.size || 3) * (s.pay || 3) * (s.reach || 3)) / 125 * 100);
-const filled = s => W5.filter(([k]) => len(s.a?.[k]) >= 3).length;
+const filled = s => W5.filter(([k]) => len(s.a?.[k]) >= 4).length;
 const fixW = d => { d.segs ||= []; d.segs.forEach(s => { s.a ||= {}; s.size ||= 3; s.pay ||= 3; s.reach ||= 3; }); d.cur = d.segs.some(s => s.id === d.cur) ? d.cur : d.segs[0]?.id || ''; d.main ||= ''; d.next ||= 1; return d; };
 reg({
   id: 'w5', stage: 1, ord: 1, cols: true, t: 'Кому ми продаємо: сегменти', d: 'Опишіть групи клієнтів п’ятьма простими запитаннями й оберіть головну групу.', icon: 'target', min: 20,

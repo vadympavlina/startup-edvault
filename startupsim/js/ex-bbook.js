@@ -1,11 +1,10 @@
 // Симулятор стартапу · «Брендбук»: збирає логотип, кольори й характер бренду в одну сторінку й перевіряє, чи вони узгоджені.
 import { esc } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xin, tip, box, checks, exDone, own } from './ex-core.js';
+import { reg, xin, tip, box, checks, exDone, own, len } from './ex-core.js';
 import { lockup, toHsl, BF } from './ex-brand.js';
 import { pal } from './ex8.js';
 
-const len = s => String(s || '').trim().length;
 const CLICHE = /найкращ|№\s*1|якісн|професійн|інноваційн|унікальн|лідер/i;
 const AX = [['serious', 'Серйозний', 'Грайливий'], ['classic', 'Класичний', 'Сучасний'], ['access', 'Доступний', 'Преміальний'], ['friend', 'Дружній', 'Експертний']];
 const stp = (n, t) => `<span class="ex-n">${n}</span>${t}`;

@@ -2,11 +2,10 @@
 // перевіркою логотипа, макетами, збереженими варіантами й експортом у SVG та PNG.
 import { esc } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, xcol, tip, box, checks, bar, clamp, own } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xcol, tip, box, checks, bar, clamp, own, len } from './ex-core.js';
 import { logoMark, logoSvg, SHAPES, SHAPE_KEYS, shapeCss } from './logo.js';
 import { X } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 export const BF = {
   modern: { t: 'Сучасний', css: "'Inter', system-ui, sans-serif", w: 800 },

@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 1: «Оцініть нішу» і «Що в першу версію». Покрокові, з простими запитаннями й прикладами.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, clamp, sumOf, pc, eg } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, clamp, sumOf, pc, eg, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const step = (n, t) => `<span class="ex-n">${n}</span>${t}`;
 const dots = (id, p, cur, label) => `<span class="rdots" role="radiogroup" aria-label="${esc(label)}">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="rdot ${v <= cur ? 'on' : ''}" role="radio" aria-checked="${v === cur}" aria-label="${v} з 5" data-act="ex" data-ex="${id}" data-do="set" data-p="${p}" data-v="${v}" data-t="n"></button>`).join('')}</span>`;
 

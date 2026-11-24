@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 1: «Конкуренти» і «Що болить клієнтам». Обидві покрокові, з прикладами й підказками.
 import { esc, term } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, tip, box, checks, bar, hash, clamp, sumOf, eg, ideaBits, own } from './ex-core.js';
+import { reg, xb, xp, xin, tip, box, checks, bar, hash, clamp, sumOf, eg, ideaBits, own, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const step = (n, t) => `<span class="ex-n">${n}</span>${t}`;
 // оцінка від 1 до 5: п'ять кружечків
 const dots = (id, p, cur, label) => `<span class="rdots" role="radiogroup" aria-label="${esc(label)}">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="rdot ${v <= cur ? 'on' : ''}" role="radio" aria-checked="${v === cur}" aria-label="${v} з 5" data-act="ex" data-ex="${id}" data-do="set" data-p="${p}" data-v="${v}" data-t="n"></button>`).join('')}</span>`;

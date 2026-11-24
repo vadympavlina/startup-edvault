@@ -2,9 +2,8 @@
 import { ROLES } from './data.js';
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
-import { stars, reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, lrow, tg5 } from './ex-core.js';
+import { stars, reg, xb, xp, xin, xsl, tip, box, checks, bar, radar, mk, hash, clamp, sumOf, pc, money0, quiz, quizOk, quizDone, qbtn, qbody, lrow, tg5, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 
 /* ═════════ Стилі лідерства ═════════ */
 const ST = { a: ['Авторитарний', 'Ви ухвалюєте рішення самі й дієте швидко.', 'Працює в кризі й коли команда недосвідчена. Але гасить ініціативу.'], d: ['Демократичний', 'Ви радитеся з командою й вирішуєте разом.', 'Працює, коли час є, а рішення важливе для всіх. Але повільніше.'], l: ['Ліберальний', 'Ви даєте повну свободу й не втручаєтеся.', 'Працює з досвідченими й самостійними. Новачкам бракує орієнтирів.'], c: ['Коучинг', 'Ви ставите питання й допомагаєте людині знайти рішення.', 'Працює на розвиток людей. Потребує часу й терпіння.'] };

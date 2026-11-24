@@ -1,9 +1,8 @@
 // Симулятор стартапу · вправи етапу 4 «Ціна й гроші»: собівартість, ціна, фінансовий план, асортимент.
 import { esc, term, wideChart } from './ui.js';
 import { icon } from './icons.js';
-import { reg, xb, xp, xin, xsl, xnum, tip, box, checks, bar, X, clamp, sumOf, pc, money0 } from './ex-core.js';
+import { reg, xb, xp, xin, xsl, xnum, tip, box, checks, bar, X, clamp, sumOf, pc, money0, len } from './ex-core.js';
 
-const len = s => String(s || '').trim().length;
 const r10 = n => Math.round(n / 10) * 10;
 const noun = S => S.I.kind === 'hardware' ? 'одиниць' : 'платних клієнтів';
 const perWord = S => S.I.kind === 'hardware' ? 'одиницю' : 'клієнта';
