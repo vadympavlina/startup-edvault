@@ -75,7 +75,7 @@ let migrated = '';
     } catch { /* пошкоджені дані — ігноруємо */ }
   }
 }
-const BROKEN_KEY = 'edvault-startup-broken';
+const BROKEN_KEY = 'edvault-startup-broken', BAK_KEY = 'edvault-startup-prev';
 let broken = null; // сире збереження, яке не вдалося прочитати: його не стираємо
 try {
   const raw = localStorage.getItem(KEY);
@@ -87,9 +87,9 @@ try {
   }
 } catch { /* сховище недоступне */ }
 if (broken) { try { localStorage.setItem(BROKEN_KEY, broken); } catch { /* немає місця */ } }
-let saveWarned = false;
+let saveWarned = false, stale = false;
 const save = () => {
-  if (!S) return;
+  if (!S || stale) return; // збереження вимкнене, поки гра змінилася в іншій вкладці: інакше вкладки затирали б одна одну
   try { localStorage.setItem(KEY, JSON.stringify({ s: S.s, view: ui.view })); saveWarned = false; }
   catch {
     // сховище переповнене чи заборонене: гра триває, але прогрес не збережеться в браузері
@@ -266,6 +266,7 @@ async function endWeek() {
   if (pending.length && !await confirmBox('Є листи, які чекають на ваше рішення', 'Завершити тиждень', { sub: `Якщо не відповісте цього тижня, рішення ухвалять без вас: ${pending.map(m => `«${m.title}»`).join(', ')}.` })) { C.go('inbox'); return; }
   if (hoursUsed(S) > 62 && !await confirmBox(`Ви запланували ${hoursUsed(S)} годин роботи`, 'Так, працюю', { sub: 'Енергія різко впаде, а з нею — продуктивність. Можливо, варто додати відпочинку?' })) return;
   for (const [k, v] of Object.entries(suggestHours(S, stageInfo(S).cur))) S.setHours(k, v); // години розподіляються самі під поточний етап
+  try { const cur = localStorage.getItem(KEY); if (cur && !stale) localStorage.setItem(BAK_KEY, cur); } catch { /* немає місця: резервна копія не обов'язкова */ } // копія на початок тижня: її можна відновити, якщо щось зламається
   const rep = S.endWeek();
   const gs = goalNow(S);
   if (gs && !gs.g.done && gs.status === 'done') { gs.g.done = true; S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Ціль досягнуто!', body: `Ви досягли своєї SMART-цілі: ${gs.g.text}. Саме так працюють вимірні цілі: їх видно, і ними можна пишатися. Поставте нову, трохи амбітнішу.` }); toast('SMART-ціль досягнуто!', 'good'); }
@@ -479,13 +480,26 @@ addEventListener('error', e => reportError(e.error || e.message));
 addEventListener('unhandledrejection', e => reportError(e.reason));
 
 // збереження не читається: показуємо вихід замість порожньої сторінки
+/* ═════════ дві вкладки з однією грою ═════════
+   Якщо збереження змінила інша вкладка, ця більше не пише в сховище, доки учень не обере: узяти зміни звідти чи лишитися тут. */
+addEventListener('storage', e => {
+  if (e.key !== KEY || e.storageArea !== localStorage || stale || !S) return;
+  stale = true;
+  const bar = h(`<div class="stale-bar" role="alertdialog" aria-label="Гра відкрита у двох вкладках"><p><b>Гра змінилася в іншій вкладці.</b> Щоб не затерти прогрес, ця вкладка поки не зберігає.</p><div class="row gap wrap"><button class="btn primary" data-stale="reload">Узяти зміни з іншої вкладки</button><button class="btn" data-stale="keep">Лишитися тут і перезаписати</button></div></div>`);
+  document.body.appendChild(bar);
+  bar.addEventListener('click', ev => { const b = ev.target.closest('[data-stale]'); if (!b) return; if (b.dataset.stale === 'reload') location.reload(); else { stale = false; bar.remove(); save(); toast('Збереження знову працює з цієї вкладки.', 'good'); } });
+  bar.querySelector('button')?.focus();
+});
+
 function recovery() {
   const el = $('#main') || document.body;
   $('#top') && fill($('#top'), '');
-  fill(el, `<div class="recovery">${failCard('Збережену гру не вдалося відкрити', 'Файл у браузері пошкоджений або створений іншою версією гри. Його копію збережено, нічого не втрачено. Оберіть, що робити далі.', `<div class="row gap wrap"><button class="btn primary" data-rec="file">${icon('open', 16)} Відкрити гру з файлу</button><button class="btn" data-rec="download">${icon('save', 16)} Завантажити пошкоджене збереження</button><button class="btn" data-rec="new">Почати нову гру</button></div>`)}</div>`);
+  let bak = null; try { const raw = localStorage.getItem(BAK_KEY); if (raw && okState(JSON.parse(raw).s)) bak = raw; } catch { /* немає резервної копії */ }
+  fill(el, `<div class="recovery">${failCard('Збережену гру не вдалося відкрити', 'Файл у браузері пошкоджений або створений іншою версією гри. Його копію збережено, нічого не втрачено. Оберіть, що робити далі.', `<div class="row gap wrap">${bak ? `<button class="btn primary" data-rec="backup">${icon('undo', 16)} Відновити гру на початок минулого тижня</button>` : ''}<button class="btn primary" data-rec="file">${icon('open', 16)} Відкрити гру з файлу</button><button class="btn" data-rec="download">${icon('save', 16)} Завантажити пошкоджене збереження</button><button class="btn" data-rec="new">Почати нову гру</button></div>`)}</div>`);
   el.addEventListener('click', e => {
     const b = e.target.closest('[data-rec]'); if (!b) return;
-    if (b.dataset.rec === 'file') openFile();
+    if (b.dataset.rec === 'backup') { try { localStorage.setItem(KEY, bak); location.reload(); } catch { toast('Не вдалося відновити: немає місця в браузері.', 'bad'); } }
+    else if (b.dataset.rec === 'file') openFile();
     else if (b.dataset.rec === 'download') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([broken], { type: 'application/json' })); a.download = 'edvault-startup-poshkodzhene.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
     else if (b.dataset.rec === 'new') { broken = null; fill(el, ''); startWizard(); }
   });

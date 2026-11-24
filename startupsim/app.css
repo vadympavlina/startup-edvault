@@ -786,3 +786,5 @@ body.simple .adv { display: none; }
 .chip-btn { border: 2px solid var(--ink); background: var(--white); color: var(--ink); border-radius: 999px; padding: 4px 12px; font: 600 13px Rubik, sans-serif; cursor: pointer; }
 .chip-btn:hover { background: var(--ink); color: var(--white); }
 .chip-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.stale-bar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 9999; width: min(560px, calc(100vw - 32px)); background: var(--white); color: var(--ink); border: 2px solid var(--ink); border-radius: 10px; box-shadow: 5px 5px 0 var(--ink); padding: 14px 16px; display: grid; gap: 10px; }
+.stale-bar p { margin: 0; }
