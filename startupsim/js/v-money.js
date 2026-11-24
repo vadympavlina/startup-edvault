@@ -54,9 +54,9 @@ function finance(S, ui) {
   const pf = S.planFact();
   const L = s.loan, lim = S.loanLimit(), Cr = s.crowd;
   return `<div class="kpis">
-    <div class="kpi"><span class="kpi-l">Гроші</span><b>${money(s.cash)}</b></div>
+    <div class="kpi"><span class="kpi-l">Гроші</span><b>${money(s.cash)}</b><small>на рахунку зараз</small></div>
     <div class="kpi"><span class="kpi-l">${term('Burn rate', 'Витрачаємо за тиждень')}</span><b class="${S.burnWeekly() > 0 ? 'neg' : 'pos'}">${money(Math.max(0, S.burnWeekly()))}</b><small>${S.burnWeekly() <= 0 ? 'виручка більша за витрати' : 'витрати мінус виручка, середнє за 4 тиж.'}</small></div>
-    <div class="kpi"><span class="kpi-l">${term('Runway', 'Вистачить грошей на')}</span><b>${S.runwayWeeks() === Infinity ? '∞' : S.runwayWeeks() > 104 ? '2+ роки' : Math.max(0, Math.floor(S.runwayWeeks())) + ' тиж.'}</b></div>
+    <div class="kpi"><span class="kpi-l">${term('Runway', 'Вистачить грошей на')}</span><b>${S.runwayWeeks() === Infinity ? '∞' : S.runwayWeeks() > 104 ? '2+ роки' : Math.max(0, Math.floor(S.runwayWeeks())) + ' тиж.'}</b><small>якщо витрати не зміняться</small></div>
     <div class="kpi"><span class="kpi-l">${term('Оцінка компанії')}</span><b>${money(val)}</b><small>ваша частка ≈ ${money(val * S.stake())}</small></div>
   </div>
   <section class="card"><header class="card-h"><h2>${icon('building')} Форма компанії</h2>${term('ФОП і ТОВ')}</header>
