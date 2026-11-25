@@ -10,7 +10,7 @@ import { coreViews, coreActs, coreIns, hoursUsed } from './v-core.js';
 import { marketViews, marketActs, marketIns } from './v-market.js';
 import { moneyViews, moneyActs, moneyIns } from './v-money.js';
 import { peopleViews, peopleActs, peopleIns } from './v-people.js';
-import { STAGES, stageInfo, viewStage, isOpen, unlock, syncStage, ADVANCED_VIEWS, isSimple, suggestHours } from './stages.js';
+import { STAGES, stageInfo, viewStage, isOpen, unlock, syncStage, ADVANCED_VIEWS, isSimple, suggestHours, simOn } from './stages.js';
 import { stageBar } from './v-stages.js';
 import { exViews, exActs, installEx, goalNow, STAGE_T, exOf, exDone, exStars, stars } from './ex-core.js';
 import './ex1.js';
@@ -187,7 +187,7 @@ const runwayText = rw => rw === Infinity ? 'прибуток' : rw > 104 ? '2+ �
 function topbar() {
   if (!S) return;
   const s = S.s, rw = S.runwayWeeks(), e = Math.round(s.founder.energy);
-  setHtml($('#top'), `<button class="tp-brand" data-act="go" data-to="dash" title="${esc(s.company.name)}: ${esc(S.I.t)}. На головну">${logo(s.company, 36)}<span><b>${esc(s.company.name)}</b><small>Тиждень ${s.week + 1} з ${WEEKS} · ${dateText(s.week)}</small></span></button>
+  setHtml($('#top'), `<button class="tp-brand" data-act="go" data-to="dash" title="${esc(s.company.name)}: ${esc(S.I.t)}. На головну">${logo(s.company, 36)}<span><b>${esc(s.company.name)}</b><small>${simOn(S) ? `Тиждень ${s.week + 1} з ${WEEKS} · ${dateText(s.week)}` : `Підготовка · етап ${Math.min(9, stageInfo(S).cur + 1)} з ${STAGES.length}`}</small></span></button>
     <div class="tp-stats">
       <span class="tp-s ${s.cash < 30000 ? 'bad' : ''}" title="Гроші компанії">${icon('wallet', 16)}<span><small>Гроші</small><b>${money(s.cash)}</b></span></span>
       <span class="tp-s ${rw < 8 ? 'bad' : rw < 16 ? 'warn' : ''} hide-t" title="На скільки тижнів вистачить грошей">${icon('clock', 16)}<span><small>Вистачить на</small><b>${runwayText(rw)}</b></span></span>
@@ -196,7 +196,8 @@ function topbar() {
     </div>
     <button class="btn top-save" data-act="saveFile" title="Зберегти всю гру у файл (Ctrl+S)" aria-label="Зберегти гру у файл">${icon('save', 16)}<span>Зберегти</span></button>
     <div class="more-w"><button class="btn ib-b" data-act="more" aria-label="Ще" aria-expanded="${!!ui.more}" title="Ще">${icon('more', 18)}</button>${ui.more ? morePop() : ''}</div>
-    <button class="btn primary end-week" data-act="endWeek" aria-label="Завершити тиждень" ${s.over ? 'disabled' : ''}>${icon('next', 16)}<span>Завершити тиждень</span></button>`);
+    ${simOn(S) ? `<button class="btn primary end-week ${s.flags.weekDone ? '' : 'pulse'}" data-act="endWeek" aria-label="Завершити тиждень" title="Гра порахує клієнтів і гроші за тиждень і покаже результат" ${s.over ? 'disabled' : ''}>${icon('next', 16)}<span>Завершити тиждень</span></button>`
+      : `<button class="btn primary end-week prep" data-act="go" data-to="dash" title="Спершу пройдіть усі 9 етапів: тоді відкриється запуск симуляції">${icon('flag', 16)}<span>Підготовка: ${stageInfo(S).list.filter(x => x.done).length} з ${STAGES.length} етапів</span></button>`}`);
 }
 function morePop() {
   const s = S.s;
@@ -235,8 +236,8 @@ function celebrate(info) {
   const opened = nx ? nx.open.filter(v => VIEWS[v] && !STAGES[i].open.includes(v)).map(v => VIEWS[v].t) : [];
   modal({ title: `Етап ${i + 1} «${STAGES[i].t}» пройдено`, cls: 'stage-done', onClose: () => { celebrating = false; render(); },
     html: `<p class="sd-big">${icon('check', 28)}</p><p>Вправ виконано: <b>${got.length} з ${exOf(i).length}</b>.${star >= got.length * 3 && got.length ? ' Усі — майстерно.' : ''}</p>
-      ${nx ? `<p><b>Далі: етап ${passed + 1} «${esc(nx.t)}».</b> ${esc(nx.why)}</p>${opened.length ? `<p class="sm muted">Відкрилися розділи: ${esc(opened.join(', '))}.</p>` : ''}` : `<p><b>Усі дев’ять етапів пройдено.</b> Тепер просто грайте далі, а підсумки дивіться у звіті.</p>`}
-      <div class="row end gap"><button class="btn primary" data-md-close>${nx ? 'До наступного етапу' : 'Чудово'}</button></div>` });
+      ${nx ? `<p><b>Далі: етап ${passed + 1} «${esc(nx.t)}».</b> ${esc(nx.why)}</p>${opened.length ? `<p class="sm muted">Відкрилися розділи: ${esc(opened.join(', '))}.</p>` : ''}` : `<p><b>Усі дев’ять етапів пройдено.</b> ${simOn(S) ? 'Тепер просто грайте далі, а підсумки дивіться у звіті.' : 'Підготовку завершено: на головній відкрилась кнопка «Запустити симуляцію».'}</p>`}
+      <div class="row end gap"><button class="btn primary" data-md-close>${nx ? 'До наступного етапу' : simOn(S) ? 'Чудово' : 'До запуску'}</button></div>` });
 }
 
 function render() {
@@ -261,6 +262,8 @@ function render() {
 /* ═════════ кінець тижня ═════════ */
 async function endWeek() {
   const s = S.s;
+  if (!simOn(S)) { toast('Спершу пройдіть підготовку: усі 9 етапів. Потім відкриється запуск симуляції.', 'bad'); return; }
+  s.flags.weekDone = true;
   if (s.over) return ending();
   const pending = s.inbox.filter(m => m.choices && m.chosen == null && m.until === s.week);
   if (pending.length && !await confirmBox('Є листи, які чекають на ваше рішення', 'Завершити тиждень', { sub: `Якщо не відповісте цього тижня, рішення ухвалять без вас: ${pending.map(m => `«${m.title}»`).join(', ')}.` })) { C.go('inbox'); return; }
@@ -299,6 +302,25 @@ function ending() {
     time: ['Два роки позаду', `Компанія жива. Оцінка — ${money(val)}, ваша частка ${pct(stake, 1)} ≈ ${money(val * stake)}.`] }[o.kind];
   modal({ title: T[0], cls: `ending ${o.kind}`, html: `<p>${esc(T[1])}</p><p class="sm muted">Збережіть результат у файл — його можна здати викладачеві або відкрити пізніше.</p><div class="row end gap wrap"><button class="btn" data-act-end="new">Нова гра</button><button class="btn" data-act-end="file">${icon('save', 16)} Зберегти у файл</button><button class="btn primary" data-act-end="report">Підсумковий звіт</button></div>`,
     onOpen: api => api.el.addEventListener('click', e => { const b = e.target.closest('[data-act-end]'); if (!b) return; if (b.dataset.actEnd === 'file') { saveFile(); return; } api.close(); if (b.dataset.actEnd === 'report') C.go('report'); else startWizard(); }) });
+}
+
+/* ═════════ запуск симуляції ═════════ */
+function startSim() {
+  const info = stageInfo(S);
+  if (!info.allDone) { toast('Симуляція відкриється, коли ви пройдете всі 9 етапів.', 'bad'); return; }
+  const miss = info.list.flatMap(st => st.opt.filter(x => !x.ok).map(x => ({ ...x, st: st.t })));
+  const rows = miss.map(x => `<li><span><b>${esc(x.t)}</b><small>${esc(x.st)}</small></span><button class="btn sm" data-go="${esc(x.go)}">Зробити зараз</button></li>`).join('');
+  modal({ title: 'Запуск симуляції', cls: 'simlaunch', html: `<p>Усі 9 етапів пройдено. Після запуску піде час: кожен тиждень гра рахуватиме клієнтів, гроші й події, а ви ухвалюватимете рішення.</p>
+    ${miss.length ? `<p class="launch-miss"><b>Ще не зроблено (необов’язково):</b> ці справи допоможуть у симуляції, їх можна зробити й потім.</p><ul class="miss-list">${rows}</ul>` : `<p class="note ok">${icon('check', 16)} Ви зробили навіть усі додаткові справи. Чудово!</p>`}
+    <div class="row gap wrap"><button class="btn primary" data-launch>${icon('rocket', 16)} Запустити симуляцію</button><button class="btn" data-md-close>Ще підготуюсь</button></div>`,
+    onOpen: api => api.el.addEventListener('click', e => {
+      const g = e.target.closest('[data-go]'); if (g) { api.close(); C.go(g.dataset.go); return; }
+      if (!e.target.closest('[data-launch]')) return;
+      api.close(); S.s.flags.simStarted = true; S.s.flags.weekDone = false;
+      S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Симуляція почалась!', body: 'Тепер ваш бізнес працює по-справжньому. Щотижня: розподіліть години, ухваліть рішення в розділах (продукт, реклама, команда), а коли готові, натисніть «Завершити тиждень». Гра покаже, що вийшло.' });
+      save(); ui.view = 'dash'; render();
+      modal({ title: 'Як працює тиждень', cls: 'howto', html: `<ol class="howto-list"><li><b>Плануйте.</b> Розподіліть години між продуктом, клієнтами, рекламою й відпочинком (гра запропонує готовий розподіл).</li><li><b>Вирішуйте.</b> Додайте функції в розробку, налаштуйте рекламу, відповідайте на листи.</li><li><b>Натисніть «Завершити тиждень».</b> Лише тоді спливає час: гра порахує клієнтів, гроші й події.</li></ol><p class="sm muted">Не поспішайте: перший тиждень можна витратити на розмови з клієнтами. Кнопка «Завершити тиждень» угорі справа.</p><div class="row"><button class="btn primary" data-md-close>Починаємо</button></div>` });
+    }) });
 }
 
 /* ═════════ майстер старту ═════════ */
@@ -404,6 +426,7 @@ function startWizard() {
         if (custom) try { localStorage.setItem(IDEA_KEY, JSON.stringify(c)); } catch { /* сховище недоступне */ }
         S = newGame({ idea: w.idea === 'custom' ? 'homework' : w.idea, founder: w.name.trim(), group: w.group.trim(), bg: w.bg, company: w.company.trim(), color: w.color, sym: w.sym, fff: false, custom });
         S.s.flags.simple = w.simple;
+        S.s.flags.simStarted = false; // спершу підготовка (9 етапів), потім симуляція
         el.remove(); document.body.classList.remove('wz-on'); ui.view = 'dash'; render(); window.Startup.S = S;
         return;
       }
@@ -441,6 +464,7 @@ document.addEventListener('click', e => {
   if (!S) return;
   const k = a.dataset.act;
   if (k === 'endWeek') return endWeek();
+  if (k === 'startSim') return startSim();
   if (k === 'more') { ui.more = !ui.more; topbar(); return; }
   if (k === 'simple') { S.s.flags.simple = !isSimple(S); ui.more = false; render(); toast(isSimple(S) ? 'Простий режим: складні розрахунки й необов\'язкові розділи сховано' : 'Повний режим: відкрито всі розрахунки й розділи', 'good'); return; }
   if (k === 'autoHours') return C.suggestHours();

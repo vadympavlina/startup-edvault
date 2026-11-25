@@ -788,3 +788,15 @@ body.simple .adv { display: none; }
 .chip-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .stale-bar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 9999; width: min(560px, calc(100vw - 32px)); background: var(--white); color: var(--ink); border: 2px solid var(--ink); border-radius: 10px; box-shadow: 5px 5px 0 var(--ink); padding: 14px 16px; display: grid; gap: 10px; }
 .stale-bar p { margin: 0; }
+.launch-cta { margin-top: 14px; } .btn.big { padding: 14px 22px; font-size: 17px; }
+.end-week.pulse { animation: weekpulse 2.4s ease-in-out infinite; }
+@keyframes weekpulse { 0%, 100% { box-shadow: 3px 3px 0 var(--ink); } 50% { box-shadow: 3px 3px 0 var(--ink), 0 0 0 5px rgba(255, 140, 40, .35); } }
+@media (prefers-reduced-motion: reduce) { .end-week.pulse { animation: none; } }
+.end-week.prep { background: var(--white); color: var(--ink); }
+.miss-list, .howto-list { list-style: none; margin: 8px 0 14px; padding: 0; display: grid; gap: 8px; }
+.miss-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 12px; border: 2px solid var(--ink); border-radius: 10px; background: #fff8e0; }
+.miss-list li small { display: block; color: var(--tx3); }
+.howto-list { counter-reset: h; } .howto-list li { counter-increment: h; padding: 10px 12px 10px 44px; position: relative; border: 2px solid var(--line); border-radius: 10px; }
+.howto-list li::before { content: counter(h); position: absolute; left: 12px; top: 9px; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--white); display: grid; place-items: center; font-weight: 700; }
+.simlaunch .miss-list { max-height: 38vh; overflow-y: auto; padding-right: 4px; }
+.simlaunch .miss-list li { min-width: 0; } .simlaunch .miss-list li > span { min-width: 0; }

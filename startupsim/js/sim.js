@@ -304,7 +304,7 @@ export class Sim {
   }
 
   /* ── інтерв'ю з клієнтами (правило Mom Test) ── */
-  talksLeft() { return Math.max(0, Math.floor(this.s.hours.customers / 3) - this.s.talks); }
+  talksLeft() { if (this.s.flags.simStarted === false) return Math.max(0, 12 - this.s.talks); /* підготовка: часу немає, але розмов не безмежно */ return Math.max(0, Math.floor(this.s.hours.customers / 3) - this.s.talks); }
   startInterview(k) {
     if (this.s.interview || this.talksLeft() <= 0 || !this.I.segments[k]) return null;
     const g = this.seg(k), r = this.r;

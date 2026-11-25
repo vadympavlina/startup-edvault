@@ -67,7 +67,7 @@ await step('етапи: розділи наступного етапу закр�
   await p.click('.tab[data-k="home"]');
   await p.waitForSelector('#main .ws');
   // далі перевіряємо розділи всіх етапів, тож відкриваємо їх (як ніби етапи пройдено)
-  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; window.Startup.C.render(); });
+  await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; window.Startup.sim.s.flags.simStarted = true; window.Startup.C.render(); });
 });
 
 

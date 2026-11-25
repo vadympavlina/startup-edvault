@@ -5,7 +5,7 @@ import { CANVAS, METRICS, ADVANTAGES } from './mods.js';
 import { assumptionsVsReality, marketVsGuess, KINDS, SCOPES } from './custom.js';
 import { icon } from './icons.js';
 import { esc, nl2br, term, lineChart, delta, logo } from './ui.js';
-import { stageInfo } from './stages.js';
+import { stageInfo, simOn } from './stages.js';
 import { stageRail, stageSheet, goalCard, exSummary } from './v-stages.js';
 
 const HOUR_ROWS = [
@@ -75,7 +75,7 @@ function lastWeek(S) {
 export function mentorCard(S) {
   const [t, ...more] = S.tips();
   return `<section class="pin mentor ${t?.urgent ? 'urgent' : ''}"><div class="mt-h"><span class="face">ІР</span><div><b>Наставниця Ірина</b><small>${t?.urgent ? 'важливо зараз' : 'порада на цей тиждень'}</small></div></div>
-    <p class="hand">${t ? esc(t.text) : 'Усе йде добре. Плануйте тиждень і натискайте «Завершити тиждень».'}</p>
+    <p class="hand">${t ? esc(t.text) : simOn(S) ? 'Усе йде добре. Плануйте тиждень і натискайте «Завершити тиждень».' : 'Проходьте етапи по порядку. Коли пройдете всі дев’ять, відкриється запуск симуляції.'}</p>
     ${t ? `<div class="row gap sm wrap">${t.go ? `<button class="btn sm" data-act="go" data-to="${t.go}">Перейти</button>` : ''}${t.term ? term(t.term, 'Що це?') : ''}${t.urgent ? '' : `<button class="btn sm ghost" data-act="dismissTip" data-id="${t.id}">Зрозуміло</button>`}</div>` : ''}
     ${more.length ? `<p class="mt-l">Ще поради</p><ul class="mt-more">${more.slice(0, 2).map(x => `<li>${x.go ? `<button class="link" data-act="go" data-to="${x.go}">${esc(x.text)}</button>` : esc(x.text)}</li>`).join('')}</ul>` : ''}</section>`;
 }

@@ -8,7 +8,7 @@ const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 } })
 const a = await newPage(ctx, errors); a.setDefaultTimeout(10000);
 await a.goto(server.url + '/'); await a.evaluate(() => localStorage.clear()); await a.reload(); await a.waitForSelector('.wizard');
 await a.click('[data-w="next"]'); await a.click('[data-w="next"]'); await a.fill('[data-w="name"]', 'Марта'); await a.fill('[data-w="company"]', 'Записатись'); await a.click('[data-w="next"]');
-await a.waitForSelector('#main .ws');
+await a.waitForSelector('#main .ws'); await a.evaluate(() => { window.Startup.sim.s.flags.simStarted = true; window.Startup.C.render(); });
 
 await step('друга вкладка змінює гру: перша не пише й питає, що робити', async () => {
   const b = await ctx.newPage(); await b.goto(server.url + '/'); await b.waitForSelector('#main .ws');
