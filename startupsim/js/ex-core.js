@@ -177,12 +177,14 @@ export const lrow = ({ id, doo, p, v, t, max, a, on, radio = false, key, title, 
   `<div class="srow ${radio ? 'pick' : ''} ${on ? 'on' : ''}"><button type="button" class="sbtn" role="${radio ? 'radio' : 'checkbox'}" aria-checked="${!!on}" data-act="ex" data-ex="${id}" data-do="${doo}"${attrs({ p, v, t, max, a })}><span class="cb">${on ? icon('check', 14) : ''}</span><span class="sinfo"><h3>${title}</h3><p>${sub}</p></span></button><div class="smeta">${tags}${hint ? qbtn(key) : ''}</div>${extra}${hint ? qbody(key, hint) : ''}</div>`;
 // шапка вправ нового зразка: одне пояснення й смужка кроків (крок підсвічується, коли зроблено)
 const stepsNav = (def, S, d) => {
-  const steps = def.neo.steps(S, d), cur = steps.findIndex(x => !x[1]);
+  // вправа, до якої ще не торкались (дані такі самі, як на старті), не показує кроки зробленими, навіть якщо заготовлені значення вже підходять
+  let fresh = false; try { fresh = !S.s.ex.done[def.id] && JSON.stringify(d) === JSON.stringify(def.data(S)); } catch { /* дані не порівняти */ }
+  const steps = def.neo.steps(S, d).map(x => fresh ? [x[0], false, x[2]] : x), cur = steps.findIndex(x => !x[1]);
   return `<nav class="ex-steps" aria-label="Кроки вправи"><ol>${steps.map(([t, ok, bi], i) => `<li><button type="button" class="${ok ? 'done' : i === cur ? 'on' : ''}" ${bi && typeof bi === 'object' ? `data-act="ex" data-ex="${def.id}" data-do="set" data-p="${esc(bi.p)}" data-v="${esc(bi.v)}" data-t="s"` : `data-act="exJump" data-i="${bi ?? i}"`}${i === cur ? ' aria-current="step"' : ''}><span>${ok ? icon('check', 13) : i + 1}</span>${esc(t)}${ok ? '<small class="sr-only">: зроблено</small>' : ''}</button></li>`).join('')}</ol></nav>`;
 };
 function neoHead(def, S, d, done) {
   const n = def.neo;
-  return `<section class="ex-intro neo"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p><b>Про що це.</b> ${rich(n.about)}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
+  return `<section class="ex-intro neo"><span class="ex-ic">${icon(def.icon, 26)}</span><button type="button" class="ex-ai" data-act="exAi" data-ex="${def.id}" title="Приклади промптів для ШІ до цієї вправи" aria-label="Приклади промптів для ШІ">${icon('spark', 14)} ШІ</button><div><p><b>Про що це.</b> ${n.about ? rich(n.about) : introOf(def)}</p>${def.min ? `<small>≈ ${def.min} хв${done ? ` · ви вже виконали цю вправу на тижні ${done.w + 1}` : ''}</small>` : ''}</div></section>
       ${stepsNav(def, S, d)}`;
 }
 function page(def, S, ui) {

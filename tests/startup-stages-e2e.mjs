@@ -197,11 +197,11 @@ await step('до пройдених етапів можна повертатис
 await step('вправа: «Що зробити» показує кроки сторінки й веде до потрібного розділу', async () => {
   await p.evaluate(() => { window.Startup.sim.s.flags.st9 = 8; });
   await go('ex-swot'); await p.waitForSelector('.ex[data-ex-root="swot"]');
-  assert.equal(await p.locator('.ex-map li').count(), 3, 'три кроки вправи');
-  assert.match(await p.locator('.ex-map').innerText(), /Куди це належить[\s\S]*SWOT-матриця[\s\S]*Що з цим робити/);
-  await p.click('.ex-map li:nth-child(3) button');
+  assert.equal(await p.locator('.ex-steps li').count(), 3, 'три кроки вправи');
+  assert.match(await p.locator('.ex-steps').innerText(), /Розкладіть усі підказки[\s\S]*щонайменше два пункти[\s\S]*дві дії/);
+  await p.click('.ex-steps li:nth-child(3) button');
   await p.waitForTimeout(500);
-  assert.ok(await p.locator('.ex-body .xbox').nth(2).evaluate(el => el.getBoundingClientRect().top < innerHeight), 'третій розділ у видимій частині');
+  assert.ok(await p.locator('.ex-body .xbox').nth(1).evaluate(el => el.getBoundingClientRect().top < innerHeight), 'розділ, до якого веде крок, у видимій частині');
 });
 
 await step('інтерв’ю з клієнтом у грі: ім’я того ж роду, що й опис, відповіді без помилок форм, кожна відповідь підписана «Факт» або «Туман»', async () => {

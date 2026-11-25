@@ -46,7 +46,7 @@ await step('ФОП: форма й кроки', async () => {
 
 await step('Ціна години: кроки реагують на назви пакетів', async () => {
   await go('ex-rate'); await p.waitForSelector('.pkrow');
-  const names = ['Старт', 'Стандарт', 'Преміум'];
+  const names = ['Мінімум', 'Оптимум', 'Максимум'];
   for (let i = 0; i < 3; i++) await p.fill(`[data-exi="rate"][data-p="pk.${i}.n"]`, names[i]);
   assert.match(await cls(1), /done/);
 });

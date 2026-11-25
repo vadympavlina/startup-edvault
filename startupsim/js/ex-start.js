@@ -27,6 +27,7 @@ const fixN = d => { d.me ||= { need: 3, size: 3, comp: 3, skill: 3, money: 3 }; 
 const rowsOf = (S, d) => [{ id: 'me', t: S.I.t, s: d.me, mine: true }, ...ALTS.filter(a => d.cmp.includes(a.id)).map(a => ({ ...a, s: d.alt[a.id] })), ...d.own.map((o, i) => ({ id: 'own' + i, i, t: o.t, s: o.s, own: true }))];
 reg({
   id: 'niche', stage: 0, ord: 1, cols: true, t: 'Чи варта ідея того?', d: 'Відповідайте на п’ять простих запитань про свою нішу й порівняйте з іншою ідеєю.', icon: 'compass', min: 12,
+  neo: { steps: (S, d) => [['Оцініть ідею за п’ятьма запитаннями', (d.touched || 0) >= 3, 1], ['Порівняйте з іншою ідеєю (за бажанням)', (d.cmp || []).length + (d.own || []).length > 0, 2], ['Оберіть свій варіант і поясніть вибір', len(d.why) >= 25, 3]] },
   intro: `${term('Ніша', 'Ніша')} — вузька частина ринку, де ви хочете стати найкращим. Перш ніж братися за проєкт, варто чесно відповісти на п’ять запитань: чи є справжня проблема, чи багато клієнтів, чи вільне місце, чи вмієте ви це й чи заплатять люди. «Правильних» цифр немає: головне, щоб ви могли пояснити свою оцінку.`,
   data: () => ({ me: { need: 3, size: 3, comp: 3, skill: 3, money: 3 }, alt: Object.fromEntries(ALTS.map(a => [a.id, { ...a.s }])), own: [], cmp: [], w: [], touched: 0, pick: 'me', why: '' }),
   onSet: (S, d, p) => { if (/^(me|own)\./.test(p)) d.touched = (d.touched || 0) + 1; },
@@ -63,6 +64,7 @@ reg({
 const work = c => c <= 6 ? [1, 'невелика'] : c <= 12 ? [2, 'середня'] : [3, 'велика'];
 reg({
   id: 'mvp', stage: 0, ord: 4, cols: true, t: 'Що в першу версію', d: 'Оберіть найважливіші функції для першої версії й поставте їх у розробку.', icon: 'box', min: 15,
+  neo: { steps: (S, d) => [['Позначте найголовніше для клієнта', Object.values(d.cls || {}).includes('must'), 0], ['Вкладіться в бюджет роботи', Object.values(d.cls || {}).includes('must') && sumOf(Object.keys(S.I.features).filter(id => d.cls?.[id] === 'must').map(id => S.I.features[id].cost)) <= d.budget, 1], ['Поставте обране в розробку', !!d.applied || S.s.product.queue.length > 0 || S.s.product.built.length > 0, 2]] },
   intro: `${term('MVP', 'Перша версія (MVP)')} — це найпростіше, що вже можна дати людям, щоб перевірити ідею. Вона не має бути ідеальною: у неї входить лише те, без чого продукт не працює. Усе інше чекає на потім. Оберіть функції для першої версії й подивіться, чи вистачить на них роботи.`,
   data: () => ({ cls: {}, budget: 30, applied: false }),
   view(S, d) {

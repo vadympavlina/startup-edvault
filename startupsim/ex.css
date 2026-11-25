@@ -682,3 +682,4 @@ div.rs { cursor: default; } div.rs:not(.cur):hover { background: transparent; }
 .srow.fix { grid-template-columns: 1fr; }
 .xbox .hl5 { margin: 0 0 8px; font-size: 14px; color: var(--tx-m2); }
 @media (max-width: 760px) { .srow { grid-template-columns: 1fr; } .srow .smeta { justify-content: flex-start; padding-left: 38px; } .srow .samt { padding-left: 0; } }
+.ex-intro.neo > div { padding-right: 76px; } /* текст не заходить під кнопку «ШІ» */
