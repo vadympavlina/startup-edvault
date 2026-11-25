@@ -82,7 +82,7 @@ try {
   if (raw) {
     try {
       const saved = JSON.parse(raw);
-      if (saved && okState(saved.s)) { S = new Sim(saved.s); ui.view = saved.view || 'dash'; } else broken = raw;
+      if (saved && okState(saved.s)) { S = new Sim(saved.s); ui.view = saved.view || 'dash'; if (S.s.flags.simStarted === undefined && S.s.week === 0) S.s.flags.simStarted = false; /* гра ще не рушила: починає з підготовки */ } else broken = raw;
     } catch { broken = raw; S = null; }
   }
 } catch { /* сховище недоступне */ }
