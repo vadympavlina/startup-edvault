@@ -6,7 +6,7 @@
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "node tests/run-browser-tests.mjs",
-    "audit": "npm run audit:build && npm run audit:xss && npm run audit:fuzz && npm run audit:a11y && npm run audit:keyboard && npm run audit:perf && npm run audit:balance",
+    "audit": "npm run audit:build && npm run audit:xss && npm run audit:fuzz && npm run audit:a11y && npm run audit:keyboard && npm run audit:perf && npm run audit:balance && npm run audit:controls",
     "audit:perf": "node scripts/audit/perf.mjs",
     "audit:xss": "node scripts/audit/xss.mjs && node scripts/audit/xss-checker.mjs",
     "audit:fuzz": "node scripts/audit/fuzz.mjs",
@@ -14,7 +14,8 @@
     "audit:keyboard": "node scripts/audit/keyboard.mjs",
     "audit:balance": "node scripts/audit/balance.mjs",
     "build": "node scripts/preload.mjs",
-    "audit:build": "node scripts/preload.mjs --check"
+    "audit:build": "node scripts/preload.mjs --check",
+    "audit:controls": "node scripts/audit/controls.mjs"
   },
   "type": "module",
   "devDependencies": {
