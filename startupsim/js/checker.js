@@ -10,6 +10,7 @@ import { marketViews } from './v-market.js';
 import { icon } from './icons.js';
 import { esc, logo, fill } from './ui.js';
 import { SUMM } from './v-stages.js';
+import { isZip, readZip } from './zip.js';
 import './ex1.js'; import './ex-need.js'; import './ex-start.js'; import './ex1b.js'; import './ex-aud.js'; import './ex-brand.js'; import './ex-bbook.js';
 import './ex2.js'; import './ex3.js'; import './ex3b.js'; import './ex4.js'; import './ex5.js'; import './ex6.js'; import './ex7.js'; import './ex8.js'; import './ex9.js';
 
@@ -59,7 +60,7 @@ function flagsOf(e) {
 }
 const flagChip = f => `<span class="ck-fl ${f.k}">${esc(f.t)}</span>`;
 
-const dropZone2 = () => `<section class="ck-drop" id="dz"><div class="ck-drop-ic">${icon('open', 34)}</div><h1>Відкрийте файл збереження учня</h1><p>Перетягніть сюди файл <b>.edvault</b> (підійде й старий <b>.json</b>) або оберіть його на комп’ютері. Можна відкрити <b>одразу весь клас</b>: з’явиться таблиця, матриця вправ і ознаки, що перевірити першим. Усе показується лише для перегляду: змінити роботу тут не можна.</p><button class="btn primary" id="pick" type="button">${icon('open', 16)} Обрати файли</button><ul class="ck-how"><li><b>1</b><span>Додайте файли учнів</span></li><li><b>2</b><span>Погляньте на клас: хто відстає й де зауваження</span></li><li><b>3</b><span>Відкрийте учня й швидко пройдіться по вправах із позначками</span></li></ul></section>`;
+const dropZone2 = () => `<section class="ck-drop" id="dz"><div class="ck-drop-ic">${icon('open', 34)}</div><h1>Відкрийте файл збереження учня</h1><p>Перетягніть сюди файл <b>.edvault</b> (підійде й старий <b>.json</b>) або оберіть його на комп’ютері. Можна відкрити <b>одразу весь клас</b>, навіть <b>одним ZIP-архівом</b> із роботами учнів: файли з нього відкриються самі. з’явиться таблиця, матриця вправ і ознаки, що перевірити першим. Усе показується лише для перегляду: змінити роботу тут не можна.</p><button class="btn primary" id="pick" type="button">${icon('open', 16)} Обрати файли</button><ul class="ck-how"><li><b>1</b><span>Додайте файли учнів</span></li><li><b>2</b><span>Погляньте на клас: хто відстає й де зауваження</span></li><li><b>3</b><span>Відкрийте учня й швидко пройдіться по вправах із позначками</span></li></ul></section>`;
 
 function attention() {
   const e = list[cur], fl = flagsOf(e), st = stat(S);
@@ -184,9 +185,23 @@ function render() {
 }
 
 function select(i) { cur = (i + list.length) % list.length; S = list[cur].S; meta = list[cur].res; }
-async function openFiles(files) {
-  const errs = []; let first = -1;
-  for (const file of [...(files || [])]) {
+// з архіву .zip робота кожного учня відкривається сама: викладач перетягує один архів замість десятків файлів
+async function expand(files) {
+  const out = [], errs = [];
+  for (const f of [...(files || [])]) {
+    if (/\.zip$/i.test(f.name) || await isZip(f)) {
+      const z = await readZip(f);
+      if (z.error) { errs.push(`${f.name}: ${z.error}.`); continue; }
+      if (!z.entries.length) errs.push(`${f.name}: в архіві немає файлів збереження (.edvault чи .json).`);
+      for (const e of z.entries) out.push({ name: `${f.name} › ${e.name}`, text: async () => e.text });
+      for (const x of z.skipped) errs.push(`${f.name} › ${x}.`);
+    } else out.push({ name: f.name, text: () => f.text() });
+  }
+  return { out, errs };
+}
+async function openFiles(input) {
+  const ex = await expand(input), files = ex.out, errs = [...ex.errs]; let first = -1;
+  for (const file of files) {
     let text = ''; try { text = await file.text(); } catch { errs.push(`${file.name}: файл не вдалося прочитати.`); continue; }
     const res = unpackGame(text); if (!res.ok) { errs.push(`${file.name}: ${res.error}`); continue; }
     let sim; try { sim = new Sim(res.state); } catch { errs.push(`${file.name}: гру не вдалося відновити.`); continue; }
@@ -197,7 +212,7 @@ async function openFiles(files) {
   if (first >= 0) { select(first); tab = list.length > 1 && (files.length > 1) ? 'class' : 'over'; } else if (list.length && cur < 0) select(0);
   render(); if (first >= 0) scrollTo(0, 0);
 }
-const pick = () => { const i = document.createElement('input'); i.type = 'file'; i.multiple = true; i.accept = '.edvault,.json,application/json,text/plain'; i.onchange = () => openFiles(i.files); i.click(); };
+const pick = () => { const i = document.createElement('input'); i.type = 'file'; i.multiple = true; i.accept = '.edvault,.json,.zip,application/json,application/zip,text/plain'; i.onchange = () => openFiles(i.files); i.click(); };
 // відкрити вправу в роботі учня: вкладка «Вправи», фільтр «усі», розгорнути й прокрутити
 function jumpTo(id) {
   tab = 'ex'; flt = 'all'; q = ''; render();
