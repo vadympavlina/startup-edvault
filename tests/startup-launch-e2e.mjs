@@ -46,7 +46,7 @@ await step('запуск: тижні стартують, кнопка тижня
   assert.match(await p.locator('.tp-brand small').innerText(), /Тиждень 1 з 104/);
   const w0 = (await S()).week;
   await p.click('[data-act="endWeek"]');
-  await p.waitForFunction(w => window.Startup.sim.s.week > w, w0);
+  for (let i = 0; i < 100 && !(await p.evaluate(w => window.Startup.sim.s.week > w, w0)); i++) await p.waitForTimeout(100);
   assert.ok((await S()).week > w0);
 });
 

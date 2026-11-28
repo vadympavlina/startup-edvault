@@ -12,6 +12,15 @@ await p.click('[data-w="next"]'); await p.click('[data-w="next"]'); await p.fill
 await p.waitForSelector('#main .ws');
 await p.evaluate(() => { const s = window.Startup.sim.s; s.flags.simStarted = true; s.flags.st9 = 8; s.company.form = 'fop'; window.Startup.C.render(); });
 
+async function until(p, fn, arg, timeout = 15000) {
+  const t0 = Date.now();
+  for (;;) {
+    if (await p.evaluate(fn, arg)) return;
+    if (Date.now() - t0 > timeout) throw new Error('until: таймаут');
+    await p.waitForTimeout(100);
+  }
+}
+
 await step('головна в симуляції: живий офіс, керування часом, застереження', async () => {
   assert.equal(await p.locator('.lv .lv-scene').count(), 1);
   assert.equal(await p.locator('.speed button').count(), 4);
@@ -23,7 +32,7 @@ await step('головна в симуляції: живий офіс, керу�
 await step('«Грати»: час іде (годинник міняється), «Пауза» зупиняє', async () => {
   const c0 = await p.locator('#lv-clock').innerText();
   await p.click('[data-act="liveToggle"]');
-  await p.waitForFunction(c => document.querySelector('#lv-clock')?.textContent !== c, c0);
+  await until(p, c => document.querySelector('#lv-clock')?.textContent !== c, c0);
   assert.match(await p.locator('#lv-run').innerText(), /Іде час/);
   await p.click('[data-act="liveToggle"]');
   assert.match(await p.locator('#lv-run').innerText(), /Пауза/);
@@ -46,7 +55,7 @@ await step('«Місяць»: застереження з прогнозом, п
   assert.match(await p.locator('.md').innerText(), /зупиниться сама[\s\S]*близько/);
   await p.click('.md [data-v="1"], .md .btn.primary');
   // місяць закінчується підсумком, а якщо раніше прийшов лист чи мало грошей, то зупиняється з поясненням
-  await p.waitForFunction(() => document.querySelector('.md.week')?.innerText.includes('Місяць позаду') || (document.querySelector('#lv-note')?.innerText || '').includes('зупинено'), null, { timeout: 60000 });
+  await until(p, () => document.querySelector('.md.week')?.innerText.includes('Місяць позаду') || (document.querySelector('#lv-note')?.innerText || '').includes('зупинено'), null, 60000);
   assert.ok((await S()).week > w0, 'пройшло кілька тижнів');
   await p.keyboard.press('Escape');
 });
@@ -55,6 +64,7 @@ await step('лист, що чекає рішення, зупиняє перем�
   await p.evaluate(() => { const S = window.Startup.sim; S.s.product.launched = true; S.trigger('competitor'); S.s.inbox.filter(m => m.choices && m.chosen == null).forEach(m => { m.until = S.s.week; }); window.Startup.C.render(); });
   assert.ok(await p.evaluate(() => window.Startup.sim.s.inbox.some(m => m.choices && m.chosen == null && m.until === window.Startup.sim.s.week)));
   await p.click('[data-act="liveToggle"]');
+  await until(p, () => /лист/i.test(document.querySelector('#lv-note')?.innerText || ''));
   assert.match(await p.locator('#lv-note').innerText(), /лист/i);
   assert.match(await p.locator('#lv-run').innerText(), /Пауза/);
   assert.ok(await p.locator('#lv-note [data-act="go"]').count() >= 1, 'є кнопка до пошти');
