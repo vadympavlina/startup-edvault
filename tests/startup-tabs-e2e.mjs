@@ -11,7 +11,7 @@ await a.click('[data-w="next"]'); await a.click('[data-w="next"]'); await a.fill
 await a.waitForSelector('#main .ws'); await a.evaluate(() => { window.Startup.sim.s.flags.simStarted = true; window.Startup.C.render(); });
 
 await step('друга вкладка змінює гру: перша не пише й питає, що робити', async () => {
-  const b = await ctx.newPage(); await b.goto(server.url + '/'); await b.waitForSelector('#main .ws');
+  const b = await ctx.newPage(); await b.goto(server.url + '/'); await b.waitForSelector('#main .ws, #main .lv');
   await b.evaluate(() => { window.Startup.sim.s.cash += 1234; window.Startup.C.save(); });
   await a.waitForSelector('.stale-bar');
   const before = await a.evaluate(() => localStorage.getItem('edvault-startup'));
@@ -31,7 +31,7 @@ await step('резервна копія створюється на початк
   await a.evaluate(() => localStorage.setItem('edvault-startup', '{ломаний'));
   const c = await ctx.newPage(); await c.goto(server.url + '/'); await c.waitForSelector('.recovery');
   await c.click('[data-rec="backup"]');
-  await c.waitForSelector('#main .ws');
+  await c.waitForSelector('#main .ws, #main .lv');
   await c.close();
 });
 

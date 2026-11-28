@@ -801,3 +801,40 @@ body.simple .adv { display: none; }
 .simlaunch .miss-list { max-height: 38vh; overflow-y: auto; padding-right: 4px; }
 .simlaunch .miss-list li { min-width: 0; } .simlaunch .miss-list li > span { min-width: 0; }
 .more-pop .ver { display: block; padding: 6px 12px 2px; color: var(--tx3); font-size: 12px; }
+
+/* ═════════ «Живий офіс»: головна в режимі симуляції ═════════ */
+.speed { display: flex; gap: 8px; }
+.speed .btn.sp { gap: 6px; padding: 8px 12px; }
+.speed .btn.sp.on { background: var(--yel); color: var(--ink); }
+.speed .btn.sp:disabled { opacity: .5; }
+.lv { margin-bottom: 16px; }
+.lv-warn { display: flex; gap: 10px; align-items: center; border: 2px dashed #b97500; background: #fff3d2; border-radius: 12px; padding: 9px 12px; margin-bottom: 12px; color: var(--ink); }
+.lv-warn .ic { color: #b97500; flex: none; }
+.lv-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
+.lv-stage { position: relative; border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 4px 4px 0 var(--ink); }
+.lv-scene { display: block; width: 100%; height: auto; }
+.lv-scene #lv-night { transition: opacity .9s ease; }
+.lv-scene[data-night="1"] #lv-night { opacity: .42; }
+.lv-win { fill: #cfd8ea; stroke: #1d2433; stroke-width: 2; transition: fill .9s ease; }
+.lv-scene[data-night="1"] .lv-win { fill: #ffe18a; }
+.lv-sun, .lv-moon { transition: opacity .9s ease; }
+.lv-moon { opacity: 0; }
+.lv-scene[data-night="1"] .lv-sun { opacity: 0; }
+.lv-scene[data-night="1"] .lv-moon { opacity: 1; }
+.lv-hud { position: absolute; right: 12px; top: 12px; display: grid; gap: 2px; min-width: 156px; background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 12px; }
+.lv-hud #lv-day { font-size: 12.5px; color: var(--tx3); }
+.lv-hud #lv-clock { font: 800 26px Rubik, sans-serif; letter-spacing: .02em; }
+.lv-run { font-size: 12.5px; font-weight: 700; }
+.lv-wk { display: block; height: 8px; border: 2px solid var(--ink); border-radius: 6px; background: #fff; overflow: hidden; margin-top: 4px; }
+.lv-wk b { display: block; height: 100%; width: 0; background: var(--acc); transition: width .25s linear; }
+.lv-side { background: #fff; border: 2px solid var(--ink); border-radius: 14px; padding: 12px; display: grid; gap: 10px; }
+.lv-side h2 { font: 700 15px Rubik, sans-serif; margin: 0; }
+.lv-feed-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lv-ev { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.lv-ev small { display: block; color: var(--tx3); font-size: 12.5px; }
+.lv-ic { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--ink); display: grid; place-items: center; color: var(--ink); }
+#lv-note { margin: 12px 0 0; }
+.lv-notep { display: flex; gap: 10px; align-items: center; margin: 0; border: 2px solid var(--ink); background: #ffe27a; border-radius: 12px; padding: 9px 12px; font-weight: 600; }
+.lv .kpis { margin-top: 12px; }
+@media (max-width: 1000px) { .lv-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .lv-scene #lv-night, .lv-win, .lv-sun, .lv-moon, .lv-wk b { transition: none; } }

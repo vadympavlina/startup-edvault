@@ -205,7 +205,7 @@ await step('кілька тижнів поспіль, звіт і збереже
   await go('report');
   assert.match(await p.locator('.report').innerText(), /Записатись[\s\S]*Lean Canvas/);
   await p.reload();
-  await p.waitForSelector('#main .ws, #main .pg-h');
+  await p.waitForSelector('#main .ws, #main .lv, #main .pg-h');
   assert.equal((await S()).week, week);
   assert.equal((await S()).flags.reportMade, true);
 });
@@ -235,7 +235,7 @@ await step('файл: зберегти всю гру у файл і відкри
   await q.waitForSelector('.md.file-open');
   assert.match(await q.locator('.md.file-open').innerText(), /Файл цілий/);
   await q.click('.md.file-open [data-f="play"]');
-  await q.waitForSelector('#main .ws, #main .pg-h');
+  await q.waitForSelector('#main .ws, #main .lv, #main .pg-h');
   assert.equal(await q.locator('.wizard').count(), 0);
   const back = await q.evaluate(() => JSON.parse(JSON.stringify(window.Startup.sim.s)));
   assert.deepEqual(back, cur, 'гра відновилась повністю');
@@ -320,7 +320,7 @@ await step('власна ідея: конструктор у майстрі, п�
   assert.match(await q.locator('#main').innerText(), /Школярі[\s\S]*Шкільні бібліотеки/);
   await q.evaluate(() => window.Startup.C.go('report'));
   assert.match(await q.locator('.report').innerText(), /Ваші припущення ↔ реальність[\s\S]*Каталог книжок/);
-  await q.reload(); await q.waitForSelector('#main .ws, #main .pg-h');
+  await q.reload(); await q.waitForSelector('#main .ws, #main .lv, #main .pg-h');
   assert.equal(await q.evaluate(() => window.Startup.sim.I.t), 'Обмін книжками');
   // ідея запам'ятовується: нова гра пропонує її доопрацювати
   assert.equal(await q.evaluate(() => JSON.parse(localStorage.getItem('edvault-startup-idea')).name), 'Обмін книжками');
@@ -347,6 +347,7 @@ await step('простий режим: складне сховано, підка
   // години розподіляються самі після завершення тижня
   await go('dash'); assert.equal(await p.locator('#weekplan').count(), 0, 'плану тижня на головному екрані немає');
   // кнопка завдання переводить у розділ і підсвічує, що натиснути
+  await p.evaluate(() => document.querySelectorAll('.home details.fold').forEach(d => { d.open = true; }));
   const btn = p.locator('.ws .step:not(.ok) [data-hl]').first();
   if (await btn.count()) { await btn.click(); await p.waitForSelector('.flash'); }
   await p.click('[data-act="more"]'); await p.click('.more-pop [data-act="simple"]');

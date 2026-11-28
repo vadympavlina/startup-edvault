@@ -7,6 +7,7 @@ import { icon } from './icons.js';
 import { esc, nl2br, term, lineChart, delta, logo } from './ui.js';
 import { stageInfo, simOn } from './stages.js';
 import { stageRail, stageSheet, goalCard, exSummary } from './v-stages.js';
+import { liveHome } from './live.js';
 
 const HOUR_ROWS = [
   ['product', 'Продукт', 'code', 'Робите продукт своїми руками'],
@@ -75,7 +76,7 @@ function lastWeek(S) {
 export function mentorCard(S) {
   const [t, ...more] = S.tips();
   return `<section class="pin mentor ${t?.urgent ? 'urgent' : ''}"><div class="mt-h"><span class="face">ІР</span><div><b>Наставниця Ірина</b><small>${t?.urgent ? 'важливо зараз' : 'порада на цей тиждень'}</small></div></div>
-    <p class="hand">${t ? esc(t.text) : simOn(S) ? 'Усе йде добре. Плануйте тиждень і натискайте «Завершити тиждень».' : 'Проходьте етапи по порядку. Коли пройдете всі дев’ять, відкриється запуск симуляції.'}</p>
+    <p class="hand">${t ? esc(t.text) : simOn(S) ? 'Усе йде добре. Запускайте час кнопкою «Грати» або перемотуйте тиждень чи місяць.' : 'Проходьте етапи по порядку. Коли пройдете всі дев’ять, відкриється запуск симуляції.'}</p>
     ${t ? `<div class="row gap sm wrap">${t.go ? `<button class="btn sm" data-act="go" data-to="${t.go}">Перейти</button>` : ''}${t.term ? term(t.term, 'Що це?') : ''}${t.urgent ? '' : `<button class="btn sm ghost" data-act="dismissTip" data-id="${t.id}">Зрозуміло</button>`}</div>` : ''}
     ${more.length ? `<p class="mt-l">Ще поради</p><ul class="mt-more">${more.slice(0, 2).map(x => `<li>${x.go ? `<button class="link" data-act="go" data-to="${x.go}">${esc(x.text)}</button>` : esc(x.text)}</li>`).join('')}</ul>` : ''}</section>`;
 }
@@ -84,18 +85,26 @@ export function mentorCard(S) {
 function dash(S, ui, info = stageInfo(S)) {
   const s = S.s, h = s.history, labels = h.map(x => String(x.week + 1));
   const achs = Object.keys(s.ach);
-  return `${s.over ? `<p class="note bad">${icon('alert', 16)} Гру завершено. <button class="link" data-act="go" data-to="report">Подивитися підсумки</button></p>` : ''}
-  <div class="home v2">
-    <aside class="col rail-col">${stageRail(S, ui, info)}${mentorCard(S)}${status(S)}</aside>
-    <div class="col">${stageSheet(S, ui, info)}${goalCard(S)}${lastWeek(S)}
-      ${h.length > 1 ? `<details class="card fold"><summary>${icon('chart')} Графіки за всі тижні</summary>
+  const over = s.over ? `<p class="note bad">${icon('alert', 16)} Гру завершено. <button class="link" data-act="go" data-to="report">Подивитися підсумки</button></p>` : '';
+  const blocks = `${h.length > 1 ? `<details class="card fold"><summary>${icon('chart')} Графіки за всі тижні</summary>
         <div class="grid g2">
           <div><h4>Гроші</h4>${lineChart([{ v: h.map(x => x.cash), color: 'var(--acc)', label: 'Гроші', area: true }], { labels, fmt: x => money(x).replace(' ₴', '') })}</div>
           <div><h4>Клієнти</h4>${lineChart([{ v: h.map(x => x.users), color: '#0ea5e9', label: 'Користуються' }, { v: h.map(x => x.paid), color: '#16a34a', label: 'Платять' }, { v: h.map(x => x.wait), color: '#94a3b8', label: 'Чекають запуску', dash: true }], { labels, fmt: num })}</div>
           <div><h4>Виручка й витрати за тиждень</h4>${lineChart([{ v: h.map(x => x.rev), color: '#16a34a', label: 'Виручка', area: true }, { v: h.map(x => x.cost), color: '#ef4444', label: 'Витрати' }], { labels, fmt: x => money(x).replace(' ₴', '') })}</div>
         </div></details>` : ''}
       <details class="card fold"><summary>${icon('award')} Досягнення <span class="muted sm">${achs.length} з ${Object.keys(ACHIEVEMENTS).length}</span></summary>
-        <div class="achs">${Object.entries(ACHIEVEMENTS).map(([k, a]) => `<div class="ach ${s.ach[k] ? 'on' : ''}" title="${esc(a.d)}">${icon(s.ach[k] ? 'star' : 'lock', 18)}<span><b>${esc(a.t)}</b><small>${s.ach[k] ? `тиждень ${s.ach[k]}` : esc(a.d)}</small></span></div>`).join('')}</div></details>
+        <div class="achs">${Object.entries(ACHIEVEMENTS).map(([k, a]) => `<div class="ach ${s.ach[k] ? 'on' : ''}" title="${esc(a.d)}">${icon(s.ach[k] ? 'star' : 'lock', 18)}<span><b>${esc(a.t)}</b><small>${s.ach[k] ? `тиждень ${s.ach[k]}` : esc(a.d)}</small></span></div>`).join('')}</div></details>`;
+  // симуляція: живий офіс, а етапи й вправи — у згорнутому блоці «Навчання»
+  if (simOn(S)) return `${over}${liveHome(S, ui)}
+  <div class="home v2"><aside class="col rail-col">${mentorCard(S)}${status(S)}</aside>
+    <div class="col">${goalCard(S)}${lastWeek(S)}${blocks}
+      <details class="card fold"><summary>${icon('book')} Навчання: етапи й вправи</summary><div class="home v2"><aside class="col rail-col">${stageRail(S, ui, info)}</aside><div class="col">${stageSheet(S, ui, info)}</div></div></details>
+    </div></div>`;
+  return `${over}
+  <div class="home v2">
+    <aside class="col rail-col">${stageRail(S, ui, info)}${mentorCard(S)}${status(S)}</aside>
+    <div class="col">${stageSheet(S, ui, info)}${goalCard(S)}${lastWeek(S)}
+      ${blocks}
     </div>
   </div>`;
 }

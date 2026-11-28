@@ -53,7 +53,7 @@ await step('запуск: тижні стартують, кнопка тижня
 await step('збереження зі старої версії (тиждень 5, етапи не пройдено): підготовка, без кнопки тижня й без запуску симуляції', async () => {
   const text = await p.evaluate(async () => { const { serializeGame } = await import('/startupsim/js/file.js'), S = window.Startup.sim; delete S.s.flags.simStarted; S.s.week = 5; S.s.ex.done = {}; S.s.flags.st9 = 0; S.s.canvas = {}; return serializeGame(S, { view: 'dash' }); });
   const q = await ctx.newPage(); q.setDefaultTimeout(10000);
-  await q.goto(server.url + '/'); await q.waitForSelector('#main .ws');
+  await q.goto(server.url + '/'); await q.waitForSelector('#main .ws, #main .lv');
   await q.click('[data-act="more"]');
   const [chooser] = await Promise.all([q.waitForEvent('filechooser'), q.click('[data-act="openFile"]')]);
   await chooser.setFiles({ name: 'стара-гра.edvault', mimeType: 'text/plain', buffer: Buffer.from(text) });

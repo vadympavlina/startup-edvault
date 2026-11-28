@@ -1,6 +1,6 @@
 // Симулятор стартапу · оболонка: меню, верхня панель, маршрути, старт, підсумки тижня, збереження.
 import { IDEAS, BACKGROUNDS, ACHIEVEMENTS } from './data.js';
-import { Sim, newGame, okState, money, num, pct, plural, dateText, WEEKS, HOURS } from './sim.js';
+import { Sim, newGame, okState, money, num, pct, plural, dateText, WEEKS, HOURS, sum } from './sim.js';
 import { ARCH, KINDS, SIZES, SCOPES, EXAMPLES, ideaCheck } from './custom.js';
 import { serializeGame, unpackGame, fileName } from './file.js';
 import { icon } from './icons.js';
@@ -12,6 +12,7 @@ import { moneyViews, moneyActs, moneyIns } from './v-money.js';
 import { peopleViews, peopleActs, peopleIns } from './v-people.js';
 import { STAGES, stageInfo, viewStage, isOpen, unlock, syncStage, ADVANCED_VIEWS, isSimple, suggestHours, simOn } from './stages.js';
 import { stageBar } from './v-stages.js';
+import { liveState, paintLive, forecast, TICKS, pendingLetters } from './live.js';
 import { exViews, exActs, installEx, goalNow, STAGE_T, exOf, exDone, exStars, stars } from './ex-core.js';
 import './ex1.js';
 import './ex-need.js';
@@ -104,7 +105,7 @@ const save = () => {
 const C = {
   get S() { return S; }, ui,
   // перехід із коду (підказка, лист, кнопка завдання) відкриває розділ навіть до його етапу
-  go(v) { if (!VIEWS[v]) return; if (S && !isOpen(S, v)) { askUnlock(v); return; } ui.view = v; const t = tabOf(v); if (t) (ui.tabLast ||= {})[t[0]] = v; if (v !== 'dash' && !v.startsWith('ex-')) ui.stage = null; closeMore(); render(); $('#main').scrollTo?.(0, 0); scrollTo(0, 0); if (!document.querySelector('.modal-back, .md-back, .wizard')) $('#main').focus({ preventScroll: true }); },
+  go(v) { if (lvTimer) lvStop(); if (!VIEWS[v]) return; if (S && !isOpen(S, v)) { askUnlock(v); return; } ui.view = v; const t = tabOf(v); if (t) (ui.tabLast ||= {})[t[0]] = v; if (v !== 'dash' && !v.startsWith('ex-')) ui.stage = null; closeMore(); render(); $('#main').scrollTo?.(0, 0); scrollTo(0, 0); if (!document.querySelector('.modal-back, .md-back, .wizard')) $('#main').focus({ preventScroll: true }); },
   render: () => render(), save, toast,
   out(k, text) { const el = document.querySelector(`[data-out="${k}"]`); if (el) el.textContent = text; },
   topbar: () => topbar(), theme: () => theme(), ending: () => ending(),
@@ -154,7 +155,7 @@ function loadText(text) {
       const b = e.target.closest('[data-f]'); if (!b) return;
       if (b.dataset.f === 'saveCur') { saveFile(); return; }
       if (res.edited) T.s.flags.editedFile = true;
-      oldFormat(T); S = T; window.Startup.S = S;
+      oldFormat(T); lvReset(); S = T; window.Startup.S = S;
       for (const k of Object.keys(ui)) delete ui[k];
       Object.assign(ui, res.ui, { view: b.dataset.f === 'report' ? 'report' : VIEWS[res.ui.view] ? res.ui.view : 'dash' });
       document.querySelector('.wizard')?.remove(); document.body.classList.remove('wz-on');
@@ -193,13 +194,13 @@ function topbar() {
   setHtml($('#top'), `<button class="tp-brand" data-act="go" data-to="dash" title="${esc(s.company.name)}: ${esc(S.I.t)}. На головну">${logo(s.company, 36)}<span><b>${esc(s.company.name)}</b><small>${simOn(S) ? `Тиждень ${s.week + 1} з ${WEEKS} · ${dateText(s.week)}` : `Підготовка · етап ${Math.min(9, stageInfo(S).cur + 1)} з ${STAGES.length}`}</small></span></button>
     <div class="tp-stats">
       <span class="tp-s ${s.cash < 30000 ? 'bad' : ''}" title="Гроші компанії">${icon('wallet', 16)}<span><small>Гроші</small><b>${money(s.cash)}</b></span></span>
-      <span class="tp-s ${rw < 8 ? 'bad' : rw < 16 ? 'warn' : ''} hide-t" title="На скільки тижнів вистачить грошей">${icon('clock', 16)}<span><small>Вистачить на</small><b>${runwayText(rw)}</b></span></span>
-      <span class="tp-s hide-m" title="Скільки людей користуються продуктом">${icon('users', 16)}<span><small>Клієнти</small><b>${num(S.activeUsers())}</b></span></span>
+      ${simOn(S) ? '' : `<span class="tp-s ${rw < 8 ? 'bad' : rw < 16 ? 'warn' : ''} hide-t" title="На скільки тижнів вистачить грошей">${icon('clock', 16)}<span><small>Вистачить на</small><b>${runwayText(rw)}</b></span></span>
+      <span class="tp-s hide-m" title="Скільки людей користуються продуктом">${icon('users', 16)}<span><small>Клієнти</small><b>${num(S.activeUsers())}</b></span></span>`}
       <span class="tp-s ${e < 30 ? 'bad' : e < 60 ? 'warn' : ''} hide-m" title="Ваші сили. Падають, якщо працювати забагато">${icon('bolt', 16)}<span><small>Сили</small><b>${e}%</b></span></span>
     </div>
     <button class="btn top-save" data-act="saveFile" title="Зберегти всю гру у файл (Ctrl+S)" aria-label="Зберегти гру у файл">${icon('save', 16)}<span>Зберегти</span></button>
     <div class="more-w"><button class="btn ib-b" data-act="more" aria-label="Ще" aria-expanded="${!!ui.more}" title="Ще">${icon('more', 18)}</button>${ui.more ? morePop() : ''}</div>
-    ${simOn(S) ? `<button class="btn primary end-week ${s.flags.weekDone ? '' : 'pulse'}" data-act="endWeek" aria-label="Завершити тиждень" title="Гра порахує клієнтів і гроші за тиждень і покаже результат" ${s.over ? 'disabled' : ''}>${icon('next', 16)}<span>Завершити тиждень</span></button>`
+    ${simOn(S) ? timeControls()
       : `<button class="btn primary end-week prep" data-act="go" data-to="dash" title="Спершу пройдіть усі 9 етапів: тоді відкриється запуск симуляції">${icon('flag', 16)}<span>Підготовка: ${stageInfo(S).list.filter(x => x.done).length} з ${STAGES.length} етапів</span></button>`}`);
 }
 function morePop() {
@@ -259,6 +260,7 @@ function render() {
     body = failCard('Цей розділ не вдалося показати', 'Збереження містить дані, яких гра не розуміє. Інші розділи працюють. Збережіть гру у файл і напишіть викладачеві.', `<div class="row gap wrap"><button class="btn" data-act="go" data-to="dash">На головну</button><button class="btn" data-act="saveFile">${icon('save', 16)} Зберегти у файл</button></div>`);
   }
   setHtml($('#main'), `${ui.view === 'dash' ? '' : `<header class="pg-h"><h1>${icon(V.icon, 24)} ${V.t}</h1>${S.s.over ? `<span class="chip bad">Гру завершено</span>` : ''}</header>${hint}`}${body}`);
+  lvPaint();
   if (fk && (!document.activeElement || document.activeElement === document.body)) [...document.querySelectorAll('[data-act], [data-in]')].find(el => focusKey(el) === fk && !el.disabled)?.focus({ preventScroll: true });
   save();
 }
@@ -272,6 +274,13 @@ async function endWeek() {
   const pending = s.inbox.filter(m => m.choices && m.chosen == null && m.until === s.week);
   if (pending.length && !await confirmBox('Є листи, які чекають на ваше рішення', 'Завершити тиждень', { sub: `Якщо не відповісте цього тижня, рішення ухвалять без вас: ${pending.map(m => `«${m.title}»`).join(', ')}.` })) { C.go('inbox'); return; }
   if (hoursUsed(S) > 62 && !await confirmBox(`Ви запланували ${hoursUsed(S)} годин роботи`, 'Так, працюю', { sub: 'Енергія різко впаде, а з нею — продуктивність. Можливо, варто додати відпочинку?' })) return;
+  const rep = weekCore();
+  weekModal(rep);
+  render();
+}
+// сам перехід на наступний тиждень: години, резервна копія, розрахунок, цілі, збереження (без вікон)
+function weekCore() {
+  const s = S.s;
   for (const [k, v] of Object.entries(suggestHours(S, stageInfo(S).cur))) S.setHours(k, v); // години розподіляються самі під поточний етап
   try { const cur = localStorage.getItem(KEY); if (cur && !stale) localStorage.setItem(BAK_KEY, cur); } catch { /* немає місця: резервна копія не обов'язкова */ } // копія на початок тижня: її можна відновити, якщо щось зламається
   const rep = S.endWeek();
@@ -279,8 +288,84 @@ async function endWeek() {
   if (gs && !gs.g.done && gs.status === 'done') { gs.g.done = true; S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Ціль досягнуто!', body: `Ви досягли своєї SMART-цілі: ${gs.g.text}. Саме так працюють вимірні цілі: їх видно, і ними можна пишатися. Поставте нову, трохи амбітнішу.` }); toast('SMART-ціль досягнуто!', 'good'); }
   else if (gs && gs.status === 'late' && !gs.g.left) { gs.g.left = true; S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Термін цілі минув', body: `Ціль «${gs.g.text}» не досягнуто в строк. Це нормально: подумайте, що завадило — ціль була завеликою, чи бракувало дій? Поставте нову ціль у вправі SMART.` }); }
   save();
-  weekModal(rep);
-  render();
+  return rep;
+}
+/* ═════════ час: пауза, грати, перемотування ═════════
+   Тиждень складається з 14 півдобових кроків (ранок і вечір). «Грати» пускає час із нормальною швидкістю, «День», «Тиждень» і «Місяць»
+   перемотують його. Перемотування зупиняється саме: на листі, що чекає рішення, коли грошей мало або закінчуються сили. */
+let lvTimer = null, lvBusy = false;
+const LV = () => liveState(ui);
+function timeControls() {
+  const L = LV(), run = L.run !== 'pause', over = !!S.s.over;
+  const b = (on, act, ic, label, extra = '') => `<button class="btn sp ${on ? 'on' : ''}" data-act="${act}" ${extra} ${over ? 'disabled' : ''}>${icon(ic, 16)}<span>${label}</span></button>`;
+  return `<div class="speed" role="group" aria-label="Керування часом">${b(L.kind === 'play', 'liveToggle', run ? 'pause' : 'play', run ? 'Пауза' : 'Грати', `aria-pressed="${run}"`)}${b(L.kind === 'day', 'liveFf', 'next', 'День', 'data-n="day"')}<button class="btn sp end-week ${S.s.flags.weekDone ? '' : 'pulse'} ${L.kind === 'week' ? 'on' : ''}" data-act="endWeek" title="Перемотати до кінця тижня: гра порахує клієнтів і гроші й покаже підсумок" ${over ? 'disabled' : ''}>${icon('fast', 16)}<span>Тиждень</span></button>${b(L.kind === 'month', 'liveFf', 'skip', 'Місяць', 'data-n="month"')}</div>`;
+}
+const lvPaint = () => { const root = document.querySelector('.lv'); if (root && S) paintLive(root, S, LV()); };
+function lvReset() { clearInterval(lvTimer); lvTimer = null; lvBusy = false; }
+function lvStop(note = '', go = '') { clearInterval(lvTimer); lvTimer = null; const L = LV(); L.run = 'pause'; L.kind = ''; L.left = 0; L.note = note; L.noteGo = go; lvPaint(); topbar(); }
+function lvRun(kind, ticks, ms) {
+  clearInterval(lvTimer); const L = LV(); L.run = kind === 'play' ? 'play' : 'ff'; L.kind = kind; L.left = ticks; L.reps = []; L.note = ''; L.noteGo = ''; L.from = { cash: S.s.cash, users: S.activeUsers() };
+  lvTimer = setInterval(lvTick, ms); lvPaint(); topbar();
+}
+function lvCan() {
+  if (!S || !simOn(S)) { toast('Спершу пройдіть підготовку: усі 9 етапів. Потім відкриється запуск симуляції.', 'bad'); return false; }
+  if (S.s.over) { ending(); return false; }
+  if (pendingLetters(S).length) { lvStop('Час не піде, поки лист чекає вашого рішення. Відповідьте на нього.', 'inbox'); toast('Спершу відповідьте на лист: він чекає вашого рішення', 'bad'); return false; }
+  return true;
+}
+function lvStopReason(L) {
+  const s = S.s, rw = S.runwayWeeks();
+  if (pendingLetters(S).length) return ['Прийшов лист, що чекає вашого рішення. Час зупинено.', 'inbox'];
+  if (rw !== Infinity && rw < 8 && s.week - L.lowAt >= 4) { L.lowAt = s.week; return ['Грошей лишилось менше ніж на 8 тижнів. Час зупинено: подумайте, що змінити.', 'finance']; }
+  if (s.founder.energy < 30 && s.week - L.tiredAt >= 4) { L.tiredAt = s.week; return ['У вас майже не лишилось сил. Час зупинено: додайте відпочинку.', 'dash']; }
+  return null;
+}
+async function lvWeekEnd(L) {
+  if (S.s.over) { lvStop(); ending(); return false; }
+  const manual = L.kind === 'week' || L.kind === 'day', w0 = S.s.week;
+  if (!manual && pendingLetters(S).length) { lvStop('Час зупинено: лист чекає вашого рішення.', 'inbox'); return false; }
+  if (manual) { await endWeek(); if (S.s.week === w0) { lvStop(); return false; } }
+  else {
+    const rep = weekCore(); L.reps.push(rep); render();
+    if (L.kind === 'play') toast(`Тиждень ${rep.week + 1} завершено: ${rep.cashAfter >= rep.cashBefore ? '+' : '−'}${money(Math.abs(rep.cashAfter - rep.cashBefore))}`);
+    if (S.s.over) { lvStop(); ending(); return false; }
+  }
+  L.tick = 0;
+  const why = lvStopReason(L); if (why) { lvStop(why[0], why[1]); toast(why[0], 'bad'); return false; }
+  return true;
+}
+async function lvTick() {
+  if (!S || lvBusy || document.hidden || document.querySelector('.md-back, .wizard')) return;
+  const L = LV(); if (L.run === 'pause') return;
+  lvBusy = true;
+  try {
+    if (L.tick < TICKS - 1) L.tick++; else if (!await lvWeekEnd(L)) return;
+    if (L.kind !== 'play' && --L.left <= 0) { const kind = L.kind, reps = L.reps.slice(); lvStop(); if (kind === 'month' && reps.length) monthModal(reps); }
+    else lvPaint();
+  } finally { lvBusy = false; }
+}
+function monthModal(reps) {
+  const first = reps[0], last = reps.at(-1), rev = sum(reps.map(r => r.money?.revenue || 0)), np = sum(reps.map(r => r.rec?.newPaid || 0)), evs = reps.flatMap(r => r.events || []);
+  const d = last.cashAfter - first.cashBefore;
+  modal({ title: 'Місяць позаду', cls: 'week', html: `<p class="wk-say">${icon(d >= 0 ? 'trend' : 'info', 18)} ${d >= 0 ? 'За місяць ви заробили більше, ніж витратили.' : `За місяць ви витратили на ${money(-d)} більше, ніж заробили.`}</p>
+    <div class="wk-cash"><div><small>Було</small><b>${money(first.cashBefore)}</b></div>${icon('right', 22)}<div><small>Стало</small><b>${money(last.cashAfter)}</b></div><span class="dl ${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${money(Math.abs(d))}</span></div>
+    <div class="mini-stats"><div><span>Виручка за місяць</span><b class="pos">${money(rev)}</b></div><div><span>Нових платних клієнтів</span><b>${np}</b></div><div><span>Подій</span><b>${evs.length}</b></div></div>
+    ${evs.slice(0, 6).map(e => `<p class="note">${icon('mail', 16)} <b>${esc(e.t)}</b> — ${esc(e.d)}</p>`).join('')}
+    <div class="row end gap"><button class="btn primary" data-md-close autofocus>Продовжити ${icon('right', 16)}</button></div>` });
+}
+async function liveFf(n) {
+  if (!S) return;
+  if (!simOn(S)) { toast('Спершу пройдіть підготовку: усі 9 етапів. Потім відкриється запуск симуляції.', 'bad'); return; }
+  if (S.s.over) return ending();
+  const L = LV(); S.s.flags.weekDone = true;
+  if (n === 'day') return lvRun('day', 2, 260);
+  if (n === 'week') return lvRun('week', Math.max(1, TICKS - L.tick), 110);
+  if (n === 'month') {
+    if (!lvCan()) return;
+    const fc = forecast(S, 4);
+    if (!await confirmBox('Перемотати місяць?', 'Перемотати', { sub: `Пройде чотири тижні. Гра зупиниться сама, якщо прийде лист, що чекає вашого рішення, грошей лишиться менше ніж на 8 тижнів або закінчаться сили. За прогнозом, через місяць у вас буде близько ${money(fc.cash)}.` })) return;
+    return lvRun('month', 4 * TICKS - L.tick, 90);
+  }
 }
 function weekModal(rep) {
   const s = S.s, m = rep.money, r = rep.rec, d = rep.cashAfter - rep.cashBefore;
@@ -321,9 +406,9 @@ function startSim() {
       const g = e.target.closest('[data-go]'); if (g) { api.close(); C.go(g.dataset.go); return; }
       if (!e.target.closest('[data-launch]')) return;
       api.close(); S.s.flags.simStarted = true; S.s.flags.weekDone = false;
-      S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Симуляція почалась!', body: 'Тепер ваш бізнес працює по-справжньому. Щотижня: розподіліть години, ухваліть рішення в розділах (продукт, реклама, команда), а коли готові, натисніть «Завершити тиждень». Гра покаже, що вийшло.' });
+      S.mail({ from: 'Наставниця Ірина', kind: 'mentor', title: 'Симуляція почалась!', body: 'Тепер ваш бізнес працює по-справжньому. Запускайте час кнопкою «Грати» або перемотуйте день, тиждень чи місяць. Ухвалюйте рішення в розділах (продукт, реклама, команда) і відповідайте на листи: гра зупиниться, коли знадобиться ваша увага.' });
       save(); ui.view = 'dash'; render();
-      modal({ title: 'Як працює тиждень', cls: 'howto', html: `<ol class="howto-list"><li><b>Плануйте.</b> Розподіліть години між продуктом, клієнтами, рекламою й відпочинком (гра запропонує готовий розподіл).</li><li><b>Вирішуйте.</b> Додайте функції в розробку, налаштуйте рекламу, відповідайте на листи.</li><li><b>Натисніть «Завершити тиждень».</b> Лише тоді спливає час: гра порахує клієнтів, гроші й події.</li></ol><p class="sm muted">Не поспішайте: перший тиждень можна витратити на розмови з клієнтами. Кнопка «Завершити тиждень» угорі справа.</p><div class="row"><button class="btn primary" data-md-close>Починаємо</button></div>` });
+      modal({ title: 'Як працює тиждень', cls: 'howto', html: `<ol class="howto-list"><li><b>Плануйте.</b> Розподіліть години між продуктом, клієнтами, рекламою й відпочинком (гра запропонує готовий розподіл).</li><li><b>Вирішуйте.</b> Додайте функції в розробку, налаштуйте рекламу, відповідайте на листи.</li><li><b>Запустіть час.</b> Кнопка «Грати» вмикає час, а «День», «Тиждень» і «Місяць» перемотують його. Гра сама зупиниться, коли прийде лист, мало грошей чи сил.</li></ol><p class="sm muted">Не поспішайте: перший тиждень можна витратити на розмови з клієнтами. Кнопки часу угорі справа.</p><div class="row"><button class="btn primary" data-md-close>Починаємо</button></div>` });
     }) });
 }
 
@@ -431,6 +516,7 @@ function startWizard() {
         S = newGame({ idea: w.idea === 'custom' ? 'homework' : w.idea, founder: w.name.trim(), group: w.group.trim(), bg: w.bg, company: w.company.trim(), color: w.color, sym: w.sym, fff: false, custom });
         S.s.flags.simple = w.simple;
         S.s.flags.simStarted = false; // спершу підготовка (9 етапів), потім симуляція
+        lvReset();
         el.remove(); document.body.classList.remove('wz-on'); ui.view = 'dash'; render(); window.Startup.S = S;
         return;
       }
@@ -467,7 +553,9 @@ document.addEventListener('click', e => {
   if (a.dataset.act === 'openFile') return openFile();
   if (!S) return;
   const k = a.dataset.act;
-  if (k === 'endWeek') return endWeek();
+  if (k === 'endWeek') return liveFf('week');
+  if (k === 'liveFf') return liveFf(a.dataset.n);
+  if (k === 'liveToggle') { if (LV().run !== 'pause') return lvStop(); if (!lvCan()) return; S.s.flags.weekDone = true; return lvRun('play', Infinity, 1200); }
   if (k === 'startSim') return startSim();
   if (k === 'more') { ui.more = !ui.more; topbar(); return; }
   if (k === 'simple') { S.s.flags.simple = !isSimple(S); ui.more = false; render(); toast(isSimple(S) ? 'Простий режим: складні розрахунки й необов\'язкові розділи сховано' : 'Повний режим: відкрито всі розрахунки й розділи', 'good'); return; }

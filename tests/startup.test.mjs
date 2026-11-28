@@ -506,3 +506,20 @@ test('усі події (і нові) створюють лист, а кожен
     }
   }
 });
+
+test('живий офіс: головна симуляції малюється для всіх ідей і станів без порожніх значень', async () => {
+  const { liveHome, liveScene, liveState, forecast, TICKS } = await import('../startupsim/js/live.js');
+  const BADX = /undefined|NaN|\[object|Infinity/;
+  for (const idea of ['homework', 'plant', 'english', 'booking']) {
+    const S = newGame({ idea, seed: 9 }), ui = {};
+    assert.match(liveHome(S, ui), /lv-scene/, `${idea}: сцена до запуску`);
+    for (let w = 0; w < 14; w++) {
+      smartWeek(S); for (const m of S.s.inbox) if (m.choices && m.chosen == null) S.choose(m.id, 0);
+      const html = liveHome(S, ui); assert.doesNotMatch(html.replace(/<style[\s\S]*?<\/style>/g, ''), BADX, `${idea}, тиждень ${w}`);
+    }
+    for (const t of [0, 1, 6, TICKS - 1]) assert.doesNotMatch(liveScene(S, { ...liveState(ui), tick: t }, false), BADX);
+    assert.ok(Number.isFinite(forecast(S, 4).cash));
+    S.s.team.push({ id: 'z', name: 'Анна Мельник', role: 'support', skill: 2, salary: 20000, morale: 70, joined: 0, fem: true }, { id: 'y', name: 'Іван', role: 'sales', skill: 2, salary: 20000, morale: 70, joined: 0 }, { id: 'x', name: 'Ольга', role: 'design', skill: 2, salary: 20000, morale: 70, joined: 0 }, { id: 'w', name: 'Петро', role: 'mkt', skill: 2, salary: 20000, morale: 70, joined: 0 });
+    assert.match(liveScene(S, liveState(ui), false), /ще \d+ у команді/, `${idea}: більше чотирьох людей`);
+  }
+});
