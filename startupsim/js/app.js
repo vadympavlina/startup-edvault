@@ -207,6 +207,7 @@ function morePop() {
     <button role="menuitem" data-act="go" data-to="help">${icon('book', 16)} Довідник і словник</button>
     <button role="menuitem" data-act="simple" aria-pressed="${isSimple(S)}">${icon(isSimple(S) ? 'check' : 'wrench', 16)} ${isSimple(S) ? 'Простий режим увімкнено' : 'Увімкнути простий режим'}</button>
     <button role="menuitem" data-act="newGame">${icon('refresh', 16)} Нова гра</button>
+    <small class="ver">Версія гри 28.11.2026 · режим: ${simOn(S) ? 'симуляція' : 'підготовка'}</small>
     <small class="${s.flags.fileWeek != null ? '' : 'warn'}">${s.flags.fileWeek != null ? `У файл збережено на тижні ${s.flags.fileWeek + 1}` : 'Гру ще не зберігали у файл'}</small></div>`;
 }
 const closeMore = () => { if (ui.more) { ui.more = false; topbar(); } };
