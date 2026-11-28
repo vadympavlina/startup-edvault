@@ -36,7 +36,7 @@ const FILL = {
   leadership: (S, d) => { d.a = Object.fromEntries(Array.from({ length: 8 }, (_, i) => [i, i % 3])); d.mine = 'd'; d.rule = long; },
   roles: (S, d) => { d.own = Object.fromEntries(Array.from({ length: 8 }, (_, i) => [i, i < 5 ? 'dev' : 'me'])); d.first = ['dev']; d.why = long; },
   agile: (S, d) => { d.sprints = 1; d.log = [{ plan: 7, done: 7, val: 10, maxVal: 10, burn: [7, 0], ideal: [7, 0], ev: [] }]; d.retro = { good: 'добре', bad: 'мало часу', act: 'менше задач' }; d.kb.slice(0, 4).forEach(c => { c.col = 'done'; c.cyc = 1; }); d.q = { 0: 0, 1: 1, 2: 1 }; },
-  hiring: (S, d) => { d.req = ['exp', 'team', 'learn']; d.q = { 0: 1, 1: 0, 2: 1, 3: 0, 4: 1, 5: 0, 6: 1, 7: 0 }; d.pick = 'Ірина'; d.why = long; },
+  hiring: (S, d) => { d.req = ['exp', 'team', 'learn']; d.asked = ['q1', 'q2', 'q3', 'q4']; d.ref = 'Ірина'; d.pick = 'Ірина'; d.why = long; },
   remote: (S, d) => { d.tools = ['chat', 'video', 'tasks']; d.rit = ['daily', 'demo']; d.q = { 0: 1, 1: 1 }; },
   exchanges: (S, d) => { d.pick = 'ua'; d.why = long; d.sc = { 0: 1, 1: 0, 2: 1, 3: 1, 4: 1, 5: 0 }; },
   resume: (S, d) => { d.title = 'Дизайнер'; d.about = 'Створюю прості інтерфейси для шкільних застосунків. За рік зробив 5 проєктів для 3 шкіл.'; d.skills = [{ t: 'Figma', l: 4 }, { t: 'Тексти', l: 3 }, { t: 'Прототипи', l: 3 }]; d.exp = [{ t: 'Фріланс-проєкти', r: 'збільшив конверсію на 20%' }]; d.port = ['Сайт кав’ярні']; d.mail = 'name@example.com'; },

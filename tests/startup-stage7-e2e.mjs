@@ -54,6 +54,23 @@ await step('ролі: перед розподілом немає аналізу,
   assert.equal(await p.locator('.xbox:has-text("Аналіз")').count(), 0);
 });
 
+await step('наймання: співбесіда-детектив: запитання, незаконні відхиляються, референс, вибір і «що було б насправді»', async () => {
+  await go('ex-hiring'); await p.waitForSelector('.xbox');
+  for (const k of ['Досвід на схожих проєктах', 'Уміння працювати в команді', 'Швидко вчиться']) await p.click(`.xp:has-text("${k}")`);
+  assert.match(await cls(1), /done/);
+  for (const q of ['Розкажіть про проєкт', 'Опишіть випадок', 'Що нового ви вивчили', 'Ви плануєте мати дітей']) await p.click(`.srow:has-text("${q}") .sbtn`);
+  assert.match(await p.locator('.xbox:has-text("Співбесіда") table').innerText(), /Сам написав увесь бекенд/);
+  assert.match(await p.locator('.xbox:has-text("Співбесіда") table').innerText(), /не можна/);
+  await p.click('.xbox:has-text("Референс") .xp:has-text("Ірина")');
+  assert.match(await cls(2), /done/);
+  await p.click('.nmcard:has-text("Ірина") .xp');
+  await p.fill('[data-exi="hiring"][data-p="why"]', 'Вона вчиться швидко й добре працює в команді, а це нам потрібно.');
+  assert.match(await p.locator('.ex-foot').innerText(), /не можна|приберіть/i);   // незаконне запитання блокує завершення
+  await p.click('.srow:has-text("Ви плануєте мати дітей") .sbtn');
+  assert.match(await cls(3), /done/);
+  assert.match(await p.locator('.xbox:has-text("Що було б насправді")').innerText(), /Андрій[\s\S]*Ірина[\s\S]*Олеся/);
+});
+
 assert.deepEqual(errors, [], 'помилки консолі: ' + errors.join('; '));
 await browser.close(); server.close();
 console.log('готово');
