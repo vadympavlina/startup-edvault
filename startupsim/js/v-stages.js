@@ -31,10 +31,7 @@ export function stageSheet(S, ui, info) {
   const btn = (x, primary) => x.go === 'file' ? '' : `<button class="btn sm ${primary ? 'primary' : ''}" data-act="go" data-to="${x.go}" ${x.hl ? `data-hl="${esc(x.hl)}"` : ''}>${esc(x.btn)}</button>`;
   const step = (x, k, o) => `<li class="step ${x.ok ? 'ok' : x === first && !o ? 'now' : ''}"><span class="sn">${x.ok ? icon('check', 18) : x.ic ? icon(x.ic, 18) : k + 1}</span>
     <div><b>${esc(x.t)}</b><small>${esc(x.d)}</small>${x.ex && x.ok ? `<span class="sx">${mastery(exStars(S, x.ex))}</span>` : ''}</div>${x.ok && !x.ex ? `<span class="chip ok">${icon('check', 14)} Готово</span>` : btn(x, x === first && !o)}</li>`;
-  const old = !info.allDone && S.s.week > 0 && !simOn(S) && i === info.cur && !back;   // гра зі старої версії: тижні вже йшли
-  const head = old
-    ? `<p class="k">Гру збережено зі старої версії</p><h1>Ваш бізнес уже працює</h1><p class="lead">Тижні вже йшли (зараз тиждень ${S.s.week + 1}). Тепер гра ділиться на підготовку й симуляцію: можете пройти етапи, а коли захочете, продовжити симуляцію з поточного тижня.</p><div class="launch-cta"><button class="btn primary big" data-act="startSim">${icon('rocket', 18)} Продовжити симуляцію</button></div>`
-    : info.allDone && i === info.cur && !back && !simOn(S)
+  const head = info.allDone && i === info.cur && !back && !simOn(S)
     ? `<p class="k">Підготовку завершено</p><h1>Ваш бізнес готовий до запуску</h1><p class="lead">Ви пройшли всі 9 етапів. Тепер починається симуляція: тиждень за тижнем ваш стартап працюватиме, а все, що ви вирішили у вправах, стане його основою.</p><div class="launch-cta"><button class="btn primary big" data-act="startSim">${icon('rocket', 18)} Запустити симуляцію</button></div>`
     : info.allDone && i === info.cur && !back
     ? `<p class="k">Усі етапи пройдено</p><h1>Ви пройшли весь шлях стартапу</h1><p class="lead">Усі розділи відкриті. Далі можна вдосконалювати вправи, розвивати компанію й готувати підсумковий звіт.</p>`

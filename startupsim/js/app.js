@@ -76,7 +76,7 @@ let migrated = '';
   }
 }
 // Гра зі старої версії (без позначки режиму) відкривається в новому форматі: спершу підготовка, кнопки тижня немає.
-// Симуляцію такої гри запускають однією кнопкою на головній, вона продовжиться з поточного тижня.
+// Симуляція відкривається лише після всіх дев'яти етапів (тоді кнопка «Запустити симуляцію» продовжить гру з поточного тижня).
 const oldFormat = T => { if (T.s.flags.simStarted === undefined) T.s.flags.simStarted = false; };
 const BROKEN_KEY = 'edvault-startup-broken', BAK_KEY = 'edvault-startup-prev';
 let broken = null; // сире збереження, яке не вдалося прочитати: його не стираємо
@@ -311,7 +311,7 @@ function ending() {
 /* ═════════ запуск симуляції ═════════ */
 function startSim() {
   const info = stageInfo(S);
-  if (!info.allDone && S.s.week === 0) { toast('Симуляція відкриється, коли ви пройдете всі 9 етапів.', 'bad'); return; }
+  if (!info.allDone) { toast('Симуляція відкриється, коли ви пройдете всі 9 етапів.', 'bad'); return; }
   const miss = info.list.flatMap(st => st.opt.filter(x => !x.ok).map(x => ({ ...x, st: st.t })));
   const rows = miss.map(x => `<li><span><b>${esc(x.t)}</b><small>${esc(x.st)}</small></span><button class="btn sm" data-go="${esc(x.go)}">Зробити зараз</button></li>`).join('');
   modal({ title: 'Запуск симуляції', cls: 'simlaunch', html: `<p>Усі 9 етапів пройдено. Після запуску піде час: кожен тиждень гра рахуватиме клієнтів, гроші й події, а ви ухвалюватимете рішення.</p>
