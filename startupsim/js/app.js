@@ -75,6 +75,9 @@ let migrated = '';
     } catch { /* пошкоджені дані — ігноруємо */ }
   }
 }
+// Гра зі старої версії (без позначки режиму) відкривається в новому форматі: спершу підготовка, кнопки тижня немає.
+// Симуляцію такої гри запускають однією кнопкою на головній, вона продовжиться з поточного тижня.
+const oldFormat = T => { if (T.s.flags.simStarted === undefined) T.s.flags.simStarted = false; };
 const BROKEN_KEY = 'edvault-startup-broken', BAK_KEY = 'edvault-startup-prev';
 let broken = null; // сире збереження, яке не вдалося прочитати: його не стираємо
 try {
@@ -82,7 +85,7 @@ try {
   if (raw) {
     try {
       const saved = JSON.parse(raw);
-      if (saved && okState(saved.s)) { S = new Sim(saved.s); ui.view = saved.view || 'dash'; if (S.s.flags.simStarted === undefined && S.s.week === 0) S.s.flags.simStarted = false; /* гра ще не рушила: починає з підготовки */ } else broken = raw;
+      if (saved && okState(saved.s)) { S = new Sim(saved.s); ui.view = saved.view || 'dash'; oldFormat(S); } else broken = raw;
     } catch { broken = raw; S = null; }
   }
 } catch { /* сховище недоступне */ }
@@ -151,7 +154,7 @@ function loadText(text) {
       const b = e.target.closest('[data-f]'); if (!b) return;
       if (b.dataset.f === 'saveCur') { saveFile(); return; }
       if (res.edited) T.s.flags.editedFile = true;
-      S = T; window.Startup.S = S;
+      oldFormat(T); S = T; window.Startup.S = S;
       for (const k of Object.keys(ui)) delete ui[k];
       Object.assign(ui, res.ui, { view: b.dataset.f === 'report' ? 'report' : VIEWS[res.ui.view] ? res.ui.view : 'dash' });
       document.querySelector('.wizard')?.remove(); document.body.classList.remove('wz-on');
@@ -308,7 +311,7 @@ function ending() {
 /* ═════════ запуск симуляції ═════════ */
 function startSim() {
   const info = stageInfo(S);
-  if (!info.allDone) { toast('Симуляція відкриється, коли ви пройдете всі 9 етапів.', 'bad'); return; }
+  if (!info.allDone && S.s.week === 0) { toast('Симуляція відкриється, коли ви пройдете всі 9 етапів.', 'bad'); return; }
   const miss = info.list.flatMap(st => st.opt.filter(x => !x.ok).map(x => ({ ...x, st: st.t })));
   const rows = miss.map(x => `<li><span><b>${esc(x.t)}</b><small>${esc(x.st)}</small></span><button class="btn sm" data-go="${esc(x.go)}">Зробити зараз</button></li>`).join('');
   modal({ title: 'Запуск симуляції', cls: 'simlaunch', html: `<p>Усі 9 етапів пройдено. Після запуску піде час: кожен тиждень гра рахуватиме клієнтів, гроші й події, а ви ухвалюватимете рішення.</p>

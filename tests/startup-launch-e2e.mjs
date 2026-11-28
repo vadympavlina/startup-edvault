@@ -50,6 +50,23 @@ await step('запуск: тижні стартують, кнопка тижня
   assert.ok((await S()).week > w0);
 });
 
+await step('збереження зі старої версії (без позначки режиму, тиждень 5): без кнопки тижня, є «Продовжити симуляцію», тиждень зберігається', async () => {
+  const text = await p.evaluate(async () => { const { serializeGame } = await import('/startupsim/js/file.js'), S = window.Startup.sim; delete S.s.flags.simStarted; S.s.week = 5; return serializeGame(S, { view: 'dash' }); });
+  const q = await ctx.newPage(); q.setDefaultTimeout(10000);
+  await q.goto(server.url + '/'); await q.waitForSelector('#main .ws');
+  // відкриваємо файл так, як це робить учень: меню «···» → «Відкрити гру з файлу» → «Продовжити гру»
+  await q.click('[data-act="more"]');
+  const [chooser] = await Promise.all([q.waitForEvent('filechooser'), q.click('[data-act="openFile"]')]);
+  await chooser.setFiles({ name: 'стара-гра.edvault', mimeType: 'text/plain', buffer: Buffer.from(text) });
+  await q.waitForSelector('.md.file-open'); await q.click('[data-f="play"]'); await q.waitForTimeout(300);
+  assert.equal(await q.locator('[data-act="endWeek"]').count(), 0, 'кнопки тижня немає');
+  assert.equal(await q.locator('.end-week.prep').count(), 1);
+  await q.click('[data-act="startSim"]'); await q.waitForSelector('.md.simlaunch'); await q.click('[data-launch]'); await q.waitForSelector('.md.howto'); await q.click('.md.howto [data-md-close]');
+  assert.equal(await q.locator('[data-act="endWeek"]').count(), 1);
+  assert.equal(await q.evaluate(() => window.Startup.sim.s.week), 5, 'тиждень не збився');
+  await q.close();
+});
+
 assert.deepEqual(errors, [], 'помилки консолі: ' + errors.join('; '));
 await browser.close(); server.close();
 console.log('готово');
